@@ -4,7 +4,7 @@ import { ATTRIBUTE_IDS } from '../core/human';
 import { develop } from '../core/development';
 import { WILDLIFE_SPECIES } from '../ecology/species';
 import {
-  defeatXp, floorLevel, foundationDemand, foundationXp, gapFactor, isLeveledRank, MAX_LEVEL, peakXp, PRACTICE_XP_PER_HOUR,
+  defeatXp, floorLevel, foundationDemand, foundationXp, gapFactor, isLeveledRank, LEVELED_RANKS, MAX_LEVEL, peakXp, PRACTICE_XP_PER_HOUR,
   rankIndex, rankOfLevel, standing, VESSELS, xpToNext, type LeveledRank, type LevelStanding,
 } from './levels';
 import { abilityLevel, creatureThreat, personThreat } from './threat';
@@ -212,9 +212,9 @@ function creditDefeat(w: World, owner: Person | Creature, tb: Body, ev: WorldEve
   // The encounter is over either way; a recovered body starts a new one.
   const struck = { ...t.struck }; delete tb.encounter;
   if (total <= 0) return;
-  // What the victim actually presented while striking, else what it stood ready with.
-  const threat = person ? (t.presented || personThreat(w, person, tb).level) : creatureThreat(w, animal!, tb).level;
-  const victimLevel = person ? Math.max(earnedLevel(person), threat) : threat;
+  // Capability is truth: an opponent is worth the threat it actually presented while striking,
+  // else what it stood ready with; never its rank label or its own earned level.
+  const victimLevel = person ? (t.presented || personThreat(w, person, tb).level) : creatureThreat(w, animal!, tb).level;
   const fights = !!person || creatureThreat(w, animal!, tb).offense > 0;
   for (const [id, d] of dealt) {
     const q = w.person(id);
@@ -252,8 +252,11 @@ export function recordPracticeExperience(w: World, p: Person, sourceEventId: str
   l.tally.practiceSeconds += effectiveSeconds;
   creditExperience(w, p, { kind: 'practice', xp: effectiveSeconds / 3600 * PRACTICE_XP_PER_HOUR, eventId: sourceEventId });
 }
-/** A newly reached integer foundation value from core/development.ts. Each value pays once. */
+/** A newly reached integer foundation value from core/development.ts. Each value pays once, and
+ * only when the development has a canonical cause (a fight, credited practice, a meditation, an
+ * understanding): ordinary labour and growing up make a body stronger without levelling it. */
 export function recordFoundationExperience(w: World, p: Person, id: AttributeId, value: number, cause?: string): void {
+  if (!cause || !w.event(cause)) { if (p.experience) p.experience.foundations[id] = Math.max(p.experience.foundations[id] ?? 0, value); return; }
   const opened = !p.experience, l = experienceLedger(p); if (!l) return;
   if (opened) l.foundations[id] = value - 1;
   if (value <= (l.foundations[id] ?? value)) return;
@@ -323,7 +326,8 @@ export function experienceSummary(w: World, p: Person) {
     stage: p.ontology.stage, leveled: !!s, label: s?.label ?? p.ontology.stage, level: s?.level ?? null, sub: s?.sub ?? null,
     xpIntoLevel: Math.floor(s?.xpIntoLevel ?? 0), xpForLevel: s?.xpForLevel ?? 0, rankXp: Math.floor(s?.rankXp ?? 0), peakXp: s?.peakXp ?? 0, peak: !!s?.peak,
     lifetimeXp: Math.floor(p.experience?.lifetimeXp ?? 0), overflowXp: Math.floor(p.experience?.overflowXp ?? 0),
-    defeats: p.experience?.tally.defeats ?? 0, feats: (p.experience?.feats ?? []).filter(f => w.event(f.eventId)).map(f => ({ level: f.level, rank: rankOfLevel(f.level) })),
+    // Aggregate counts only: the levels of individual defeated people are not projected.
+    defeats: p.experience?.tally.defeats ?? 0, bandVictories: Object.fromEntries(LEVELED_RANKS.slice(1).map(r => [r, featsAtLeast(w, p, floorLevel(r)).length])),
     recent: (l?.receipts ?? []).slice(-8).reverse().map(r => ({ kind: r.kind, xp: Math.round(r.xp) })),
     achievements: Object.entries(p.experience?.achievements ?? {}).sort((a, b) => a[1].tick - b[1].tick || a[0].localeCompare(b[0]))
       .map(([id, a]) => ({ id, title: achievementInfo(id)?.title ?? id, xp: a.xp })),

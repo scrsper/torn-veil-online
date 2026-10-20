@@ -28,6 +28,28 @@ import { RealmSession } from '../src/sim/world/realms/session';
 import { applyTowerCommand } from '../src/server/canonicalTower';
 import { currentTowerFloor, observeCanonicalTower } from '../src/sim/world/interiors/tower';
 
+/** Disclosed fixture: an opponent whose capability (not label) reaches a band. Iron: a sword and a
+ * harness. Gold: an authored champion body (200 HP), a learned form, a Gold-grade focus and full
+ * armor, all within save bounds. Victims are valued by threat, so a relabel would not count. */
+function champion(tw: TestWorld, name: string, pos: ReturnType<typeof v>, band: 'iron' | 'gold'): Person {
+  const o = addPerson(tw, name, 'traveler', pos, { controlled: true }), b = tw.world.primaryBody(o.id)!;
+  if (band === 'iron') {
+    const sword = makeItem(tw.world, 'sword', `${name} sword`, { owner: o.id, holder: o.id });
+    expect(changeEquipment(tw.world, o, sword.id, true, b.id)).toBe('accepted');
+  } else {
+    b.maxHealth = b.health = 200;
+    const book = makeItem(tw.world, 'book', `${name} manual`, { owner: o.id, holder: o.id });
+    book.arcaneSource = { version: 1, abilityId: 'book-ember', kind: 'book' };
+    expect(learnArcaneSource(tw.world, o, b.id, book.id)).toBe('accepted');
+  }
+  const armor = makeItem(tw.world, 'armor', `${name} harness`, { owner: o.id, holder: o.id });
+  armor.physicalArmor = band === 'iron' ? { version: 1, coverage: ['torso', 'arm'], absorption: 4 } : { version: 1, coverage: ['torso', 'arm', 'leg', 'head'], absorption: 50 };
+  if (band === 'gold') armor.arcaneFocus = { version: 1, amplitude: 20, aperture: 12, reserve: 320 };
+  expect(changeEquipment(tw.world, o, armor.id, true, b.id)).toBe('accepted');
+  expect(personThreat(tw.world, o, b).level).toBeGreaterThanOrEqual(band === 'iron' ? 11 : 41);
+  return o;
+}
+
 /** An agreed, consented fight that ends with `a` downing `b`: the ordinary opposed defeat. */
 function opposedDefeat(tw: TestWorld, a: Person, b: Person, id: string, damage = 100) {
   const origin = tw.world.emit('tower_entered', { actor: a.id });
@@ -128,11 +150,16 @@ describe('earned experience from canonical deeds (shared by players and NPCs)', 
     const credit = recordCapabilityPractice(tw.world, p, { skill: 'crafting', sourceEventId: work.id });
     expect(work.data.experienceCredits[p.id]).toBeCloseTo(credit.effectiveSeconds / 3600 * 300);
     expect(creditExperience(tw.world, p, { kind: 'practice', xp: 999, eventId: work.id })).toBe(0);
-    const start = p.attributes.strength, receipts = p.experience!.receipts.length;
-    develop(tw.world, p, { weights: { strength: 1 }, seconds: 8 * 3600, intensity: 1, challenge: 15 });
+    const start = p.attributes.strength, receipts = p.experience!.receipts.length, drill = tw.world.emit('work_shift', { actor: p.id });
+    develop(tw.world, p, { weights: { strength: 1 }, seconds: 8 * 3600, intensity: 1, challenge: 15, causeEventId: drill.id });
     const gained = p.attributes.strength - start; expect(gained).toBeGreaterThan(0);
     const paid = p.experience!.receipts.slice(receipts).filter(r => r.kind === 'foundation');
     expect(paid.map(r => r.key)).toEqual(Array.from({ length: gained }, (_, i) => `foundation:strength:${start + i + 1}`));
+    // Uncaused development (ordinary labour, growing up) strengthens without levelling.
+    const lifted = p.attributes.endurance, before = p.experience!.receipts.length; tw.world.clock.worldSeconds += 86400;
+    develop(tw.world, p, { weights: { endurance: 1 }, seconds: 8 * 3600, intensity: 1, challenge: 15 });
+    expect(p.attributes.endurance).toBeGreaterThan(lifted);
+    expect(p.experience!.receipts.length).toBe(before); expect(p.experience!.foundations.endurance).toBe(p.attributes.endurance);
   });
   it('stops at peak: later experience overflows and only a breakthrough leads on', () => {
     const tw = createTestWorld(4106), p = addPerson(tw, 'Peaked', 'villager', v(10, 1, 10));
@@ -176,10 +203,10 @@ describe('rank vessels and the ladder to Diamond', () => {
     const blocked = assessRankBreakthrough(tw.world, p);
     expect(blocked.next).toBe('Bronze'); expect(blocked.eligible).toBe(false);
     expect(blocked.reasons.join(' | ')).toMatch(/peak Iron is required.*0\/8 opposed victories.*8 hours/);
-    // Eight real opposed victories over Iron-ranked opponents (earned level 11) are the feats.
+    // Eight real opposed victories over opponents whose capability is Iron-band are the feats.
     for (let n = 0; n < EMBODIED_TRIALS.Bronze.feats; n++) {
-      const o = addPerson(tw, `Iron rival ${n}`, 'villager', v(14, 1, 12)); o.ontology = { stage: 'Iron' };
-      opposedDefeat(tw, p, o, `bronze-feat:${n}`); tw.world.primaryBody(o.id)!.pos = v(30, 1, 30);
+      const o = champion(tw, `Iron rival ${n}`, v(14, 1, 12), 'iron');
+      opposedDefeat(tw, p, o, `bronze-feat:${n}`, 1000); tw.world.primaryBody(o.id)!.pos = v(30, 1, 30);
     }
     expect(p.experience!.feats.filter(f => f.level >= floorLevel('Iron'))).toHaveLength(8);
     // Disclosed fixture for what the report shows current content cannot yet supply quickly:
@@ -208,7 +235,7 @@ describe('rank vessels and the ladder to Diamond', () => {
   }, 30000);
   it('integrates source Diamond only from peak Gold with Gold-band victories, and saves its receipts', () => {
     // Mechanical threshold fixture (as tower-growth's Gold fixture): real sources, casts, consented
-    // hits and integrations. Disclosed fixtures: a full Gold track, and Gold-ranked opponents.
+    // hits and integrations. Disclosed fixtures: a full Gold track, and Gold-band champions.
     const tw = createTestWorld(4109); tw.world.clock.timeScale = 1;
     const p = addPerson(tw, 'Ascendant', 'traveler', v(10, 1, 10), { controlled: true }), b = tw.world.primaryBody(p.id)!;
     const source = (id: string, learn = true) => {
@@ -223,8 +250,8 @@ describe('rank vessels and the ladder to Diamond', () => {
     const diamond = TRANSFORMATIONS[4], gold = TRANSFORMATIONS[3];
     let milestone = 0;
     for (let n = 0; n < diamond.victories; n++) {
-      const t = addPerson(tw, `Opponent ${n}`, 'traveler', v(14, 1, 10), { controlled: true }), tb = tw.world.primaryBody(t.id)!;
-      if (n >= diamond.victories - 24) t.ontology = { stage: 'Gold' };
+      const t = n >= diamond.victories - 24 ? champion(tw, `Champion ${n}`, v(14, 1, 10), 'gold') : addPerson(tw, `Opponent ${n}`, 'traveler', v(14, 1, 10), { controlled: true });
+      const tb = tw.world.primaryBody(t.id)!;
       const origin = tw.world.emit('tower_entered', { actor: p.id }), trial = `diamond:${n}`;
       agreeCombatTrial(tw.world, trial, [[p], [t]], 'injure', origin.id);
       if (n < forms.length * 3) {
@@ -351,7 +378,7 @@ describe('review regressions: encounters, pricing and saves', () => {
     const [vb, qb] = [v1, q].map(x => tw.world.primaryBody(x.id)!);
     tw.sim.applyHit(v1, vb, qb, 5, 'injure'); tw.sim.applyHit(q, qb, vb, 40, 'injure');
     beginSurrender(tw.world, v1, q.id, 'outmatched');
-    const yielded = tw.world.events.at(-1)!.type === 'entity_surrendered' ? tw.world.events.at(-1)! : tw.world.events.findLast(e => e.type === 'entity_surrendered')!;
+    const yielded = [...tw.world.events].reverse().find(e => e.type === 'entity_surrendered')!;
     expect(yielded.data.experienceCredits[q.id]).toBeCloseTo(defeatXp(1, 1));
     expect(q.experience!.defeated).toContain(v1.id);
     const before = q.experience!.rankXp, kill = tw.sim.applyHit(q, qb, vb, 100, 'kill')!;
@@ -396,8 +423,8 @@ describe('review regressions: encounters, pricing and saves', () => {
     // Then the embodied Bronze trial (fixture foundations, track and practice, as in the Bronze test).
     initializeNearIronFixture(tw.world, p); p.ontology = { stage: 'Iron', breakthroughEventId: p.vessel!.eventId };
     for (let n = 0; n < EMBODIED_TRIALS.Bronze.feats; n++) {
-      const o = addPerson(tw, `Iron foe ${n}`, 'villager', v(14, 1, 12)); o.ontology = { stage: 'Iron' };
-      opposedDefeat(tw, p, o, `scar-feat:${n}`); tw.world.primaryBody(o.id)!.pos = v(30, 1, 30);
+      const o = champion(tw, `Iron foe ${n}`, v(14, 1, 12), 'iron');
+      opposedDefeat(tw, p, o, `scar-feat:${n}`, 1000); tw.world.primaryBody(o.id)!.pos = v(30, 1, 30);
     }
     const l = p.experience!; l.lifetimeXp += peakXp('Iron') - l.rankXp; l.rankXp = peakXp('Iron');
     for (const id of Object.keys(p.attributes) as (keyof typeof p.attributes)[]) p.attributes[id] = 18;
@@ -407,9 +434,17 @@ describe('review regressions: encounters, pricing and saves', () => {
     expect(arcaneCapacity(p)).toEqual({ amplitude: 1.6, aperture: 1.2, reserve: 120 });
     expect(deserialize(serialize(tw.world))).not.toBeNull();
   }, 60000);
+  it('values an opponent by capability, never by its rank label', () => {
+    const tw = createTestWorld(4119), a = addPerson(tw, 'Victor', 'villager', v(10, 1, 10)), labelled = addPerson(tw, 'Labelled', 'villager', v(11, 1, 10));
+    labelled.ontology = { stage: 'Gold' };
+    const e = opposedDefeat(tw, a, labelled, 'label:1');
+    expect(e.data.experienceCredits[a.id]).toBeCloseTo(defeatXp(1, 1));
+    expect(a.experience!.feats).toEqual([]); expect(a.experience!.achievements['rank-breaker']).toBeUndefined();
+    expect(experienceSummary(tw.world, a).bandVictories).toEqual({ Iron: 0, Bronze: 0, Silver: 0, Gold: 0, Diamond: 0 });
+  });
   it('rejects duplicate feats, foundations beyond the ceiling and a forged embodied receipt', () => {
     const tw = createTestWorld(4118), a = addPerson(tw, 'Owner', 'villager', v(10, 1, 10));
-    for (let n = 0; n < 2; n++) { const o = addPerson(tw, `Iron ${n}`, 'villager', v(12, 1, 10)); o.ontology = { stage: 'Iron' }; opposedDefeat(tw, a, o, `dup:${n}`); }
+    for (let n = 0; n < 2; n++) { const o = champion(tw, `Iron ${n}`, v(12, 1, 10 + n), 'iron'); opposedDefeat(tw, a, o, `dup:${n}`, 1000); }
     const raw = serialize(tw.world); expect(deserialize(raw)).not.toBeNull();
     const tamper = (f: (data: any) => void) => { const d = JSON.parse(raw); f(d); return deserialize(JSON.stringify(d)); };
     expect(tamper(d => { const q = d.persons.find((x: any) => x.id === a.id); q.experience.feats.push({ ...q.experience.feats[0] }); })).toBeNull();

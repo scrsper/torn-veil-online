@@ -156,9 +156,9 @@ export function ironFoundationsFor(id: PracticedSkillId): AttributeId[] {
   const strong = ranked.filter(([, w]) => w >= 0.5).map(([id]) => id);
   return strong.length >= 2 ? strong : ranked.slice(0, 2).map(([id]) => id);
 }
-export function developThroughPractice(world: World, p: Person, id: PracticedSkillId, amount: number, instruction = 1, challenge?: number): void {
+export function developThroughPractice(world: World, p: Person, id: PracticedSkillId, amount: number, instruction = 1, challenge?: number, causeEventId?: string): void {
   const weights = PRACTICE[id]; if (!weights) return;
-  develop(world, p, { weights, seconds: amount * 60, intensity: 0.7, instruction, challenge: challenge ?? PRACTICE_CHALLENGE[id] ?? 11 });
+  develop(world, p, { weights, seconds: amount * 60, intensity: 0.7, instruction, challenge: challenge ?? PRACTICE_CHALLENGE[id] ?? 11, causeEventId });
 }
 
 /**
