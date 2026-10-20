@@ -14,6 +14,7 @@ import { RealmGrid } from '../realms/grid';
 import { attachInteriorGrid, FoldedRealmGrid } from './grid';
 import type { CanonicalTowerFloor, CanonicalTowerRun } from './towerTypes';
 import {focusedGuardianStations} from '../assets/focusedRuntime';
+import { recordTowerExperience } from '../../progression/experience';
 
 const distance = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 export function currentTowerFloor(w: World): CanonicalTowerFloor | undefined { return w.canonicalTower?.floors.find(f => f.floor === w.canonicalTower!.floor); }
@@ -153,6 +154,7 @@ export function observeCanonicalTower(w: World): void {
     data: { runId: run.id, floor: f.floor, seconds: w.physicalTime - f.enteredAt, rewardContainerId: f.rewardContainerId }, significance: .65,
     summary: `${player.name} completed floor ${f.floor} through canonical combat` });
   f.clearEventId = event.id;
+  recordTowerExperience(w, player, event, f.enemyBodyIds);
   const reserve = w.container(f.rewardContainerId)!; reserve.ownerId = run.personId;
   for (const id of f.rewardItemIds) { const item = w.item(id)!; provenance(w, item, event.id, item.ownerId, run.personId, 'earned Tower trial award'); item.ownerId = run.personId; }
   // The accepted trial has a real terminal outcome. This does not globally alter the

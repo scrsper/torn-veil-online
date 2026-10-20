@@ -46,7 +46,7 @@ describe('canonical physical contact response', () => {
     const { s, b } = fixture(); s.sim.applyHit(s.person, s.body, b, 7);
     const raw = JSON.parse(s.save()), saved = raw.bodies.find((x: any) => x.id === b.id);
     saved.recoil.offset.x = 999; expect(deserialize(JSON.stringify(raw))).toBeNull();
-    const legacy = JSON.parse(s.save()); legacy.version = 28; for (const body of legacy.bodies) delete body.recoil;
+    const legacy = JSON.parse(s.save()); legacy.version = 28; for (const body of legacy.bodies) { delete body.recoil; delete body.encounter; }
     expect(deserialize(JSON.stringify(legacy))).not.toBeNull();
   });
   it('does not displace a fully absorbed contact', () => {

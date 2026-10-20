@@ -1,3 +1,4 @@
+import { noteCreatureStrike } from '../progression/experience';
 import type { Body, Creature, Person, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { hurtVolumes, strikePoint, sweepSphereContact } from '../physical/combatGeometry';
@@ -159,6 +160,7 @@ export function creatureBlow(world: World, animal: Creature, ab: Body, tb: Body,
   const injury = injuryFromImpact(tb, impact, world.rng.next());
   if (injury) applyInjury(tb, injury);
   tb.health -= impact; tb.lastHitAt = world.physicalTime; tb.hitSeq++;
+  noteCreatureStrike(world, animal, ab, tb);
   const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z, len = Math.hypot(dx, dz) || 1;
   tb.vel.x += dx / len * 5; tb.vel.z += dz / len * 5;
   if (tb.combatAction) stopCombatAction(world, tb, 'contact');

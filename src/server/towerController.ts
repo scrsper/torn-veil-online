@@ -4,6 +4,8 @@ import { currentTowerFloor, observeCanonicalTower } from '../sim/world/interiors
 import { FoldedRealmGrid } from '../sim/world/interiors/grid';
 import { ARCANE_DEFINITIONS } from '../sim/physical/arcana/definitions';
 import { arcaneProgress, arcaneCapacity } from '../sim/physical/arcana/growth';
+import { recentAnnouncements } from '../sim/progression/experience';
+import { observedThreat } from '../sim/progression/threat';
 import { towerResidency } from '../sim/world/interiors/residency';
 
 /** One controller on the existing simulation. No arena fixture, free regeneration,
@@ -32,10 +34,13 @@ export class TowerController {
         return body && cast && cast.completeAt + .3 >= w.physicalTime ? [{ ...cast, origin: { ...body.pos } }] : [];
       }),
       residency: towerResidency(w),
+      // Only what the climber can see: species and visibly worn or wielded equipment.
+      observedThreat: Object.fromEntries(snapshot.bodies.filter(v => v.bodyId !== b.id).flatMap(v => {
+        const body = w.body(v.bodyId), t = body && observedThreat(w, body); return t ? [[v.bodyId, { level: t.level, grade: t.grade }]] : []; })),
       tower: { id: run.id, revision: run.revision, floor: f.floor, status: run.status, clear: !!f.clearEventId,
         defeated: f.defeats.length, opponents: f.enemyBodyIds.length, retiredBodyIds: f.defeats.map(d => d.bodyId), start: plan.start, exit: plan.exit },
       own: { id: p.id, bodyId: b.id, name: p.name, health: b.health, maxHealth: b.maxHealth, rank: p.ontology.stage,
-        growth,
+        growth, announcements: recentAnnouncements(w, p),
         capacity: arcaneCapacity(p, w, b),
         mana: b.arcana?.mana ?? 100, fatigue: p.physiology.fatigue, food: p.physiology.energy, water: p.physiology.hydration,
         breath: 1 - (b.exertion?.load ?? 0), cast: b.arcana?.cast ?? null,
