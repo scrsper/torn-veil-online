@@ -1,17 +1,17 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
 
 describe('ordinary ground stop evidence',()=>{
-  function fixture(accepted=true){
+  function fixture(accepted=true,brake=true){
     let now=0, clicked=false;
     vi.spyOn(Date,'now').mockImplementation(()=>now);
     const response={url:()=> 'http://127.0.0.1:7533/realms/universe/command',ok:()=>accepted,status:()=>accepted?200:409,
-      request:()=>({method:()=> 'POST',postDataJSON:()=>({seq:7,command:{type:'input',input:{throttle:0,yaw:0,pitch:0,strafe:0,lift:0,brake:true}}})}),
+      request:()=>({method:()=> 'POST',postDataJSON:()=>({seq:7,command:{type:'input',input:{throttle:0,yaw:0,pitch:0,strafe:0,lift:0,brake}}})}),
       json:async()=>({ok:accepted,snapshot:{lastSeq:7,revision:8}})};
-    const page={keyboard:{up:async()=>{expect(clicked,'UI Brake must clear game input before keyboard-up round trips').toBe(true);}},locator:()=>({click:async()=>{clicked=true;}}),
+    const page={on:()=>{},keyboard:{up:async()=>{expect(clicked,'UI Brake must clear game input before keyboard-up round trips').toBe(true);}},locator:()=>({click:async()=>{clicked=true;}}),
       waitForResponse:async(predicate:(r:typeof response)=>boolean)=>{expect(predicate(response)).toBe(true);return response;},
       waitForTimeout:async(ms:number)=>{now+=ms;}};
     const read=async()=>({lastSeq:clicked&&now>=400?7:6,revision:Math.floor(now/100),
@@ -33,6 +33,20 @@ describe('ordinary ground stop evidence',()=>{
     await expect(f.qa.stopGround('refused')).rejects.toThrow('Host did not accept');
     expect(f.report.contactQA.stops[0].settled).toBeUndefined();
   });
+  it('accepts and records a newer coalesced brake-false neutral response with the same stop evidence',async()=>{
+    const f=fixture(true,false);await f.qa.stopGround('coalesced');
+    expect(f.time()).toBeGreaterThanOrEqual(700);
+    expect(f.report.contactQA.stops[0].ack.brake).toBe(false);
+  });
+});
+
+it('requires neutral axes and a sequence newer than the latest actually sent active input',()=>{
+  const command={type:'input',input:{throttle:0,yaw:0,pitch:0,strafe:0,lift:0,brake:false}};
+  expect(isNeutralGroundRequest({seq:13,command},12)).toBe(true);
+  expect(isNeutralGroundRequest({seq:12,command},12)).toBe(false);
+  expect(isNeutralGroundRequest({seq:11,command},12)).toBe(false);
+  for(const key of ['throttle','yaw','pitch','strafe','lift'])expect(isNeutralGroundRequest({seq:13,command:{...command,input:{...command.input,[key]:.01}}},12)).toBe(false);
+  expect(isNeutralGroundRequest({seq:13,command:{...command,input:{...command.input,brake:undefined}}},12)).toBe(false);
 });
 
 it('recognizes the recorded180-to30degree turn progress without relaxing linear stall or route bounds',()=>{

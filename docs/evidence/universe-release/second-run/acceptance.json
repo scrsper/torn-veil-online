@@ -1,0 +1,1838 @@
+{
+  "revision": "24477521b70f96533e554c55e092c65e663016eb",
+  "mode": "journey",
+  "started": "2026-10-20T20:05:44.319Z",
+  "note": "Ordinary UI quality/recovery acceptance against a parent-created isolated capability fixture. No client capability grant, observer teleport, save edit or direct movement injection. This is not a progression-earned character claim.",
+  "checks": [
+    "Controlled town character is rendered",
+    "Town and spherical preview share canonical identity and items",
+    "Inactive page projects actual town before entry",
+    "UAL motion pack is loaded and hash verified",
+    "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+    "Idle names its actual source clip and destination rig",
+    "Isolated fixture is admitted for interplanetary personal flight",
+    "Explore preserves the actual current preview position",
+    "Mapped settlement traversal retains canonical identity",
+    "Opening ground controls produces no rejected travel command",
+    "Help suppresses G/F/C travel commands",
+    "Actual wheel input zooms the rendered camera toward the character",
+    "Ground view hides the world marker over the character",
+    "Both projected foot landmarks and a boot-sized margin clear the viewport and HUD",
+    "Ordinary drag completes a measured 360-degree free orbit",
+    "Ground orbit and zoom: route state unchanged",
+    "Ground orbit and zoom: canonical heading unchanged",
+    "Recenter places the camera behind the transported character heading",
+    "Reversing wheel input restores the preferred distance",
+    "Contact route uses the documented 1600 m home chart",
+    "Home surface admits canonical return",
+    "Controlled town character is rendered",
+    "Fully rendered town retains original person, body and inventory"
+  ],
+  "failure": "Error: Ordinary ground stop received no neutral-command response: TimeoutError: page.waitForResponse: Timeout 4500ms exceeded while waiting for event \"response\"",
+  "errors": [],
+  "http": [],
+  "route": [
+    {
+      "label": "flat-forward",
+      "target": {
+        "x": 11312.5,
+        "z": 3128
+      },
+      "start": {
+        "x": 11312.5,
+        "y": 1.0624999999997726,
+        "z": 3113.6999999999002
+      },
+      "observations": [
+        {
+          "elapsed": 43,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0,
+            "y": -0.9468786772162775,
+            "z": 0.32159099899274696
+          },
+          "headingError": 3.141592653589793,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 1029,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.7242871743701426,
+            "y": -0.6528713641360463,
+            "z": 0.22173648985688582
+          },
+          "headingError": 2.331592653589793,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 2064,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.998789743470524,
+            "y": 0.0465711122345308,
+            "z": -0.015817074423659476
+          },
+          "headingError": 1.521592653589793,
+          "mode": "surface"
+        }
+      ],
+      "turns": [
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.81,
+          "estimatedTailMs": 114
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.81,
+          "estimatedTailMs": 159.6
+        }
+      ],
+      "elapsed": 6954
+    }
+  ],
+  "stops": [
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 917,
+        "lastSeq": 1
+      },
+      "observations": [
+        {
+          "elapsed": 282,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 929,
+          "lastSeq": 6,
+          "revision": 936
+        },
+        {
+          "elapsed": 401,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 931,
+          "lastSeq": 7,
+          "revision": 939
+        },
+        {
+          "elapsed": 529,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 934,
+          "lastSeq": 7,
+          "revision": 942
+        },
+        {
+          "elapsed": 648,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 935,
+          "lastSeq": 7,
+          "revision": 943
+        }
+      ],
+      "ack": {
+        "seq": 6,
+        "status": 200,
+        "ok": true,
+        "revision": 936,
+        "lastSeq": 6
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 649,
+        "ticks": 4,
+        "lastSeq": 7
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 937,
+        "lastSeq": 7
+      },
+      "observations": [
+        {
+          "elapsed": 310,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 949,
+          "lastSeq": 13,
+          "revision": 963
+        },
+        {
+          "elapsed": 443,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 951,
+          "lastSeq": 14,
+          "revision": 966
+        },
+        {
+          "elapsed": 566,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 955,
+          "lastSeq": 14,
+          "revision": 970
+        },
+        {
+          "elapsed": 686,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 957,
+          "lastSeq": 14,
+          "revision": 972
+        }
+      ],
+      "ack": {
+        "seq": 13,
+        "status": 200,
+        "ok": true,
+        "revision": 963,
+        "lastSeq": 13
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 686,
+        "ticks": 4,
+        "lastSeq": 14
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 957,
+        "lastSeq": 14
+      },
+      "observations": []
+    },
+    {
+      "label": "route-failure",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 1056,
+        "lastSeq": 20
+      },
+      "observations": [
+        {
+          "elapsed": 392,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1063,
+          "lastSeq": 21,
+          "revision": 1085
+        },
+        {
+          "elapsed": 508,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1066,
+          "lastSeq": 21,
+          "revision": 1088
+        },
+        {
+          "elapsed": 649,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1070,
+          "lastSeq": 21,
+          "revision": 1092
+        },
+        {
+          "elapsed": 787,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1072,
+          "lastSeq": 21,
+          "revision": 1094
+        }
+      ],
+      "ack": {
+        "seq": 21,
+        "status": 200,
+        "ok": true,
+        "revision": 1085,
+        "lastSeq": 21
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 787,
+        "ticks": 4,
+        "lastSeq": 21
+      }
+    }
+  ],
+  "findings": [],
+  "limits": [],
+  "contactSummaries": [
+    {
+      "name": "ground-route",
+      "file": "contact-ground-route.json",
+      "summary": {
+        "frames": 1292,
+        "duration": 24884.79999998212,
+        "activeFrames": 1292,
+        "airborneActiveFrames": 0,
+        "patchReasons": {
+          "ready": 1
+        },
+        "patchCount": 1,
+        "maximumPatchTriangles": 260,
+        "airborneActiveMs": 0,
+        "missingFrames": 0,
+        "bounded": false,
+        "feet": {
+          "l": {
+            "eligibleFrames": 982,
+            "stationaryFrames": 856,
+            "stationaryP95AbsMinGap": 1.3957644060160532E-05,
+            "minimumGap": -2.3197566901960283E-05,
+            "maximumGap": -3.052259367276179E-06,
+            "longestPenetrationMs": 0,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "l:1",
+                "reference": "u1:20261017:s0:p0",
+                "start": -4.600000017882849,
+                "end": 17412.399999982117,
+                "stage": "ground-route",
+                "maxDrift": 4.047125552350603E-07,
+                "frames": 915,
+                "duration": 17417
+              },
+              {
+                "key": "l:4",
+                "reference": "u1:20261017:s0:p0",
+                "start": 17912.399999982117,
+                "end": 18530.499999982116,
+                "stage": "flat-forward",
+                "maxDrift": 4.526259873826406E-06,
+                "frames": 33,
+                "duration": 618.0999999999985
+              },
+              {
+                "key": "l:5",
+                "reference": "u1:20261017:s0:p0",
+                "start": 18780.499999982116,
+                "end": 19412.399999982117,
+                "stage": "flat-forward",
+                "maxDrift": 3.335366460976632E-06,
+                "frames": 34,
+                "duration": 631.9000000000015
+              }
+            ],
+            "maximumSettledDrift": 4.526259873826406E-06,
+            "measuredVertexCounts": [
+              12
+            ]
+          },
+          "r": {
+            "eligibleFrames": 954,
+            "stationaryFrames": 856,
+            "stationaryP95AbsMinGap": 2.5930782809348238E-05,
+            "minimumGap": -0.0002119339082304028,
+            "maximumGap": 0.00038143102586407645,
+            "longestPenetrationMs": 0,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "r:2",
+                "reference": "u1:20261017:s0:p0",
+                "start": -4.600000017882849,
+                "end": 17599.899999982117,
+                "stage": "ground-route",
+                "maxDrift": 8.62329380041997E-05,
+                "frames": 925,
+                "duration": 17604.5
+              },
+              {
+                "key": "r:3",
+                "reference": "u1:20261017:s0:p0",
+                "start": 17877.59999998212,
+                "end": 18412.499999982116,
+                "stage": "flat-forward",
+                "maxDrift": 0.00018099486378750566,
+                "frames": 29,
+                "duration": 534.8999999999942
+              }
+            ],
+            "maximumSettledDrift": 0.00018099486378750566,
+            "measuredVertexCounts": [
+              12
+            ]
+          }
+        },
+        "stages": {
+          "ground-route": {
+            "l": {
+              "frames": 42,
+              "eligibleFrames": 42,
+              "maximumWindowMs": 777.5999999999985,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 42,
+              "eligibleFrames": 42,
+              "maximumWindowMs": 777.5999999999985,
+              "reasons": {}
+            }
+          },
+          "flat-idle": {
+            "l": {
+              "frames": 856,
+              "eligibleFrames": 856,
+              "maximumWindowMs": 16285.200000000004,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 856,
+              "eligibleFrames": 856,
+              "maximumWindowMs": 16285.200000000004,
+              "reasons": {}
+            }
+          },
+          "flat-forward": {
+            "l": {
+              "frames": 394,
+              "eligibleFrames": 84,
+              "maximumWindowMs": 631.9000000000015,
+              "reasons": {
+                "no-stable-support": 282,
+                "unlocked": 9,
+                "weight-below-.98": 9,
+                "releasing": 10
+              }
+            },
+            "r": {
+              "frames": 394,
+              "eligibleFrames": 56,
+              "maximumWindowMs": 534.8999999999942,
+              "reasons": {
+                "releasing": 4,
+                "unlocked": 5,
+                "weight-below-.98": 4,
+                "no-stable-support": 325
+              }
+            }
+          }
+        },
+        "independent": {
+          "samples": 3120,
+          "maximumError": 1.2504754176578814E-13,
+          "mismatches": []
+        }
+      }
+    }
+  ],
+  "endUniverse": {
+    "state": {
+      "atlasRevision": 1,
+      "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+      "tick": 1116,
+      "explorerId": "p_5",
+      "vesselId": "universe_1:vessel",
+      "systemIndex": 0,
+      "mode": "surface",
+      "position": {
+        "x": 0,
+        "y": 517.4600168167667,
+        "z": 1523.586971558316
+      },
+      "forward": {
+        "x": 0.5069068522480531,
+        "y": 0.8162102123831632,
+        "z": -0.2772117103323776
+      },
+      "up": {
+        "x": 0,
+        "y": 0.3215909989927469,
+        "z": 0.9468786772162774
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "landedPlanetId": "u1:20261017:s0:p0",
+      "landedVesselPosition": {
+        "x": -3.0784811375173877,
+        "y": 524.4641801324371,
+        "z": 1521.0980550469717
+      },
+      "targetPlanetId": "u1:20261017:s0:p0",
+      "cruise": false,
+      "landing": false,
+      "discoveries": [
+        {
+          "planetId": "u1:20261017:s0:p0",
+          "systemIndex": 0,
+          "tick": 0,
+          "explorerId": "p_5",
+          "method": "landed"
+        }
+      ],
+      "events": [],
+      "settlementRevision": 1
+    },
+    "status": {
+      "speed": 0,
+      "altitude": 2.9999999999995453,
+      "nearestPlanetId": "u1:20261017:s0:p0",
+      "canLand": false,
+      "canLaunch": true,
+      "message": "Surface exploration · vessel ready"
+    },
+    "system": {
+      "id": "u1:20261017:s0",
+      "index": 0,
+      "seed": 4060649947,
+      "name": "Cinderveil Expanse",
+      "planets": [
+        {
+          "id": "u1:20261017:s0:p0",
+          "index": 0,
+          "seed": 20261017,
+          "radius": 1600,
+          "center": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "kind": "temperate",
+          "name": "Cinderveil",
+          "atmosphere": 185,
+          "gravity": 9.81,
+          "palette": {
+            "land": "#5b7650",
+            "rock": "#777369",
+            "water": "#184e68",
+            "sky": "#84bad8"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p1",
+          "index": 1,
+          "seed": 3417329974,
+          "radius": 2374,
+          "center": {
+            "x": 16618.641806198448,
+            "y": 1595.3260650858283,
+            "z": -19174.616375932215
+          },
+          "kind": "glacial",
+          "name": "Thalehollow 2",
+          "atmosphere": 187,
+          "gravity": 5.54,
+          "palette": {
+            "land": "#d7e5e9",
+            "rock": "#7195a4",
+            "water": "#244c76",
+            "sky": "#a4c8e5"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p2",
+          "index": 2,
+          "seed": 1314885531,
+          "radius": 1571,
+          "center": {
+            "x": 778.6715281622598,
+            "y": -251.4495262876153,
+            "z": 28287.980624825654
+          },
+          "kind": "volcanic",
+          "name": "Vesperspire 3",
+          "atmosphere": 200,
+          "gravity": 6.55,
+          "palette": {
+            "land": "#4d4141",
+            "rock": "#7c4a3e",
+            "water": "#452e42",
+            "sky": "#bd715f"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p3",
+          "index": 3,
+          "seed": 2074974299,
+          "radius": 2220,
+          "center": {
+            "x": -21935.049110092543,
+            "y": -376.23503245413303,
+            "z": -22659.738179816293
+          },
+          "kind": "oceanic",
+          "name": "Vesperrest 4",
+          "atmosphere": 284,
+          "gravity": 7.84,
+          "palette": {
+            "land": "#6e9e78",
+            "rock": "#7e9290",
+            "water": "#136782",
+            "sky": "#92d4dc"
+          }
+        }
+      ]
+    },
+    "preview": null,
+    "revision": 1138,
+    "lastSeq": 21,
+    "campaign": {
+      "active": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "name": "Veil traveler",
+      "health": 80,
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canExplore": false,
+      "canReturn": true,
+      "flight": {
+        "canHover": true,
+        "canFly": true,
+        "canCrossSpace": true,
+        "spaceEnvelope": true,
+        "speed": 865.229705649791,
+        "acceleration": 342.42520799007684,
+        "maxAltitude": 107282.80382300226,
+        "estimatedEndurance": 135.99343564196337,
+        "manaPerSecond": 2.3530547521608307,
+        "effortPerSecond": 0.0005238104491766719,
+        "protectionStrength": 15.142633953752064,
+        "liftAcceleration": 248.40764331210192,
+        "manaAvailable": 320,
+        "routeManaRequired": 28.23665702592997,
+        "routeEffortRequired": 0.006285725390120062,
+        "routeSeconds": 12,
+        "capacity": {
+          "amplitude": 20,
+          "aperture": 12,
+          "reserve": 320
+        },
+        "estimatedBodyMassKg": 75,
+        "knownLoadKg": 3.5,
+        "unweighedStacks": 0,
+        "safeCarryMassKg": 35.25,
+        "gravityAbilityId": "book-well",
+        "wardAbilityId": "book-ward",
+        "reasons": [],
+        "causes": [
+          "e_1",
+          "e_3",
+          "e_5"
+        ]
+      },
+      "message": "Cinderveil docking link ready.",
+      "footSupport": {
+        "id": "u1:20261017:s0:p0:brass:11310:3111:1:458b82d71e3f616a",
+        "available": true,
+        "reason": "ready",
+        "origin": {
+          "x": 0,
+          "y": 516.2850544535281,
+          "z": 1520.7517031218206
+        },
+        "radius": 2.45,
+        "triangles": 260
+      }
+    },
+    "atlas": {
+      "context": "u1:20261017:s0:p0",
+      "queriedPlacements": 10,
+      "queries": 121,
+      "requested": 10,
+      "loaded": 10,
+      "instanced": 10,
+      "pending": 0,
+      "peakPending": 2,
+      "cachedModels": 10,
+      "cacheBytes": 2349492,
+      "cacheTriangles": 38598,
+      "renderedTriangles": 38598,
+      "instances": 10,
+      "budgetRejected": 0,
+      "requestedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "loadedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "instancedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "residentIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "visibilityBasis": "camera frustum; occlusion is not measured",
+      "visibleIds": [],
+      "failures": [],
+      "placements": [
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:30",
+          "assetId": "atlas:nature:tvn_flora_157",
+          "position": {
+            "x": -196.83184971873402,
+            "y": 539.6310284827531,
+            "z": 1499.78657389832
+          },
+          "up": {
+            "x": -0.1225586848056386,
+            "y": 0.3360049160014859,
+            "z": 0.9338522716155626
+          },
+          "yaw": 2.012929954406598,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:29",
+          "assetId": "atlas:nature:tvn_flora_092",
+          "position": {
+            "x": -196.86432761685603,
+            "y": 468.3886183784928,
+            "z": 1523.5256612294686
+          },
+          "up": {
+            "x": -0.12257962713403228,
+            "y": 0.29164705911780525,
+            "z": 0.9486391452599966
+          },
+          "yaw": 4.304748573599802,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:30",
+          "assetId": "atlas:nature:tvn_biome_081",
+          "position": {
+            "x": 204.93748941330466,
+            "y": 535.0667382752919,
+            "z": 1500.3133709410217
+          },
+          "up": {
+            "x": 0.12760740312160937,
+            "y": 0.333167333919858,
+            "z": 0.9341926344589176
+          },
+          "yaw": 6.265790370039204,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:31",
+          "assetId": "atlas:nature:tvn_biome_005",
+          "position": {
+            "x": 193.51295550241093,
+            "y": 590.4623584410405,
+            "z": 1480.926378763295
+          },
+          "up": {
+            "x": 0.12049374564284616,
+            "y": 0.36766024809529296,
+            "z": 0.9221210328538574
+          },
+          "yaw": 0.18250835941716964,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:31",
+          "assetId": "atlas:nature:tvn_flora_177",
+          "position": {
+            "x": -194.07612781537227,
+            "y": 592.8430749574334,
+            "z": 1479.9011943664368
+          },
+          "up": {
+            "x": -0.12084441333460291,
+            "y": 0.3691426369597966,
+            "z": 0.9214826864050042
+          },
+          "yaw": 4.790481541413313,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:29",
+          "assetId": "atlas:nature:tvn_biome_200",
+          "position": {
+            "x": 207.26126539368252,
+            "y": 468.78291859787413,
+            "z": 1522.012267722658
+          },
+          "up": {
+            "x": 0.1290543371069007,
+            "y": 0.2918947189276925,
+            "z": 0.9477037781585665
+          },
+          "yaw": 3.192784937999634,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:28",
+          "assetId": "atlas:nature:tvn_flora_097",
+          "position": {
+            "x": -207.33329940216007,
+            "y": 407.9109541505371,
+            "z": 1539.444944293144
+          },
+          "up": {
+            "x": -0.12909835978586767,
+            "y": 0.2539902431079239,
+            "z": 0.9585523302911408
+          },
+          "yaw": 4.081464635030378,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:28",
+          "assetId": "atlas:nature:tvn_flora_179",
+          "position": {
+            "x": 206.77716862470308,
+            "y": 404.3012035480144,
+            "z": 1540.4608853668365
+          },
+          "up": {
+            "x": 0.1287529069892298,
+            "y": 0.2517442114246665,
+            "z": 0.9591910867788521
+          },
+          "yaw": 5.567494119403184,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:32",
+          "assetId": "atlas:nature:tvn_flora_064",
+          "position": {
+            "x": -196.73027030485622,
+            "y": 643.9062274565256,
+            "z": 1458.0528011661593
+          },
+          "up": {
+            "x": -0.12249705498434385,
+            "y": 0.40093787512859624,
+            "z": 0.9078784565169111
+          },
+          "yaw": 5.435829371037925,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:32",
+          "assetId": "atlas:nature:tvn_flora_007",
+          "position": {
+            "x": 198.56158082283463,
+            "y": 649.00429562981,
+            "z": 1455.659679085953
+          },
+          "up": {
+            "x": 0.12362914271015762,
+            "y": 0.40408544468384877,
+            "z": 0.906328190264105
+          },
+          "yaw": 5.040495570952604,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        }
+      ],
+      "budgets": {
+        "models": 28,
+        "bytes": 67108864,
+        "triangles": 1200000,
+        "instances": 80,
+        "instanceTriangles": 1800000,
+        "meshInstances": 640,
+        "range": 256
+      }
+    },
+    "avatar": {
+      "ready": true,
+      "loading": false,
+      "error": "",
+      "bodyId": "b_5",
+      "phase": "ground",
+      "visible": true,
+      "position": {
+        "x": 0,
+        "y": 516.4952438197885,
+        "z": 1520.7463355266673
+      },
+      "cameraOccluded": false,
+      "cameraClearance": 3.0000000000000004,
+      "assetPath": "people/wren.glb",
+      "presentationRevision": "authored-motion-2026-10-20.1",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 29.11799999892719,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          false,
+          false
+        ],
+        "canonicalFacing": 0,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            -0.10500238090753555,
+            -0.705410361289978,
+            -2.8488941192626953
+          ],
+          [
+            0.023936329409480095,
+            -1.2131545543670654,
+            -2.677743434906006
+          ]
+        ],
+        "contacts": [
+          false,
+          false
+        ],
+        "radialContacts": {
+          "active": true,
+          "reference": "u1:20261017:s0:p0",
+          "origin": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "up": {
+            "x": 0,
+            "y": 0.3215909989927469,
+            "z": 0.9468786772162774
+          },
+          "resetReason": null,
+          "feet": [
+            {
+              "side": "l",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 103
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 100
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 110
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 109
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 99
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 96
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 120
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 113
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 112
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 111
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 119
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 10
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": false,
+              "lockId": null,
+              "weight": 0,
+              "releasing": false,
+              "contact": false,
+              "support": null,
+              "anchor": null,
+              "solePoints": [
+                {
+                  "x": -0.08850535509121082,
+                  "y": 516.8285756867909,
+                  "z": 1520.622121971695
+                },
+                {
+                  "x": -0.044734819806991365,
+                  "y": 516.8630275142024,
+                  "z": 1520.6116200785673
+                },
+                {
+                  "x": -0.005476205428856094,
+                  "y": 516.8720461241487,
+                  "z": 1520.6107029184159
+                },
+                {
+                  "x": 0.020966182567913112,
+                  "y": 516.8689155177877,
+                  "z": 1520.6128922662135
+                },
+                {
+                  "x": 0.03058475432657149,
+                  "y": 516.8484059830223,
+                  "z": 1520.618172332482
+                },
+                {
+                  "x": 0.006240267611833807,
+                  "y": 516.7938646811216,
+                  "z": 1520.6351260915033
+                },
+                {
+                  "x": -0.10498549374159422,
+                  "y": 516.7010223383337,
+                  "z": 1520.6744364121525
+                },
+                {
+                  "x": -0.12206299912935534,
+                  "y": 516.6959949012528,
+                  "z": 1520.6764404897983
+                },
+                {
+                  "x": -0.1399510103425606,
+                  "y": 516.6986784935219,
+                  "z": 1520.675482203919
+                },
+                {
+                  "x": -0.1497088499364204,
+                  "y": 516.7140720877077,
+                  "z": 1520.6693592076342
+                },
+                {
+                  "x": -0.14917611216111767,
+                  "y": 516.7356821642514,
+                  "z": 1520.6607262585987
+                },
+                {
+                  "x": -0.062487478628813896,
+                  "y": 516.8469273428061,
+                  "z": 1520.614887503711
+                }
+              ],
+              "signedGaps": [
+                -0.01029355451135128,
+                -0.00916510374784033,
+                0.05697588621854004,
+                0.0035720076703276505,
+                -0.0043500323694296555,
+                0.0550206322011452,
+                -0.0017987860218865283,
+                -0.001513623009311005,
+                -0.001551860283594028,
+                -0.002393002099195204,
+                -0.0036135605524328486,
+                -0.011246426509405332
+              ],
+              "reason": "no-stable-support"
+            },
+            {
+              "side": "r",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2146
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2149
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2159
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2160
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2150
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2153
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2169
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2161
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2162
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2163
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2170
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2060
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": false,
+              "lockId": null,
+              "weight": 0,
+              "releasing": false,
+              "contact": false,
+              "support": null,
+              "anchor": null,
+              "solePoints": [
+                {
+                  "x": 0.12838731780299203,
+                  "y": 516.2953487884554,
+                  "z": 1520.8031426385862
+                },
+                {
+                  "x": 0.19038094098185254,
+                  "y": 516.2987332343174,
+                  "z": 1520.803563464552
+                },
+                {
+                  "x": 0.2068623269822272,
+                  "y": 516.283778643388,
+                  "z": 1520.8103281775439
+                },
+                {
+                  "x": 0.2011482213162267,
+                  "y": 516.2587440407248,
+                  "z": 1520.8177046461499
+                },
+                {
+                  "x": 0.17926705603776247,
+                  "y": 516.226113283915,
+                  "z": 1520.8266412434361
+                },
+                {
+                  "x": 0.13033949274199755,
+                  "y": 516.1986687737297,
+                  "z": 1520.8347631600516
+                },
+                {
+                  "x": 0.015167421503822616,
+                  "y": 516.179830476568,
+                  "z": 1520.848215884094
+                },
+                {
+                  "x": -0.006817991838519409,
+                  "y": 516.1873698768104,
+                  "z": 1520.8469487099362
+                },
+                {
+                  "x": -0.018960934478101828,
+                  "y": 516.2017346471271,
+                  "z": 1520.842964787454
+                },
+                {
+                  "x": -0.015440243734774255,
+                  "y": 516.2185730883753,
+                  "z": 1520.8372927521775
+                },
+                {
+                  "x": -0.004456685472891776,
+                  "y": 516.231880873939,
+                  "z": 1520.8324764006086
+                },
+                {
+                  "x": 0.15776622301169044,
+                  "y": 516.2149216244705,
+                  "z": 1520.828186761476
+                }
+              ],
+              "signedGaps": [
+                0.054188244433752905,
+                0.055672820481197184,
+                0.057281172424612205,
+                -0.008402147761099373,
+                -0.0104260945020635,
+                -0.011564309743576126,
+                0.059810396364850964,
+                0.06102947927946567,
+                0.06186560646241184,
+                0.061896642306410024,
+                0.0616051935222904,
+                -0.012563678202900611
+              ],
+              "reason": "no-stable-support"
+            }
+          ]
+        },
+        "spineTiltDeg": 2.9038714704358592
+      },
+      "motionAvailability": {
+        "ual": {
+          "loaded": true,
+          "verified": true,
+          "reason": "Audited CC0 bytes; own rig retarget"
+        }
+      },
+      "joints": [
+        {
+          "name": "pelvis",
+          "rotation": [
+            0.42119050070886643,
+            -0.04919640085057128,
+            -0.10506698132500827,
+            0.8995216520425079
+          ]
+        },
+        {
+          "name": "spine_03",
+          "rotation": [
+            -0.013966446366118502,
+            0.00032494228291944015,
+            0.00023956595281031016,
+            0.9999023813791741
+          ]
+        },
+        {
+          "name": "upperarm_l",
+          "rotation": [
+            0.24087669638302334,
+            0.16863353504423967,
+            -0.5044872582435371,
+            0.8118089320874825
+          ]
+        },
+        {
+          "name": "upperarm_r",
+          "rotation": [
+            0.18807978622797428,
+            -0.16648453687514808,
+            0.5046827460281601,
+            0.8259565383274079
+          ]
+        },
+        {
+          "name": "calf_l",
+          "rotation": [
+            0.2292865832580909,
+            0.10836738864853554,
+            -0.02833138174085372,
+            0.9668927004906667
+          ]
+        },
+        {
+          "name": "calf_r",
+          "rotation": [
+            0.18841853168385495,
+            0.1377950778074917,
+            -0.024452577880232158,
+            0.9720663788472158
+          ]
+        }
+      ],
+      "landmarks": {
+        "pelvis": {
+          "x": -0.008836381137371063,
+          "y": -0.6963896751403809,
+          "z": -2.020362615585327
+        },
+        "hand_l": {
+          "x": -0.17514340579509735,
+          "y": -0.4430401921272278,
+          "z": -2.2947521209716797
+        },
+        "hand_r": {
+          "x": 0.1328524798154831,
+          "y": -0.8296761512756348,
+          "z": -1.99003267288208
+        },
+        "head": {
+          "x": 0.07233131676912308,
+          "y": -0.40985769033432007,
+          "z": -1.4384006261825562
+        },
+        "foot_l": {
+          "x": -0.10500238090753555,
+          "y": -0.705410361289978,
+          "z": -2.8488941192626953
+        },
+        "foot_r": {
+          "x": 0.023936329409480095,
+          "y": -1.2131545543670654,
+          "z": -2.677743434906006
+        }
+      }
+    },
+    "camera": {
+      "mode": "ground",
+      "yaw": 0,
+      "renderedYaw": -3.557555620780857E-139,
+      "pitch": 0.4886921905584123,
+      "renderedPitch": 0.4886921905584123,
+      "preferredDistance": 3,
+      "renderedDistance": 3.0000000000000004,
+      "desiredDistance": 3,
+      "obstructionDistance": 3.0000000000000004,
+      "inputRevision": 277,
+      "fov": 0.9075712110370514,
+      "maxHorizonSpeed": 1.5707963267948966,
+      "input": {
+        "yawPerPixel": 0.004,
+        "pitchPerPixel": 0.0035,
+        "minPitch": -0.2617993877991494,
+        "maxPitch": 1.3089969389957472,
+        "minDistance": 3,
+        "maxDistance": 18
+      },
+      "position": {
+        "x": 9.423405515490611E-139,
+        "y": 2.333963784921732,
+        "z": -1.3646595788250282
+      },
+      "target": {
+        "x": -2.2251725995131107E-197,
+        "y": -0.6271024480359715,
+        "z": -1.8464134205717015
+      },
+      "up": {
+        "x": 0,
+        "y": 0.3215909989928059,
+        "z": 0.9468786772162573
+      },
+      "tangentHeading": {
+        "x": 0.5069068522480532,
+        "y": 0.8162102123831633,
+        "z": -0.2772117103323776
+      },
+      "worldPosition": {
+        "x": 9.423405515490611E-139,
+        "y": 519.7939806016884,
+        "z": 1522.222311979491
+      },
+      "worldTarget": {
+        "x": -2.2251725995131107E-197,
+        "y": 516.8329143687307,
+        "z": 1521.7405581377443
+      },
+      "renderedBodyPosition": {
+        "x": 0,
+        "y": 517.4600168167667,
+        "z": 1523.586971558316
+      },
+      "nearestPlanetId": "u1:20261017:s0:p0"
+    },
+    "lighting": {
+      "air": 0.9992196316111586,
+      "day": 1,
+      "elevation": 0.6906985163929019,
+      "stars": 0.0007803683888414348,
+      "shadows": true,
+      "altitudeFill": 0,
+      "fillIntensity": 0.5498049079027896,
+      "environmentIntensity": 0.49976588948334755,
+      "casters": 112,
+      "triangles": 51005,
+      "registered": 2079,
+      "shadowMap": 2048,
+      "environment": "kloppenheim_06_puresky_1k.hdr"
+    },
+    "settlements": {
+      "revision": 1,
+      "enabled": true,
+      "chunks": 12,
+      "focused": 56,
+      "pending": 0,
+      "terrain": true,
+      "errors": []
+    },
+    "terrain": {
+      "planets": 4,
+      "tiles": 168,
+      "vertices": 59304,
+      "triangles": 107520,
+      "pendingTiles": 0,
+      "rebuilds": 216,
+      "decorations": 0
+    },
+    "vessel": {
+      "visible": true,
+      "position": {
+        "x": -3.0784811375173877,
+        "y": 7.004163315670439,
+        "z": -2.488916511344314
+      }
+    },
+    "footSupport": {
+      "id": "u1:20261017:s0:p0:brass:11310:3111:1:458b82d71e3f616a",
+      "available": true,
+      "reason": "ready",
+      "triangles": 260
+    },
+    "phase": "Surface exploration · vessel ready"
+  },
+  "endTown": {
+    "ready": true,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3,
+        "grade": null
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1,
+        "grade": "Bronze-grade"
+      }
+    ],
+    "position": {
+      "x": 11312.5,
+      "y": 1.0625,
+      "z": 3113.6999999998598
+    },
+    "loaded": 81,
+    "focused": {
+      "instances": 55,
+      "pending": 0,
+      "error": "",
+      "forests": [
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-cross",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 45,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 90,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2205,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 720,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 410,
+              "sourceTrees": 45
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-branches",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 53,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 106,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2597,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 848,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 498,
+              "sourceTrees": 53
+            }
+          ]
+        }
+      ]
+    },
+    "meshes": 2960,
+    "camera": {
+      "mode": "third-person",
+      "yaw": 3.141592653589793,
+      "renderedYaw": 3.141592653589793,
+      "movementYaw": 3.141592653589793,
+      "pitch": 0.3839724354387525,
+      "preferred": 4,
+      "blocked": false,
+      "position": {
+        "x": 48.5,
+        "y": 4.512454045412495,
+        "z": 37.9912645815926
+      },
+      "want": 4,
+      "dist": 0,
+      "limit": 4.2,
+      "pitchDeg": 22,
+      "fovDeg": 52,
+      "reason": "explore",
+      "framing": "orbit",
+      "rawDistance": 0,
+      "elevatedBy": 0,
+      "nearPlaneBlocked": false,
+      "actualFovDeg": 60.78376009423967
+    },
+    "controlledBody": {
+      "id": "b_5",
+      "enabled": true,
+      "position": {
+        "x": 48.5,
+        "y": 1.0625,
+        "z": 41.699999999859756
+      },
+      "yaw": 2.609987215559802,
+      "screen": {
+        "x": 719.9999439618089,
+        "y": 556.0200006731749,
+        "z": 0.9777607406104426
+      }
+    },
+    "controlledLook": {
+      "assetPath": "people/wren.glb",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 119.17199999928476,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          true,
+          true
+        ],
+        "canonicalFacing": 2.609987215559802,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            48.60514450073242,
+            1.1384775638580322,
+            41.948097229003906
+          ],
+          [
+            48.476165771484375,
+            1.1372381448745728,
+            41.41225814819336
+          ]
+        ],
+        "contacts": [
+          true,
+          true
+        ],
+        "radialContacts": null,
+        "spineTiltDeg": 1.972292574944121
+      }
+    }
+  },
+  "checkpoint": {
+    "format": 1,
+    "sequence": 4699,
+    "engine": "d42707b0293c8af93821f24eba35c2bfaad185643fd59cb982c67f25a161ed53",
+    "worldFile": "world-4699-264b610c-c44f-46ec-9788-54993b2bf902.json.gz",
+    "sha256": "0a387a4b24cccf79857ee2ace9260ae832baebd03c5489822ed79b5f856a9131",
+    "bytes": 45765,
+    "control": {
+      "citySteps": 0,
+      "realm": {
+        "input": {
+          "x": 0,
+          "z": 0,
+          "sprint": false
+        },
+        "inputUntil": 0,
+        "pending": null,
+        "transitionId": 0,
+        "lastRegion": "brass:117,32"
+      },
+      "tower": null,
+      "controller": {
+        "slowAccum": 0.016666666666666666,
+        "interactionTick": 343,
+        "move": {
+          "x": 0,
+          "z": 0,
+          "sprint": false,
+          "expires": 0
+        },
+        "sequence": -1,
+        "appliedSequence": -1,
+        "control": null
+      }
+    }
+  },
+  "rawEvidence": ".debug/release-journey-oct20-v2 retained locally"
+}

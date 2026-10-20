@@ -27,6 +27,11 @@ export function groundRouteProgress(previous,remaining,headingError,now){
  next.phase=turning?'turn':'move';return next;
 }
 export function groundTurnPulse(error,tailMs){return clamp((Math.abs(error)-.03)/1.8*1000-tailMs,20,260);}
+export function isNeutralGroundRequest(value,lastActiveSeq){
+ const input=value?.command?.input;
+ return Number.isSafeInteger(value?.seq)&&value.seq>lastActiveSeq&&value.command?.type==='input'
+  &&typeof input?.brake==='boolean'&&['throttle','yaw','pitch','strafe','lift'].every(k=>input[k]===0);
+}
 
 // Read-only independent chart math matches the documented home chart. It is
 // used to aim ordinary keys, never to write a body position or request a move.
@@ -128,6 +133,18 @@ export function summarizeContactTrace(trace){
 
 export function createContactQA({page,report,output,read,capture,save,check,orbit,zoom,recenter}){
  report.contactQA={traces:[],route:[],stops:[],findings:[],limits:[],targets:{penetration:.03,sustainedMs:100,stationaryP95Gap:.04,unsupportedGap:.08,lockDrift:.03}};
+ let lastActiveSeq=0;
+ // Observe sent ordinary inputs only. Session/controller tokens are never
+ // recorded. A coalesced zero-input sample may legitimately have brake=false.
+ report.contactQA.inputRequests=[];
+ page.on('request',request=>{
+  if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return;
+  try{
+   const value=request.postDataJSON(),input=value.command?.input;if(value.command?.type!=='input')return;
+   if(['throttle','yaw','pitch','strafe','lift'].some(k=>input[k]!==0))lastActiveSeq=Math.max(lastActiveSeq,value.seq);
+   if(report.contactQA.inputRequests.length<2048)report.contactQA.inputRequests.push({seq:value.seq,input:{throttle:input.throttle,yaw:input.yaw,pitch:input.pitch,strafe:input.strafe,lift:input.lift,brake:input.brake}});
+  }catch{}
+ });
  let tracing=false;
  const finding=message=>{report.contactQA.findings.push(message);report.presentationFailures??=[];report.presentationFailures.push(message);console.log('CONTACT FINDING '+message);};
  const start=async name=>{
@@ -184,11 +201,12 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
  // then distinct authoritative snapshots, before judging a waypoint or posing.
  const stopGround=async(label,priorView)=>{
   const before=priorView??await read(),began=Date.now();
-  const record={label,before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},observations:[]};report.contactQA.stops.push(record);
+  const minimumSeq=Math.max(before.lastSeq??0,lastActiveSeq);
+  const record={label,before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},minimumSeq,observations:[]};report.contactQA.stops.push(record);
   if(before.state.mode!=='surface')throw Error('Ground stop requested outside the surface');
   const responsePromise=page.waitForResponse(response=>{
    if(new URL(response.url()).pathname!=='/realms/universe/command'||response.request().method()!=='POST')return false;
-   try{const p=response.request().postDataJSON(),i=p.command?.input;return p.seq>(before.lastSeq??0)&&p.command?.type==='input'&&i?.brake===true&&['throttle','yaw','pitch','strafe','lift'].every(k=>i[k]===0);}catch{return false;}
+   try{return isNeutralGroundRequest(response.request().postDataJSON(),Math.max(minimumSeq,lastActiveSeq));}catch{return false;}
   },{timeout:4500});
   // Attach rejection handling immediately; a failed click must not leave an
   // unhandled pending observer. This never submits a direct command itself.
@@ -197,9 +215,9 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   // before waiting for keyboard-up round trips or another snapshot read.
   await page.locator('[data-brake]').click();await release();const observed=await pending;
   if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
-  const response=observed.response,body=await response.json(),seq=response.request().postDataJSON().seq;
-  record.ack={seq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
-  if(!response.ok()||body.ok!==true||!Number.isSafeInteger(body.snapshot?.lastSeq)||body.snapshot.lastSeq<seq)throw Error('Host did not accept the ordinary neutral ground command');
+  const response=observed.response,body=await response.json(),request=response.request().postDataJSON(),seq=request.seq;
+  record.ack={seq,brake:request.command.input.brake,lastActiveSeq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
+  if(!isNeutralGroundRequest(request,Math.max(minimumSeq,lastActiveSeq))||!response.ok()||body.ok!==true||!Number.isSafeInteger(body.snapshot?.lastSeq)||body.snapshot.lastSeq<seq)throw Error('Host did not accept the ordinary neutral ground command');
   let anchor=null,since=0,lastTick=null,ticks=0;
   while(Date.now()-began<6500){
    const view=await read();if(view.state.mode!=='surface')throw Error('Ground stop changed travel mode');
