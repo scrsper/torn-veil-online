@@ -39,20 +39,21 @@ export class RealmUniverseApi {
 
   async handle(req: IncomingMessage, res: ServerResponse, path: string): Promise<boolean> {
     if (!['/realms/universe', '/realms/universe/command', '/realms/universe/transition', '/realms/universe/settlements'].includes(path)) return false;
-    const respond = (code: number, value: unknown) => {
-      res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    const respond = (code: number, value: unknown, condition?: 'saving-crossing') => {
+      res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store',
+        ...(condition ? { 'x-tv-universe-condition': condition } : {}) });
       res.end(JSON.stringify(value));
     };
     if (!this.host.ready()) { respond(503, { error: 'Saving or simulation failed. Restart the world to recover its durable journal.' }); return true; }
     const token = this.host.token();
     if (!token || req.headers['x-realms-controller'] !== token) { respond(409, { error: 'This tab does not hold the world controller. Close the other play tab, then reconnect.' }); return true; }
     if (req.method === 'GET' && path === '/realms/universe/settlements') {
-      if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' });
+      if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' }, 'saving-crossing');
       else respond(200, canonicalSettlementProjection(this.host.session()));
       return true;
     }
     if (req.method === 'GET' && path === '/realms/universe') {
-      if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' });
+      if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' }, 'saving-crossing');
       else respond(200, this.view());
       return true;
     }

@@ -10,7 +10,7 @@ import { AtlasSurfaceRenderer } from '../atlas/surface';
 import { atlasPlanetSweep } from '../../sim/world/atlas/collision';
 import { UniverseAvatar } from './avatar';
 import { UniverseFootSupport } from './contactSupport';
-import { SphericalOrbitCamera } from './camera';
+import { CameraFrameClock, SphericalOrbitCamera } from './camera';
 import { UniverseLighting } from './lighting';
 import { UniverseSettlements, type SettlementProjection } from './settlements';
 import { QUALITY, type RenderContext } from '../render/engine';
@@ -161,7 +161,7 @@ export async function startUniverse() {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: true, adaptToDeviceRatio: true });
   const scene = new Scene(engine); scene.useRightHandedSystem = true;
   const camera = new FreeCamera('astral-camera', new Vector3(0, 0, 0), scene); camera.inputs.clear(); camera.minZ = .15; camera.maxZ = 350000; camera.fov = .95;
-  const orbit = new SphericalOrbitCamera(), cameraPreferenceKey = 'torn-veil.universe-camera.v1';
+  const orbit = new SphericalOrbitCamera(), cameraClock = new CameraFrameClock(), cameraPreferenceKey = 'torn-veil.universe-camera.v1';
   try { orbit.restore(JSON.parse(localStorage.getItem(cameraPreferenceKey) ?? 'null')); } catch { /* Local preferences cannot invalidate a world. */ }
   let cameraPreferenceDirty = false, cameraDiagnostics: Record<string, unknown> = {};
   const persistCamera = () => { try { localStorage.setItem(cameraPreferenceKey, JSON.stringify(orbit.preferences())); } catch { /* Storage may be unavailable. */ } };
@@ -263,6 +263,7 @@ export async function startUniverse() {
   engine.runRenderLoop(() => {
     if (disposed) return;
     const now = performance.now(), dt = Math.min(engine.getDeltaTime() / 1000, .1);
+    const cameraDt = cameraClock.step(document.timeline?.currentTime, now);
     const live = connected && now - lastReply < 3000;
     el('[data-link]').textContent = live ? campaignMode && campaign ? `${campaign.name} · shared journey saved` : 'Host connected · autosave on' : 'Host offline · reconnecting';
     el('.astral-status').classList.toggle('offline', !live);
@@ -304,7 +305,7 @@ export async function startUniverse() {
       const tilt = Number(keys.has('ArrowDown')) - Number(keys.has('ArrowUp'));
       if (tilt) { orbit.look(0, tilt * dt); cameraPreferenceDirty = true; }
     }
-    const cameraPose = orbit.update(dt, { radial, forward: facing, velocity: s.velocity,
+    const cameraPose = orbit.update(cameraDt, { radial, forward: facing, velocity: s.velocity,
       mode: isFlight ? personal ? 'personal' : 'vessel' : 'ground' }, (pivot, eye) => {
       const start = vec(pivot), end = vec(eye), full = Vector3.Distance(start, end);
       if (full < .001) return full;
@@ -337,7 +338,7 @@ export async function startUniverse() {
             || settlements.groundHeight(nearCamera, vec(point).subtract(vec(nearCamera.center)).normalize()) !== null,
           s.atlasRevision ?? 0, point, axis, radius, maxDistance) } : null);
     const point = (v: V3) => ({ x: v.x, y: v.y, z: v.z });
-    cameraDiagnostics = { ...orbit.debug, position: point(camera.position), target: point(cameraPose.target), up: point(cameraPose.up),
+    cameraDiagnostics = { ...orbit.debug, frameClock: { ...cameraClock.debug }, position: point(camera.position), target: point(cameraPose.target), up: point(cameraPose.up),
       tangentHeading: point(cameraPose.tangentHeading), worldPosition: point(rendered.add(camera.position)),
       worldTarget: point(rendered.add(vec(cameraPose.target))), renderedBodyPosition: point(rendered),
       nearestPlanetId: nearCamera.id, fov: camera.fov };

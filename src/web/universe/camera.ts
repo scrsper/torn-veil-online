@@ -6,6 +6,33 @@ export const ORBIT_INPUT = Object.freeze({ yawPerPixel: .004, pitchPerPixel: .00
   minPitch: -15 * Math.PI / 180, maxPitch: 75 * Math.PI / 180, minDistance: 3, maxDistance: 18 });
 /** Automatic horizon motion only; pointer orbit/recenter keep their own response. */
 export const MAX_HORIZON_SPEED = Math.PI / 2;
+export type CameraClockSource = 'timeline' | 'fallback' | 'unavailable';
+/** Camera motion follows the document frame timeline (the RAF timestamp), not
+ * the callback's execution time: main-thread scheduling can make a 7ms frame
+ * appear to the engine performance monitor as a 10.7ms callback interval.
+ * A monotonic callback clock is the explicit fallback where no timeline exists.
+ * Switching clock domains rebases without spending time from a different epoch. */
+export class CameraFrameClock {
+  private previous: number | null = null;
+  private source: CameraClockSource = 'unavailable';
+  readonly debug = { source: 'unavailable' as CameraClockSource, timestampMs: null as number | null, deltaSeconds: 0 };
+  step(timelineTime: unknown, fallbackTime: number): number {
+    const timeline = typeof timelineTime === 'number' && Number.isFinite(timelineTime);
+    const source: CameraClockSource = timeline ? 'timeline' : Number.isFinite(fallbackTime) ? 'fallback' : 'unavailable';
+    const timestamp = source === 'timeline' ? timelineTime as number : source === 'fallback' ? fallbackTime : null;
+    let dt = 0;
+    if (timestamp === null) this.previous = null;
+    else if (source !== this.source || this.previous === null) this.previous = timestamp;
+    else if (timestamp > this.previous) {
+      dt = Math.min((timestamp - this.previous) / 1000, .1); this.previous = timestamp;
+    }
+    // A duplicate/backwards timestamp spends no time and cannot inflate the next
+    // interval by moving the high-water mark backwards.
+    this.source = source;
+    Object.assign(this.debug, { source, timestampMs: timestamp, deltaSeconds: dt });
+    return dt;
+  }
+}
 export type OrbitMode = 'ground' | 'personal' | 'vessel';
 export interface SphericalCameraInput {
   radial: V3; forward: V3; velocity: V3; mode: OrbitMode;

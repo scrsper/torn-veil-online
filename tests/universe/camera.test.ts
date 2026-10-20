@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_HORIZON_SPEED, ORBIT_INPUT, SphericalOrbitCamera, type SphericalCameraInput } from '../../src/web/universe/camera';
+import { CameraFrameClock, MAX_HORIZON_SPEED, ORBIT_INPUT, SphericalOrbitCamera, type SphericalCameraInput } from '../../src/web/universe/camera';
 import { dot, length, normalize, scale, sub, type V3 } from '../../src/sim/world/planet/planet';
 
 const ground: SphericalCameraInput = { radial: { x: 0, y: 1, z: 0 }, forward: { x: 1, y: 0, z: 0 },
@@ -16,6 +16,59 @@ const finitePose = (value: unknown): void => {
 };
 
 describe('local spherical orbit camera', () => {
+  it('uses the 7ms frame timeline instead of the recorded 10.7ms callback jitter for the horizon cap', () => {
+    const camera = new SphericalOrbitCamera(), clock = new CameraFrameClock();
+    const before = settle(camera);
+    const other: SphericalCameraInput = { ...ground, radial: normalize({ x: .001, y: -1, z: 0 }), mode: 'personal' };
+    expect(clock.step(1000, 1001)).toBe(0);
+    const dt = clock.step(1007, 1011.7);
+    const after = camera.update(dt, other);
+    const change = Math.acos(Math.max(-1, Math.min(1, dot(before.up, after.up))));
+    expect(dt).toBe(.007);
+    expect(change).toBeCloseTo(MAX_HORIZON_SPEED * .007, 10);
+    expect(change).toBeLessThanOrEqual(MAX_HORIZON_SPEED * .007 + 1e-9);
+    // The V6 failure was exactly this old callback-clock result, not a
+    // different angle calculation or a relaxed acceptance threshold.
+    expect(MAX_HORIZON_SPEED * .0107).toBeCloseTo(.01680752072478328, 10);
+    expect(clock.debug).toEqual({ source: 'timeline', timestampMs: 1007, deltaSeconds: .007 });
+  });
+
+  it('spends no camera time on duplicate/backwards frame stamps despite advancing callbacks', () => {
+    const camera = new SphericalOrbitCamera(), clock = new CameraFrameClock();
+    let previous = settle(camera);
+    const other: SphericalCameraInput = { ...ground, radial: scale(ground.radial, -1), mode: 'personal' };
+    const timestamps = [0, 0, 7, 7, 6, 13, 53, 103, 110, 210, 233];
+    const expected = [0, 0, .007, 0, 0, .006, .04, .05, .007, .1, .023];
+    for (let i = 0; i < timestamps.length; i++) {
+      const dt = clock.step(timestamps[i], 5000 + i * 21.3);
+      expect(dt).toBeCloseTo(expected[i], 12);
+      const pose = camera.update(dt, other);
+      if (dt === 0) expect(separation(previous.up, pose.up)).toBeLessThan(1e-12);
+      else expect(Math.acos(Math.max(-1, Math.min(1, dot(previous.up, pose.up)))))
+        .toBeLessThanOrEqual(MAX_HORIZON_SPEED * dt + 1e-9);
+      previous = pose;
+    }
+  });
+
+  it('rebases explicit fallback clock transitions, rejects invalid time, and bounds resume gaps', () => {
+    const clock = new CameraFrameClock();
+    expect(clock.step(null, 2000)).toBe(0);
+    expect(clock.step(undefined, 2016)).toBe(.016);
+    expect(clock.debug.source).toBe('fallback');
+    expect(clock.step(undefined, 2010)).toBe(0);
+    expect(clock.step(undefined, 2020)).toBe(.004);
+    expect(clock.step(100, 2021)).toBe(0);
+    expect(clock.step(107, 2031)).toBe(.007);
+    expect(clock.debug.source).toBe('timeline');
+    expect(clock.step(null, 2040)).toBe(0);
+    expect(clock.step(null, 2050)).toBe(.01);
+    expect(clock.step(NaN, NaN)).toBe(0);
+    expect(clock.debug.source).toBe('unavailable');
+    expect(clock.step(400, 3000)).toBe(0);
+    expect(clock.step(10400, 13000)).toBe(.1);
+    expect(clock.step(10407, 13007)).toBe(.007);
+  });
+
   it('consumes full pointer travel independent of event partition without changing host vectors', () => {
     const input = structuredClone(ground), saved = structuredClone(input);
     Object.freeze(input.radial); Object.freeze(input.forward); Object.freeze(input.velocity); Object.freeze(input);

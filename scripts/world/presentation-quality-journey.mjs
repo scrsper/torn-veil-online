@@ -13,6 +13,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import {createContactQA} from './presentation-contact-qa.mjs';
+import {httpFailureEvidence,recoveredCrossingBackpressure} from './presentation-network-qa.mjs';
 if (process.env.TV_QUALITY_ISOLATED !== '1' || !process.env.TV_QUALITY_URL || !process.env.TV_QUALITY_EXPECT_SAVE)
   throw Error('Require explicit isolated URL, expected save path, and TV_QUALITY_ISOLATED=1.');
 const target = new URL(process.env.TV_QUALITY_URL), mode = process.env.TV_QUALITY_MODE ?? 'journey';
@@ -61,7 +62,7 @@ page.on('console', m => {
 });
 page.on('response', async r => {
   const path = new URL(r.url()).pathname;
-  if(r.status()===200&&path==='/realms/universe')report.lastUniverseSuccessAt=Date.now();
+  if(r.status()===200&&path==='/realms/universe'&&r.request().method()==='GET')report.lastUniverseSuccessAt=Date.now();
   const optionalMotion = /\/arena\/(?:mixamo_clips|unarmed_clips)\.glb$/i.test(path);
   if (/\.glb$/i.test(path) && report.glbResponses.length < 80) {
     const contentType = r.headers()['content-type'] ?? '';
@@ -69,10 +70,11 @@ page.on('response', async r => {
     if (/html/i.test(contentType) && !optionalMotion) error(`Required GLB URL returned HTML: ${path}`);
   }
   if (r.status() < 400 || report.http.length >= 25) return;
-  const entry = { status: r.status(), path: new URL(r.url()).pathname, optionalMotion, at:Date.now() };
+  const entry = httpFailureEvidence(r,Date.now());
   report.http.push(entry);
   // Record host rejection reasons, never response bodies/session tokens.
-  if (entry.path.startsWith('/realms/universe')) try { entry.reason = String((await r.json()).error ?? '').slice(0, 240); } catch {}
+  if (entry.path.startsWith('/realms/universe')) try { entry.reason = String((await r.json()).error ?? '').slice(0, 240); }
+  catch(e){entry.bodyReadFailure={kind:e?.name??'Error',reason:'response-body-unavailable'};}
 });
 page.on('request', r => {
   if (r.method() !== 'POST') return;
@@ -428,12 +430,14 @@ const checkProvenance = view => {
   check(source.sourceClip === 'Idle_Loop' && !!source.retargetLook, 'Idle names its actual source clip and destination rig');
 };
 const traceTransit = async destination => page.evaluate(destination => new Promise(resolve => {
-  const samples = [], framePeaks = [], falseBrakeFrames=[]; let last = -Infinity, start = performance.now(), previous = null, speedWindow=null,maxFrameAngle = 0, maxFrameRate=0,maxFrameExcess=0,steadyFrameSamples=0;
+  const samples = [], framePeaks = [], falseBrakeFrames=[],frameClockFailures=[],clockSources={}; let last = -Infinity, start = performance.now(), previous = null, speedWindow=null,maxFrameAngle = 0, maxFrameRate=0,maxFrameExcess=0,steadyFrameSamples=0;
   const angle = (a,b) => Math.acos(Math.max(-1, Math.min(1, (a.x*b.x+a.y*b.y+a.z*b.z) / Math.hypot(a.x,a.y,a.z) / Math.hypot(b.x,b.y,b.z))));
   const frame = now => {
     const d = window.__tvUniverse, s = d?.snapshot;
-    if (!s || !d.camera) return resolve({ failure: 'Camera or canonical state disappeared', samples, framePeaks, maxFrameAngle,maxFrameRate,maxFrameExcess,steadyFrameSamples,falseBrakeFrames });
+    if (!s || !d.camera) return resolve({ failure: 'Camera or canonical state disappeared', samples, framePeaks, maxFrameAngle,maxFrameRate,maxFrameExcess,steadyFrameSamples,falseBrakeFrames,frameClockFailures,clockSources });
     const camera = structuredClone(d.camera);
+    const clockSource=camera.frameClock?.source??'missing';clockSources[clockSource]=(clockSources[clockSource]??0)+1;
+    if(clockSource!=='timeline'&&frameClockFailures.length<30)frameClockFailures.push({ms:now-start,frameClock:camera.frameClock??null});
     const flight=structuredClone(d.avatar.motion?.flight),totalSpeed=Math.hypot(s.state.velocity.x,s.state.velocity.y,s.state.velocity.z);
     const revision=s.revision??s.state.tick;
     if(!speedWindow||Math.max(speedWindow.max,totalSpeed)-Math.min(speedWindow.min,totalSpeed)>.05){
@@ -456,7 +460,7 @@ const traceTransit = async destination => page.evaluate(destination => new Promi
       }
       if (delta > maxFrameAngle) {
         maxFrameAngle = delta;
-        framePeaks.push({ms:now-start,dt:now-previous.ms,angle:delta,from:previous.up,to:camera.up,nearestPlanetId:s.status.nearestPlanetId});
+        framePeaks.push({ms:now-start,dt:now-previous.ms,angle:delta,from:previous.up,to:camera.up,nearestPlanetId:s.status.nearestPlanetId,frameClock:camera.frameClock});
         if(framePeaks.length>60)framePeaks.shift();
       }
     }
@@ -467,7 +471,7 @@ const traceTransit = async destination => page.evaluate(destination => new Promi
         body: s.state.position, forward: s.state.forward, velocity:s.state.velocity,speed:Math.hypot(s.state.velocity.x,s.state.velocity.y,s.state.velocity.z),
         cruise: s.state.cruise,revision,stableSpeed,flight,camera, lighting: structuredClone(d.lighting) });
     }
-    if ((!s.state.cruise && s.status.nearestPlanetId === destination) || now - start > 120000 || samples.length >= 1300) return resolve({ samples, framePeaks, maxFrameAngle,maxFrameRate,maxFrameExcess,steadyFrameSamples,falseBrakeFrames });
+    if ((!s.state.cruise && s.status.nearestPlanetId === destination) || now - start > 120000 || samples.length >= 1300) return resolve({ samples, framePeaks, maxFrameAngle,maxFrameRate,maxFrameExcess,steadyFrameSamples,falseBrakeFrames,frameClockFailures,clockSources });
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
@@ -486,9 +490,10 @@ const assessTransit = trace => {
       assert.ok(point && Object.values(point).every(Number.isFinite), 'Camera positions remain finite');
   }
   trace.summary = { switches, maxUpAngleRadians: maxUpAngle,maxCoarseExcess,
-    steadyFrameSamples:trace.steadyFrameSamples,falseBrakeFrames:trace.falseBrakeFrames?.length };
+    steadyFrameSamples:trace.steadyFrameSamples,falseBrakeFrames:trace.falseBrakeFrames?.length,clockSources:trace.clockSources };
   report.traces.push(trace);
   check(switches > 0, 'Continuous route crosses a nearest-world boundary');
+  check(trace.clockSources?.timeline>0&&trace.frameClockFailures?.length===0,'Every sampled render frame uses the browser timeline for camera transport');
   check(trace.maxFrameExcess<.003,'Automatic horizon rotation respects the advertised90deg/s cap each rendered frame');
   check(maxCoarseExcess<.006,'Coarse camera samples also respect the horizon rotation cap');
   if(trace.steadyFrameSamples>0)check(trace.falseBrakeFrames.length===0,'Measured steady total speed does not create false braking poses as the radial frame turns');
@@ -763,8 +768,7 @@ try {
           canonicalPositionDifference: prior?.state?.position && after.state?.position ? distance(prior.state.position, after.state.position) : null };
       }) };
   }
-  for(const entry of report.http)entry.recoveredBackpressure=entry.status===503&&entry.path==='/realms/universe'
-    &&entry.reason==='Saving the crossing. Try again shortly.'&&(report.lastUniverseSuccessAt??0)>entry.at;
+  for(const entry of report.http)entry.recoveredBackpressure=recoveredCrossingBackpressure(entry,report.lastUniverseSuccessAt);
   report.expectedConsoleErrors=report.errorLocations.filter(e=>e.path==='/realms/universe'&&e.message.includes('503')
     &&report.http.some(h=>h.recoveredBackpressure)).map(e=>e.message);
   check(report.http.every(entry => entry.optionalMotion||entry.recoveredBackpressure),

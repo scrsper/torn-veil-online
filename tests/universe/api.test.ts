@@ -54,7 +54,9 @@ describe('canonical universe HTTP controller and persistence boundaries', () => 
     expect((await f.post('settlements', { type: 'enter', id: 'readonly-route-001', revision: 0 })).status).toBe(403);
     expect(f.control.applications).toHaveLength(0);
     f.api.busy = true;
-    expect((await fetch(`${f.origin}/realms/universe/settlements`, { headers: f.headers() })).status).toBe(503);
+    const saving = await fetch(`${f.origin}/realms/universe/settlements`, { headers: f.headers() });
+    expect(saving.status).toBe(503);
+    expect(saving.headers.get('x-tv-universe-condition')).toBe('saving-crossing');
     f.api.busy = false;
     f.control.token = 'replacement-controller';
     expect((await fetch(`${f.origin}/realms/universe/settlements`, {
@@ -66,6 +68,7 @@ describe('canonical universe HTTP controller and persistence boundaries', () => 
     f.control.token = '';
     const response = await fetch(`${f.origin}/realms/universe`, { headers: { 'x-realms-controller': 'old-controller' } });
     expect(response.status).toBe(409);
+    expect(response.headers.get('x-tv-universe-condition')).toBeNull();
     expect(f.control.applications).toHaveLength(0);
   });
   it('acknowledges a valid transition only after the actual canonical state is persisted', async () => {
@@ -129,6 +132,7 @@ describe('canonical universe HTTP controller and persistence boundaries', () => 
     f.control.persist = async () => { f.control.ready = false; throw Error('Injected journal failure'); };
     const response = await f.enter(), body = await response.json();
     expect(response.status).toBe(503);
+    expect(response.headers.get('x-tv-universe-condition')).toBeNull();
     expect(body.ok).toBe(false);
     expect(body.snapshot).toBeUndefined();
   });
@@ -142,13 +146,35 @@ describe('canonical universe HTTP controller and persistence boundaries', () => 
     await enteredPersist.promise;
     try {
       expect(f.api.busy).toBe(true);
-      expect((await f.command(1, { type: 'launch' })).status).toBe(409);
+      const blockedCommand = await f.command(1, { type: 'launch' });
+      expect(blockedCommand.status).toBe(409);
+      expect(blockedCommand.headers.get('x-tv-universe-condition')).toBeNull();
       const get = await fetch(`${f.origin}/realms/universe`, { headers: f.headers() });
       expect(get.status).toBe(503);
+      // The condition is available before consuming a body that a page reload
+      // can make unavailable to browser diagnostics. It is not a recovery claim.
+      expect(get.headers.get('x-tv-universe-condition')).toBe('saving-crossing');
+      expect(get.headers.get('cache-control')).toBe('no-store');
+      expect(await get.json()).toEqual({ error: 'Saving the crossing. Try again shortly.' });
       expect(f.control.applications).toHaveLength(1);
     } finally { commit.resolve(); }
     expect((await first).status).toBe(200);
     expect(f.api.busy).toBe(false);
+    const recovered = await fetch(`${f.origin}/realms/universe`, { headers: f.headers() });
+    expect(recovered.status).toBe(200);
+    expect(recovered.headers.get('x-tv-universe-condition')).toBeNull();
+    expect((await recovered.json()).campaign.active).toBe(true);
+  });
+  it('never marks a failed host as temporary saving even if its busy fence remains set', async () => {
+    const f = await fixture();
+    f.api.busy = true; f.control.ready = false;
+    for (const path of ['/realms/universe', '/realms/universe/settlements']) {
+      const response = await fetch(`${f.origin}${path}`, { headers: f.headers() });
+      expect(response.status).toBe(503);
+      expect(response.headers.get('x-tv-universe-condition')).toBeNull();
+      expect(await response.json()).toEqual({ error: 'Saving or simulation failed. Restart the world to recover its durable journal.' });
+    }
+    expect(f.control.applications).toHaveLength(0);
   });
   it('does not acknowledge an old owner with a new-owner snapshot after async persistence', async () => {
     const f = await fixture(), enteredPersist = deferred(), commit = deferred();
