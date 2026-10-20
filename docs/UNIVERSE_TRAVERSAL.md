@@ -58,12 +58,18 @@ The seed defaults to 20261017 and cannot change for an existing save.
 2. Choose a planet in the chart, then **C** or **Sail to target**.
 3. The vessel flies around obstructing worlds and brakes above a dry landing site.
 4. Press **F** when landing is available. The host descends to ground contact.
-5. Walk with **WASD**, turn with **left/right arrows**, and look with **up/down**
-   or a pointer drag. Return within 60 metres of the vessel to launch again.
+5. Walk with **W/S** along the character's heading, sidestep with **A/D**, and
+   turn with **left/right arrows**. Movement remains body-relative when the
+   camera looks back. Return within 60 metres of the vessel to launch again.
 
 In flight, W/S thrust, A/D strafe, arrows steer, Q/E move vertically, and Space
-brakes. Manual controls cancel assisted navigation. M folds the chart; ? opens
-help. Esc and focus loss release controls. Choose a system address 0–65535 and
+brakes. Manual movement controls cancel assisted navigation. Drag with the left
+or middle mouse button to orbit freely; the wheel or **[ / ]** changes preferred
+zoom, and **R / Recenter** places the camera behind the current heading. On the
+ground, **up/down arrows** also tilt the camera. Orbit and zoom stay local and do
+not steer, spend mana, or cancel a route. Camera preferences persist in the browser,
+separately from the world save. M folds the chart; ? opens help. Esc and focus
+loss release controls. Choose a system address 0–65535 and
 **Cross the veil** after leaving the atmosphere. Reloading resumes the host's
 expedition; restarting clears held thrust and unattended navigation/descent.
 
@@ -111,7 +117,10 @@ the world and does not grant offline resource recovery. See
   cosmetic grass, crystals and stones have no resource or collision semantics.
 - `client.ts`: renders host snapshots, interpolates only the view, displays the
   chart and flight telemetry, and sends intents. It imports no executable host,
-  save, or travel-step code. Camera clearance is a presentation constraint.
+  save, or travel-step code. `camera.ts` owns local orbit, zoom, transported
+  horizon and gradual ground/flight framing. Camera clearance is a presentation
+  constraint. Camera, lighting, rig ownership and pending visual acceptance are
+  documented in [UNIVERSE_PRESENTATION.md](UNIVERSE_PRESENTATION.md).
 - `src/web/main.ts`, Vite proxy, package scripts and the launcher expose the
   expedition through the existing browser client. Existing routes stay available.
 
@@ -197,3 +206,11 @@ it is not a fresh full-flight run.
 The [defect register](UNIVERSE_ISSUES.md) records concrete bugs, verification and
 ordered next work. [Campaign results](evidence/universe/CAMPAIGN_RESULTS.md)
 separate the original failed journey, its verified recovery and remaining gaps.
+
+The later [presentation results](evidence/presentation-quality/RESULTS.md) cover
+free orbit/zoom during actual personal flight, rig-specific shared motion,
+atmosphere/shadow ownership and exact-save restart. The corrected journey
+passed 51 ordinary-control checks and its initial restart passed 17. Preserved
+failed attempts, final guard follow-up, frame costs and unexercised assertions
+are reported separately. See [presentation controls and limits](UNIVERSE_PRESENTATION.md)
+and [character motion provenance](CHARACTER_MOTION.md).

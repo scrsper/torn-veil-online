@@ -18,4 +18,8 @@
 .astral-ui[data-boarding=true] .astral-boarding h2{font-size:23px;margin:9px 0}
 .astral-ui[data-boarding=true] .astral-boarding p{font-size:11px;margin:8px 0}
 .astral-boarding [data-boarding-flight]{color:var(--gold)}
+.astral-camera-hint{position:absolute;right:0;bottom:100%;margin:0 0 9px;font-size:10px;color:var(--muted);text-shadow:0 1px 4px #000}
+.astral-camera-hint kbd{margin-left:0}
+.astral-target{top:104px;max-width:calc(100vw - 48px);overflow:hidden;text-overflow:ellipsis}
+@media(max-width:650px){.astral-target{top:108px;max-width:70vw}}
 @media(max-width:650px){.astral-ui[data-boarding=true] .astral-boarding{left:20px;bottom:20px;padding:18px}}

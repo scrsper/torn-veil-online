@@ -56,7 +56,7 @@ establish that the complete journey is playable or that every model was viewed.
 | U-038 | **Rendering:** town ground reused the forest material without its vertex coverage stream, causing `color` shader compilation errors and repeated fallbacks. | Fixed: adds the same coverage buffer and alpha policy as the ordinary town renderer. | First run's failure retained. Fresh normal-quality 23-check journey has no shader, runtime or asset errors. |
 | U-039 | **HUD:** after personal flight to another world, ground text says to approach the vessel within 60 m even though that world has no vessel. | Fixed: distinguishes personal departure and remote parked-vessel location. | Fresh foreign-ground capture and reload show the vessel parked on the home planet and the available personal-flight action. |
 | U-040 | **Resource leak:** forest GLB load succeeds, then route metadata fetch/hash fails; instantiated scene entries have no returned owner/disposer. | Fixed: releases entries/root and shadow registration on setup rejection or late cancellation; successful disposal remains idempotent. | Three real Babylon hierarchy tests pass for metadata failure, disposal while awaiting metadata and successful shared-source ownership. |
-| U-041 | **Animation:** the selected hero's arms appear symmetrically raised on ground and in flight. | Open. Cycling frames prove an active animation, but not the source implied by its alias. Followup audit found missing private clip URLs returning HTML and a KayKit fallback labeled `idle_neutral`; Wren also reuses Ranger's baked rotations despite differing rest joints. Correct fallback provenance and bake against the actual rig before judging a replacement pose. | Browser records changing frames/joints. Read-only asset audit measured differing pelvis/spine/leg rest rotations; this corrects the earlier inference that the named authored idle was verified. |
+| U-041 | **Animation:** the selected hero's arms appear symmetrically raised on ground and in flight. | Ground source/retargeting fixed: verified CC0 Quaternius idle/walk/jog/sprint, actual-rig bakes and truthful fallback provenance. Ground arms now relax. Flight uses a bounded pose overlay; its recentered silhouette and fine deformation still need improvement. | Actual-rig and staging regressions pass. Verified ground/front/side captures show attached limbs and relaxed idle. Actual 852 m/s side capture shows trailing legs; small dark airborne captures do not establish fingers, face or fine deformation quality. |
 | U-042 | **Controls:** opening help or braking on the ground sends `cruise:false`, which the host rejects with a misleading “launch before cruise” toast. | Fixed: cancel cruise only when cruise is active; always release held movement separately. | First journey's single HTTP 409 traced to this path. Fresh browser acceptance checks opening help and rejects any HTTP errors. |
 | U-043 | **Restart failure:** the normal-quality journey returns onto focused paving at Y 1.0625, but inactive-history validation searches for support within only 0.015 m. The ground query starts from lower mortar and misses the adjacent 6.25 cm paving support, rejecting the completed save. | Fixed: uses the same 0.55 m support search as walking while still requiring the resolved height to match saved feet within 0.015 m. | Exact failed checkpoint sequence 7267 is preserved. Actual paving regression passes; the unmodified checkpoint loads and roundtrips with the same body, full inventory, discoveries and parked vessel. Ordinary host restart succeeds; rendered-town/reentry followup is recorded separately. |
 | U-044 | **Geometry migration:** after mapped travel in ordinary town geometry, adopting focused town geometry succeeds but invalidates retained body history and the actual parked vessel. | Fixed: refuse this unsupported migration before any mutation. Already-focused no-ops and legacy gateway adoption remain supported. A future migration must map both history and vessel to validated replacement geometry. | No-mutation regression and both compatibility controls pass. Final delta verification: 25 settlement/migration/journal tests and TypeScript pass. |
@@ -75,6 +75,35 @@ loaded 42 distinct models and saw 13 distinct IDs in the camera frustum. Neither
 number is an assertion that all 1,249 static-compatible models were rendered or
 that generated decoration creates living NPCs, loot or economy.
 
+## Camera, character and lighting pass — verified journey, remaining limits
+
+| ID | Observed problem | Current action / acceptance |
+| --- | --- | --- |
+| U-045 | Pointer look submits authoritative yaw/pitch at 10 Hz, changes the traveler heading and cancels assisted flight. Pointer-up also discards an unsent short drag. There is no preferred wheel zoom. | Fixed: local render-rate orbit, recenter and persistent zoom preference. Pure tests and ordinary browser checks verify full drag, zoom and unchanged canonical heading/navigation during active assisted flight. Ground movement remains body-relative. |
+| U-046 | Takeoff switches camera offsets instantly; vertical facing falls back to geographic north, and changing nearest planets can abruptly change the horizon. | Fixed for the measured route: stable transported tangent, eased framing and 90°/s automatic horizon transport. Actual ascent, nearest-world crossing and landing pass. Coarse sampled transition fell from 59.54° to 8.77°; measured clock quantization and acceptance tolerance are disclosed in the verified report. |
+| U-047 | Universe character/settlement shadow callbacks are no-ops; the PBR character has no environment irradiance and the surface sky is a flat clear color with visible daytime stars. | Implemented and browser checked: existing HDR, atmospheric gradient/star fade and owned bounded shadows. Verified maximum sample 112 casters / 51,713 triangles; no shader/browser errors. Ground p50/p95 20.8/27.9 ms, 849 draws on this run. This adds workload; space readability and endurance remain open. |
+| U-048 | Spherical character disables the planar contact solver for all ground states. Authored gait has no radial terrain foot locking. | Open. Do not enable world-Y IK under a radial parent. Build a proper per-foot radial support/contact frame before claiming slope planting or accepting low-angle foot closeups. |
+| U-049 | **Flight pose:** the first quality run reports braking at 847 m/s during steady assisted passage. Horizontal speed falls as the local radial frame rotates, falsely satisfying the deceleration detector. | Fixed detector uses total speed; equal-speed rotating-frame and actual deceleration regressions pass. Verified 852 m/s capture has ascent rather than persistent false brake. No browser interval met the strict ≥400 ms / four-update / ≤0.05 m/s stability criteria; that specific live steady-speed assertion remains unexercised. |
+| U-050 | **HUD/framing:** the current-world label covers the character's chest on the ground; minimum zoom and wrapped action controls obscure a boot. “Landing available” is also shown 11.9 km above a world. | Fixed and captured: no current-world marker over the ground hero, both boots clear the HUD at close zoom, target text above the silhouette and accurate “descent available” wording. |
+| U-051 | **Camera evidence:** the first quality harness aborts at a greater-than-45° change over an approximately 95 ms sampling interval, then loses its trace because it stores it after asserting. | Fixed harness retains traces before assertions and measures elapsed render frames. Recovery established a fast smooth turn, not an instantaneous snap. Verified route retains 489 trace samples; angular cap checks pass with disclosed numeric/clock tolerance. |
+| U-052 | **Motion diagnostic:** an upright spherical character reports about 67.6° spine tilt because the diagnostic compares against global Y. | Fixed relative to transformed actor up. Actual upright idle reads approximately 2.0–4.2°, while flight still reports anatomical lean. This was an inspection error, not evidence of mesh deformation. |
+| U-053 | **Visual contact:** the ground capture has weak boot-contact cues, pale face lighting and a strong hair highlight. A parked vessel overlaps the overhead close view. | Partially improved: tuned existing material roles, light/shadow bias and new berth minimum 8 m; retained vessel coordinates stay unchanged. No overhead vessel in fresh close captures. Weak ground contact remains open (U-048); bind/ankle measurements do not support a large global height correction. |
+| U-054 | **Shadow accounting/ownership:** the budget counts source triangles without multiplying thin instances. Bending an InstancedMesh disposes it and creates a Mesh replacement without transferring its caster registration or per-instance metadata. | Fixed: rendered-instance triangle accounting, per-placement metadata and caster transfer, original-owner cleanup. Real Babylon hierarchy/disposal regressions pass; verified journey stays within budgets. |
+| U-055 | **Animation cleanup:** temporary instantiated rigs used for baking release groups/roots but leave their cloned Babylon skeleton registered until scene disposal. | Fixed: temporary cloned skeletons disposed across bake paths. Real ownership regression verifies scene skeleton counts and retained shared sources. This was bounded per load, not observed per-frame growth. |
+| U-056 | **Camera collision:** thin-instance town batches do not enable per-instance picking, so camera rays can miss a placed wall/post while testing its prototype instead. | Fixed: per-instance picking enabled after bending. Real Babylon regression hits the placed instance away from its prototype and preserves source ownership; ordinary near-wall browser probe shows lens contraction. |
+| U-057 | **Near-wall character clipping:** the real browser probe retracts the camera to zero distance at a pillar, leaving the underside of the hero's face across the top of the view. | Implemented: avatar hides at ≤1.25 m lens clearance, restores at ≥1.6 m; five focused tests verify continued animation/placement/material ownership. Corrected journey reached 1.716 m; final bounded ground probe reached 1.29788 m across three positions/24 angles. **The hide threshold still needs ordinary-UI acceptance.** The earlier zero-clearance defect capture is retained. |
+| U-058 | **Blocked departure feedback and test route:** the wall probe overshot its return to the street. Subsequent departure collided with town geometry, cancelled navigation and consumed hover mana while the test waited for a world crossing. Captures named “moving” actually show 0 m/s at 3 m. | Failed attempt preserved, relabeled and safely returned. HUD now exposes recent authoritative flight collisions; this specific text remains unexercised in the corrected journey. Harness guards stalled departure, asserts real speed/cruise and probes walls after travel. Corrected journey passes 51 checks with actual flight, foreign reload, home and rendered-town return, zero errors. |
+| U-059 | **Space readability:** moving hero occupies only about 100–150 pixels and is very dark against space. Recentered flight can look upright with raised forearms despite a coherent side silhouette. | Open. Tune cinematic distance, planet-relative lighting and flight silhouette together, preserving manual orbit/zoom and physical motion. Require readable front/side/back moving captures without washing out source materials; fine fingers, eyes and elbow deformation are not established by current images. |
+| U-060 | **Zero-clearance view direction:** minimum 3 m zoom removes look-ahead. At zero wall clearance, camera eye and target coincide; Babylon can construct a degenerate view. | Fixed with a nonzero aim direction while retaining the actual blocked lens position and body. Fourteen camera tests pass, including zero/tiny clearance and a real Babylon FreeCamera's finite, invertible view in two radial frames. Final ordinary min-zoom/near-wall/reentry/return follow-up passes 27 checks, zero errors; it stays finite but does not reach zero clearance. Exact checkpoint 18377 reloads successfully. |
+
+The first presentation trip's recovery passed landing, reload, home return and
+actual town rendering, then checkpoint 9898 loaded with unchanged identity,
+inventory, discoveries and vessel. Its one transient GET 503 was followed by
+recovery. The API's save-busy fence is the code-supported explanation; the old
+capture did not retain the response reason, so it is not direct response proof.
+The next harness retains the exact reason and requires a subsequent successful
+read before classifying a temporary save-busy response as expected.
+
 The preceding October 19 checkpoint completed canonical identity/body and carried-item continuity,
 resident NPC/clock continuation, durable journal replay without a final checkpoint,
 append-failure recovery, controller races, contact persistence and the occupied
@@ -82,6 +111,11 @@ return-anchor recovery. See [campaign results](evidence/universe/CAMPAIGN_RESULT
 for those two browser runs and their distinct limits.
 
 ## Next work and acceptance gates
+
+For the next character-quality iteration, prioritize radial foot contact
+(U-048), then readable moving flight at multiple camera angles (U-059), and
+finish any outstanding ordinary-UI near-wall acceptance (U-057/U-060).
+The broader integration gates remain:
 
 1. **Finish the ordinary interaction bridge.** The mapped towns now share source
    geometry, but NPC interaction, combat, doors and Tower entry still use the town
@@ -111,10 +145,16 @@ for those two browser runs and their distinct limits.
    persistence and bounded memory acceptance.
 7. **Visible world variety.** Validate more than the safe arrival clearings:
    different biomes, authored landmark approaches and native-size architecture.
-   The volcanic arrival view is sparse and the hero reuses an upright idle.
+   The volcanic arrival view is sparse and distant terrain repeats visibly.
    Improve composition and approved locomotion presentation while retaining
    route clearance, actual source-model proof and bounded streaming. Frustum
    membership alone is not proof that a model is visually legible.
+8. **Character and camera acceptance.** Implement radial per-foot support and
+   planting (U-048), improve space readability/flight silhouette (U-059), and
+   exercise the near-wall avatar hide/restore threshold in ordinary play
+   (U-057). Keep source textures and actual rig provenance; measure skinned
+   soles and slopes before changing the character's global height. The current
+   meshes still exceed the older 25k-triangle character target; no LOD claim.
 
 ## Prior fixed defects
 

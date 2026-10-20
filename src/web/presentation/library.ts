@@ -5,7 +5,7 @@ import { WEAPONS, MOVESETS, RELAXED, DODGE_BODY, READY_CLIPS, type AttackDef } f
 /** Versioned presentation contract. Editing this registry changes existing bodies on the
  * next client load, in every consumer, without a save migration or a gameplay stat change.
  * Only the existing accepted assets are registered; the separate Opus candidate is absent. */
-export const PRESENTATION_REVISION = 'authored-motion-2026-10-13.1';
+export const PRESENTATION_REVISION = 'authored-motion-2026-10-20.1';
 export const CHARACTER_KITS = Object.freeze({ f: 'models/kit_f.glb', m: 'models/kit_m.glb', c: 'models/kit_c.glb' });
 export const HUMAN_LOOKS: LookId[] = ['ranger', 'brann', 'wren', 'raider', 'raider_f', 'soldier', 'knight', 'archer', 'mystic'];
 /** Paths relative to arena base. Body/rig replacement has one mapping for world, Tower and lab. */

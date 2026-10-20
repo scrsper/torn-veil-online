@@ -64,8 +64,26 @@ export const UE: RigMap = (() => {
   return { map, blend: [], follow: [], hips: 'pelvis', handR: 'hand_r', handL: 'hand_l', feet: ['foot_l', 'foot_r'] };
 })();
 
+/** Quaternius UAL Unreal/Godot export: full finger chains and capitalised Head. */
+export const UAL: RigMap = (() => {
+  const sourceName = (target: string) => target === 'head' ? 'Head' : target;
+  const map: Pair[] = MIXAMO.map.map(([, target, , child]) =>
+    [sourceName(target), target, child ? sourceName(child) : null, child]);
+  return { map, blend: [], follow: [], hips: 'pelvis', handR: 'hand_r', handL: 'hand_l',
+    feet: ['foot_l', 'foot_r'], preserveRest: MIXAMO.preserveRest };
+})();
+
+export interface MotionProvenance {
+  source: string;
+  file: string;
+  sourceClip: string;
+  retargetLook: string;
+  sha256?: string;
+  license?: string;
+}
 export interface ClipTemplate {
   name: string; frames: number; fps: number; tracks: { bone: string; anim: Animation }[];
+  provenance?: MotionProvenance;
   /** Fastest-hand speed per frame (model units/s): attack windows are measured from it. */
   swing: number[];
   /** Per frame, whether each foot (l, r) is planted (near its lowest height in the clip). */

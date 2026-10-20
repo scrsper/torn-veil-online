@@ -32,8 +32,10 @@ export function surfaceEntryState(s: RealmSession): TravelState {
     // The existing traversal vessel is a fixture, not an inventory reward. Place
     // its hull on verified nearby ground once; later entries preserve its location.
     let vessel: typeof position | null = null;
-    for (const radius of [0, 8, 16, 24, 40, 56]) {
-      for (let i = 0; i < (radius ? 16 : 1); i++) {
+    // Leave room for the full skiff wingspan and the standing traveler. A zero
+    // radius berth put its hull directly over the body's head on first entry.
+    for (const radius of [8, 16, 24, 40, 56]) {
+      for (let i = 0; i < 16; i++) {
         const x = s.body.pos.x + Math.cos(i * Math.PI / 8) * radius, z = s.body.pos.z + Math.sin(i * Math.PI / 8) * radius;
         const geometry = s.grid.movementGeometryAt(x, z);
         const y = geometry ? geometry.supportAt(x, z, s.body.pos.y, .55) : 1;

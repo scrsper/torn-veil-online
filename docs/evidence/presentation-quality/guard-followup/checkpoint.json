@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-20T19:02:16.643Z",
+  "checkpointSequence": 18377,
+  "engine": "27352c8a3dbffe0c544073291a1ea73b88525dde979f87a10d483c7d9ea8c8b7",
+  "personId": "p_5",
+  "bodyId": "b_5",
+  "inventoryUnchanged": true,
+  "active": false,
+  "bodyPresent": true,
+  "bodyPosition": {
+    "x": 11315.619689170117,
+    "y": 1.0625,
+    "z": 3093.174595222661
+  },
+  "discoveries": [
+    {
+      "planetId": "u1:20261017:s0:p0",
+      "systemIndex": 0,
+      "tick": 0,
+      "explorerId": "p_5",
+      "method": "landed"
+    },
+    {
+      "planetId": "u1:20261017:s0:p2",
+      "systemIndex": 0,
+      "tick": 1806,
+      "explorerId": "p_5",
+      "method": "landed"
+    }
+  ],
+  "parkedVessel": {
+    "systemIndex": 0,
+    "planetId": "u1:20261017:s0:p0",
+    "position": {
+      "x": -3.0784811375173877,
+      "y": 524.4641801324371,
+      "z": 1521.0980550469717
+    }
+  },
+  "landingEvents": [
+    {
+      "id": "e_267",
+      "actor": "p_5",
+      "planet": "u1:20261017:s0:p2",
+      "manaSpent": 136.94778657575887,
+      "effortSpent": 0.03048576814208146
+    },
+    {
+      "id": "e_292",
+      "actor": "p_5",
+      "planet": "u1:20261017:s0:p0",
+      "manaSpent": 109.41704597547749,
+      "effortSpent": 0.024357185886714774
+    }
+  ],
+  "returnedEventId": "e_340"
+}

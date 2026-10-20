@@ -60,7 +60,8 @@ function subdivideLong(mesh: Mesh, max: number) {
   for (const k of kinds) mesh.setVerticesData(k, data.get(k)!, true, stride.get(k));
   mesh.setIndices(tris);
 }
-export function bendTree(spec: PlanetSpec, c: RealmChart, root: TransformNode): Mesh[] {
+export function bendTree(spec: PlanetSpec, c: RealmChart, root: TransformNode,
+  onMaterialized?: (original: InstancedMesh, replacement: Mesh) => void): Mesh[] {
   root.computeWorldMatrix(true);
   const out: Mesh[] = [];
   for (const node of root.getChildMeshes(false)) {
@@ -69,6 +70,9 @@ export function bendTree(spec: PlanetSpec, c: RealmChart, root: TransformNode): 
       const copy = node.sourceMesh.clone(node.name + ':bent', null, true, false); if (!copy) continue;
       copy.makeGeometryUnique(); copy.parent = null; copy.position.setAll(0); copy.rotationQuaternion = null; copy.rotation.setAll(0); copy.scaling.setAll(1);
       copy.bakeTransformIntoVertices(node.computeWorldMatrix(true)); copy.setEnabled(node.isEnabled()); copy.isVisible = node.isVisible; copy.visibility = node.visibility;
+      // The view owning registrations/instance metadata can transfer them
+      // before the original instance is released. Other callers are unchanged.
+      onMaterialized?.(node, copy);
       node.dispose(); mesh = copy;
     } else if (node instanceof Mesh) mesh = node; else continue;
     const thin = mesh.thinInstanceCount;

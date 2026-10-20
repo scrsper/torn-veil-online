@@ -4,13 +4,24 @@ import { paintTexture } from '../render/textures';
 import { paintEye, paintFace, paintPairedIris, type FaceSpec } from './faceTexture';
 
 const humanMicroNormals = new WeakMap<Scene, RawTexture>();
+/** Verified MPFB hero/Wren material slots. Do not infer skin from broad substrings. */
+export function importedHumanMaterialRole(name: string): 'skin' | 'eye' | 'hair' | 'cloth' | 'leather' | null {
+  if (/^TV_Human_(male|female)$/.test(name) || name === 'Human.body') return 'skin';
+  if (/TV_Human_(male|female)\.high-poly/.test(name) || name === 'Human.low-poly') return 'eye';
+  if (/TV_Human_(male|female)\.(short02|braid01|eyebrow|eyelashes)/.test(name)
+    || /^Human\.(culturalibre_hair_02|elvs_french_braid_variation|eyebrow\d+|eyelashes\d+)$/.test(name)) return 'hair';
+  if (/^Human\.(mindfront_lusekofta|toigo_wool_pants|rehmanpolanski_viking_(pants|tunic))$/.test(name)) return 'cloth';
+  if (/^Human\.(punkduck_medieval_boots|rehmanpolanski_viking_boots|toigo_gloves_short)$/.test(name)) return 'leather';
+  return null;
+}
 /** Restrained optical treatment for the existing textured MPFB bodies, shared by Tower and world.
  * No source geometry, skin colour, UVs, rig, reference pixels or GLB bytes are changed.
  * The linen is a seamless authored swatch; finer tiling makes its weave read as fibre rather than a large check.
  */
 export function refineImportedHumanMaterial(m: PBRMaterial, scene: Scene): void {
   const name = m.name;
-  if (/^TV_Human_(male|female)$/.test(name)) {
+  const role = importedHumanMaterialRole(name);
+  if (role === 'skin') {
     m.metallic = 0; m.roughness = .53;
     m.subSurface.isTranslucencyEnabled = true; m.subSurface.translucencyIntensity = .055;
     m.subSurface.minimumThickness = .005; m.subSurface.maximumThickness = .02;
@@ -26,7 +37,7 @@ export function refineImportedHumanMaterial(m: PBRMaterial, scene: Scene): void 
       }
       m.bumpTexture = normal;
     }
-  } else if (/TV_Human_(male|female)\.high-poly/.test(name)) {
+  } else if (role === 'eye') {
     // This source part is the eye globe. The old cloth-like roughness hid its corneal highlight.
     m.metallic = 0; m.roughness = .18;
   } else if (/TV woven linen shirt|Plain linen study/.test(name)) {
@@ -34,9 +45,12 @@ export function refineImportedHumanMaterial(m: PBRMaterial, scene: Scene): void 
     if (m.albedoTexture instanceof Texture) { m.albedoTexture.uScale = m.albedoTexture.vScale = 4; }
     if (m.bumpTexture instanceof Texture) { m.bumpTexture.uScale = m.bumpTexture.vScale = 4; m.bumpTexture.level = .2; }
     if (/Plain linen study/.test(name)) m.albedoColor = new Color3(.76, .7, .57);
-  } else if (/worn brown leather|shoes03/.test(name)) {
+  } else if (role === 'cloth') {
+    // Existing UVs and source texture colours remain unchanged.
+    m.metallic = 0; m.roughness = .9;
+  } else if (role === 'leather' || /worn brown leather|shoes03/.test(name)) {
     m.metallic = 0; m.roughness = .78;
-  } else if (/TV_Human_(male|female)\.(short02|braid01|eyebrow|eyelashes)/.test(name)) {
+  } else if (role === 'hair') {
     m.roughness = .62; m.alphaCutOff = .32; m.backFaceCulling = false;
   }
 }

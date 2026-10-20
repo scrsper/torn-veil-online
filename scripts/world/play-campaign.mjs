@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stageHumanMotion } from '../web/stage-human-motion.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const port = process.env.TV_REALMS_PORT || '7530';
@@ -16,7 +17,8 @@ await new Promise((done, reject) => {
   const probe = createServer(); probe.once('error', () => reject(Error(`Port ${port} is already occupied. Choose TV_REALMS_PORT or stop its owning host.`)));
   probe.listen(+port, '127.0.0.1', () => probe.close(done));
 });
-console.log(`Torn Veil — saved character and Astral Sea\nCampaign: ${save}\nDevelopment client; no production build or asset staging.\nPress Ctrl+C to checkpoint and stop.`);
+stageHumanMotion();
+console.log(`Torn Veil — saved character and Astral Sea\nCampaign: ${save}\nDevelopment client; shared CC0 character motion verified.\nPress Ctrl+C to checkpoint and stop.`);
 const host = spawn(process.execPath, ['--import', 'tsx', 'src/server/realms.ts'], {
   cwd: root, windowsHide: true, stdio: ['pipe', 'inherit', 'inherit'],
   env: { ...process.env, TV_REALMS_PORT: port, TV_REALMS_SAVE: save, TV_REALMS_STATIC: '', TV_REALMS_MANAGED: '1' },

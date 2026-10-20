@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { AssetContainer, Matrix, MeshBuilder, NullEngine, Scene, StandardMaterial, Vector3 } from '@babylonjs/core';
+import { AssetContainer, Matrix, MeshBuilder, NullEngine, Scene, StandardMaterial, Vector3, type AbstractMesh } from '@babylonjs/core';
 import type { AtlasAsset } from '../src/sim/world/atlas/types';
 import { AtlasWorldRenderer, atlasRotation, type AtlasRenderPlacement } from '../src/web/atlas/stream';
 import { inspectAtlasGlb, loadVerifiedAtlasAsset } from '../src/web/atlas/verified';
@@ -74,9 +74,11 @@ describe('bounded Atlas presentation', () => {
 
   it('reserves cache budgets before loading, caps concurrency, evicts unused models and rebases instances', async () => {
     const target = scene(), assets = [asset('a'), asset('b'), asset('c')];
+    const casters = new Set<AbstractMesh>();
     let active = 0, peak = 0, parsed = 0;
     const stream = new AtlasWorldRenderer(target, {
       asset: id => assets.find(a => a.id === id),
+      shadows: { addCaster: mesh => { casters.add(mesh); }, removeCaster: mesh => { casters.delete(mesh); } },
       budgets: { models: 2, bytes: modelBytes.length * 2, triangles: 24, instances: 2, instanceTriangles: 24, meshInstances: 2 },
       loader: {
         fetch: vi.fn(async () => { active++; peak = Math.max(peak, active); await new Promise(resolve => setTimeout(resolve, 2)); active--; return new Response(modelBytes); }) as typeof fetch,
@@ -89,6 +91,7 @@ describe('bounded Atlas presentation', () => {
     stream.update([placement('a'), placement('b', 2)], zero, new Vector3(10, 20, 30), .1);
     expect(peak).toBe(2); expect(parsed).toBe(2);
     expect(stream.stats().instances).toBe(2);
+    expect(casters.size).toBe(2);
     expect(target.getTransformNodeByName('atlas:place:a')!.position.asArray()).toEqual([-10, -20, -30]);
     expect(stream.stats().cacheBytes).toBe(modelBytes.length * 2);
     for (let i = 0; i < 5; i++) stream.update([placement('c')], zero, zero, .1);
@@ -97,7 +100,9 @@ describe('bounded Atlas presentation', () => {
     expect(stream.stats().cachedModels).toBeLessThanOrEqual(2);
     expect(stream.stats().cacheTriangles).toBeLessThanOrEqual(24);
     expect(stream.stats().instances).toBe(1);
+    expect(casters.size).toBe(1); expect([...casters].every(mesh => !mesh.isDisposed())).toBe(true);
     stream.dispose(); expect(target.meshes.length).toBe(0); expect(target.transformNodes.length).toBe(0);
+    expect(casters.size).toBe(0);
     target.dispose(); target.getEngine().dispose();
   });
 

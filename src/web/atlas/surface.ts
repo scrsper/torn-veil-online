@@ -3,7 +3,7 @@ import { ATLAS_REVISION, getAtlasAsset } from '../../sim/world/atlas';
 import { atlasPlanetPlacements, atlasSpherePlacements } from '../../sim/world/atlas/placement';
 import { length, normalize, sub, surfaceHeight, type PlanetSpec, type V3 } from '../../sim/world/planet/planet';
 import { terrainHeight, type PlanetDescriptor } from '../../sim/world/universe/generation';
-import { AtlasWorldRenderer, type AtlasRenderPlacement } from './stream';
+import { AtlasWorldRenderer, type AtlasRenderPlacement, type AtlasStreamOptions } from './stream';
 
 /** Query cadence is visual only. World placement/collision share the same pure
  * random-access registry. Absolute positions keep old planets stable while fading. */
@@ -14,7 +14,7 @@ export class AtlasSurfaceRenderer {
   private queryAge = 1;
   private context = '';
   private queryCount = 0;
-  constructor(scene: Scene, lite = false) { this.stream = new AtlasWorldRenderer(scene, { asset: getAtlasAsset, lite }); }
+  constructor(scene: Scene, lite = false, shadows?: AtlasStreamOptions['shadows']) { this.stream = new AtlasWorldRenderer(scene, { asset: getAtlasAsset, lite, shadows }); }
 
   planet(planet: PlanetDescriptor, observer: V3, origin: V3, dt: number, revision: number, catalog: string | undefined) {
     const local = sub(observer, planet.center), dir = normalize(local);

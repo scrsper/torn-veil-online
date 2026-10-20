@@ -37,6 +37,7 @@ export interface AtlasStreamOptions {
   lite?: boolean;
   budgets?: Partial<AtlasStreamBudgets>;
   loader?: AtlasLoader;
+  shadows?: { addCaster(mesh: AbstractMesh): void; removeCaster(mesh: AbstractMesh): void };
 }
 const distance = (a: AtlasVector, b: AtlasVector) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const copy = (p: AtlasVector) => ({ x: p.x, y: p.y, z: p.z });
@@ -142,6 +143,7 @@ export class AtlasWorldRenderer {
     const meshes = root.getChildMeshes();
     for (const mesh of meshes) {
       mesh.isPickable = false; mesh.checkCollisions = false; mesh.receiveShadows = true;
+      this.options.shadows?.addCaster(mesh);
       if (mesh instanceof InstancedMesh && mesh.instancedBuffers) mesh.instancedBuffers.atlasFade = 0;
     }
     this.instances.set(placement.id, { placement, root, entries, meshes, fade: 0, wanted: true, asset: model.asset });
@@ -151,6 +153,7 @@ export class AtlasWorldRenderer {
   private release(id: string) {
     const instance = this.instances.get(id);
     if (!instance) return;
+    for (const mesh of instance.meshes) this.options.shadows?.removeCaster(mesh);
     instance.entries.dispose(); instance.root.dispose(); this.instances.delete(id);
   }
 

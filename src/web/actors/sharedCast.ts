@@ -4,7 +4,7 @@ import {SharedGaze} from './sharedGaze';
 import {contactHints,gaitPhases} from '../arena/gaitPhase';
 import {sharedTravelClip, authoredTravelBlend} from './sharedMotion';
 import {SHARED_MOTION_NAMES} from '../arena/sharedMotionNames';
-import { TransformNode, type Scene, type Vector3 } from '@babylonjs/core';
+import { TransformNode, type Scene, Vector3 } from '@babylonjs/core';
 import {ArenaAssets,type CharacterInstance} from '../arena/assets';
 import {Animator} from '../arena/anim';
 import {MOVESETS, RELAXED, dodgeClip} from '../arena/combat';
@@ -17,6 +17,7 @@ import {EquipmentVisual} from '../items/equipmentVisual';
 import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
 import type { ClipTemplate } from '../arena/retarget';
 import {characterScaleObservation,normalizeCharacterMetres} from './characterScale';
+import {FlightPose} from './flightPose';
 export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
@@ -25,6 +26,16 @@ export interface SharedCharacterEnvironment {
  planarContacts?:boolean;
 }
 type CharacterLighting = Pick<Atmosphere, 'addCaster' | 'removeCaster'>;
+/** Anatomical lean relative to this actor's upright frame, including spherical
+ * parents. The frame is above the flight pivot so genuine flight lean remains
+ * measurable; a planet's latitude is never reported as a hunched spine. */
+export function spineTiltDegrees(frame:TransformNode,hip:readonly number[],chest:readonly number[]):number|null{
+ frame.computeWorldMatrix(true);
+ const up=Vector3.TransformNormal(Vector3.Up(),frame.getWorldMatrix()).normalize();
+ const spine=new Vector3(chest[0]-hip[0],chest[1]-hip[1],chest[2]-hip[2]);
+ if(spine.lengthSquared()<1e-12)return null;
+ return Math.atan2(Vector3.Cross(spine,up).length(),Vector3.Dot(spine,up))*180/Math.PI;
+}
 const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);n^=n>>>16;n=Math.imul(n,0x85ebca6b);n^=n>>>13;return(n^(n>>>16))>>>0;};
 /** Stable presentation choice, never a replacement for person/body identity. */
 export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentationSex'>):LookId {
@@ -61,6 +72,7 @@ export class SharedVisual implements BodyVisual {
  private gaze:SharedGaze;private lookAt:Vector3|null=null;private gazeActive=true;private rawDt=0;
  private footfalls=new ContactFootfalls();private speed=0;private footfallActive=false;
  private travel='unarmed/walk_forward';
+ private flight:FlightPose;
  constructor(private instance: CharacterInstance, body: BodyState, private atmosphere: CharacterLighting, private clips: Map<string, ClipTemplate>,private environment?:SharedCharacterEnvironment) {
   // Arena assets face +Z, while canonical bodies face -Z. Keep that coordinate adapter
   // below the actor root; never rotate the canonical body or its physical contact geometry.
@@ -68,6 +80,7 @@ export class SharedVisual implements BodyVisual {
   this.root.metadata = { ...instance.root.metadata };
   instance.root.parent = this.root; instance.root.rotation.y = Math.PI;
   this.bodyHeight=instance.root.metadata.metricImport.targetHeight;
+  this.flight=new FlightPose(instance,this.root,this.bodyHeight);
   this.headHeight=this.bodyHeight+.18;
   // Preserve authored joints: passing phase data without the procedural rig means
   // Animator does not construct HumanGait. Foot IK remains a bounded contact correction.
@@ -78,14 +91,14 @@ export class SharedVisual implements BodyVisual {
    this.animator.applyLegs();
    const contacts=this.animator.gaitContacts??contactHints(this.animator.contactSource(),clips);
    const support=this.plant.update(this.dt,this.root.position.y,this.yaw+Math.PI,this.plantActive,contacts,this.environment?.ground);
-   this.gaze.apply(this.rawDt,this.lookAt,this.gazeActive);instance.springs?.update(this.dt);
+   this.gaze.apply(this.rawDt,this.lookAt,this.gazeActive);this.flight.apply();instance.springs?.update(this.dt);
    this.root.computeWorldMatrix(true);
    this.root.metadata.equipment=this.equipment.inspect();
    if(this.root.metadata.motion&&instance.bones){
     const point=(name:string)=>{const n=instance.bones!.get(name);n?.computeWorldMatrix(true);return n?.getAbsolutePosition().asArray()??null;};
     const hip=point('pelvis'),chest=point('spine_03');
     Object.assign(this.root.metadata.motion,{feet:[point('foot_l'),point('foot_r')],contacts:contacts??support??null,locks:this.plant.lockState(),
-     spineTiltDeg:hip&&chest?Math.atan2(Math.hypot(chest[0]-hip[0],chest[2]-hip[2]),chest[1]-hip[1])*180/Math.PI:null});
+     spineTiltDeg:hip&&chest?spineTiltDegrees(this.root,hip,chest):null});
    }
    for(const side of this.footfalls.update({dt:this.rawDt,contacts:contacts??support,speed:this.speed,active:this.footfallActive,position:this.root.getAbsolutePosition()})){
     const foot=instance.bones?.get(side===0?'foot_l':'foot_r');foot?.computeWorldMatrix(true);
@@ -99,18 +112,21 @@ export class SharedVisual implements BodyVisual {
  private pace(name: string, fallback: number) { return (this.clips.get(name)?.stance ?? 0) * this.instance.root.scaling.x || fallback; }
  update(dt: number, s: ActorState) {
   const b = s.body; if (!b) return;
-  this.gaze.restore();this.lookAt=s.lookAt?.clone()??null;
+  this.flight.restore();this.gaze.restore();this.lookAt=s.lookAt?.clone()??null;
   this.rawDt=dt;this.dt = Math.max(0,Math.min(.1,dt)); this.clock += dt; this.yaw = s.yaw; this.equipment.update(b.equipment ?? []);
   const forwardMotion = s.speed > .001 ? (-Math.sin(s.yaw) * s.velocity.x - Math.cos(s.yaw) * s.velocity.z) / s.speed : 1;
   this.animator.motion(s.speed, forwardMotion, s.crouch, s.yaw);
   const weapon = b.equipment?.find(i => i.slot === 'right-hand' && ['sword', 'dagger', 'axe', 'hammer'].includes(i.type)), armed=!!weapon;
   const set = armed ? MOVESETS.sword : MOVESETS.fists, falling = b.dead || b.incapacitated || ['downed','sleep','dead'].includes(b.pose);
   const action = s.combat && !['guard', 'stance'].includes(s.combat.moveId) ? s.combat : null;
+  const airborne=!!s.flightPresentation?.airborne&&!falling&&!action;
+  this.flight.update(airborne?s.flightPresentation:undefined,dt);
+  const flightOverlay=this.flight.state.weight>.01;
   if (action || s.guard || b.guarding || s.hit) this.combatUntil = this.clock + 2;
-  this.plantActive = this.environment?.planarContacts !== false && !falling && !action && s.crouch < .05;
-  this.speed=s.speed;this.footfallActive=this.environment?.planarContacts !== false&&!falling&&!action&&s.speed>.08;
+  this.plantActive = this.environment?.planarContacts !== false && !flightOverlay && !falling && !action && s.crouch < .05;
+  this.speed=s.speed;this.footfallActive=this.environment?.planarContacts !== false&&!flightOverlay&&!falling&&!action&&s.speed>.08;
   if(s.speed>.08)this.travel=sharedTravelClip(s,this.travel);
-  this.gazeActive=!falling&&!action&&this.clock>=this.hitUntil;
+  this.gazeActive=!airborne&&!falling&&!action&&this.clock>=this.hitUntil;
   this.animator.legLayer(null);
   if (b.hitSeq > this.hitSeq) {
    this.hitSeq = b.hitSeq; this.hitUntil = this.clock + .32;
@@ -135,7 +151,9 @@ export class SharedVisual implements BodyVisual {
    this.fallen = false;
    const engaged = this.clock < this.combatUntil, readyWeapon = armed && engaged,
     idle = readyWeapon ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
-   if(s.crouch>.1&&!(s.guard||b.guarding)){
+   if(airborne){
+    this.animator.play(this.clip(RELAXED.idle),{loop:true,speed:.7,fade:.22});
+   } else if(s.crouch>.1&&!(s.guard||b.guarding)){
     const name=this.clip(s.speed>.08?'sword_and_shield/sword and shield crouching (3)':'sword_and_shield/sword and shield crouch idle');
     this.animator.play(name,{loop:true,speed:s.speed>.08?Math.max(.3,s.speed/this.pace(name,1)):1,fade:.16});
    } else if (s.guard || b.guarding) {
@@ -153,7 +171,9 @@ export class SharedVisual implements BodyVisual {
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
   const dominant=this.animator.dominant();
-  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:dominant?.name??null, frame:dominant?.frame??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
+  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:dominant?.name??null, frame:dominant?.frame??null,
+   source:this.clips.get(dominant?.name??this.animator.current)?.provenance??null,flight:{...this.flight.state},
+   stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {

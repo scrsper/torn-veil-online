@@ -65,6 +65,7 @@ describe('canonical settlement and universe handoff', () => {
     const view = canonicalUniverseView(s), preview = view.campaign.preview!;
     expect(view.snapshot).toBeNull(); expect(view.campaign.canExplore).toBe(true);
     near(preview.state.position, bodyPointToUniverse(s, realm, pos));
+    expect(length(sub(preview.state.landedVesselPosition!, preview.state.position))).toBeGreaterThan(7.9);
     const facing = settlementDirectionToPlanet(planetSpec(s.world.seed), realm, pos,
       { x: -Math.sin(body.yaw), y: 0, z: -Math.cos(body.yaw) });
     expect(dot(preview.state.forward, facing)).toBeCloseTo(1, 8);
@@ -80,6 +81,17 @@ describe('canonical settlement and universe handoff', () => {
     expect(s.world.primaryBody(person.id)).toBeUndefined();
     expect(s.world.event(binding.enteredEventId)!.data.gateway).toBe('continuous-surface');
     expect(new RealmSession(0, s.save()).world.universeExpedition!.state).toEqual(binding.state);
+  });
+  it('keeps a retained vessel berth when reentering beside it instead of silently relocating it', () => {
+    const r = fixture(), s = r.session;
+    expect(transition(r, 'explore', 'berth-first-entry', 0)).toEqual({ value: { ok: true } });
+    const berth = structuredClone(s.world.universeExpedition!.state.landedVesselPosition!);
+    expect(transition(r, 'return', 'berth-first-return', 1)).toEqual({ value: { ok: true } });
+    s.body.pos = universePointToBody(s, berth)!.position;
+    const restored = new RealmSession(0, s.save());
+    const preview = canonicalUniverseView(restored).campaign.preview!;
+    expect(preview.state.landedVesselPosition).toEqual(berth);
+    near(preview.state.position, berth);
   });
   it('ascends directly from the same town pose and rejects unlearned ascent without a partial transition', () => {
     const ordinary = fixture(), saved = stable(ordinary), continuation = ordinary.checkpoint();

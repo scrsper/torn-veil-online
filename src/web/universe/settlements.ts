@@ -1,4 +1,4 @@
-import { Material, Mesh, Ray, TransformNode, Vector3, VertexData, type Scene } from '@babylonjs/core';
+import { Material, Mesh, Ray, TransformNode, Vector3, VertexData, type AbstractMesh, type Scene } from '@babylonjs/core';
 import { planetSpec, type PlanetSpec, type V3 } from '../../sim/world/planet/planet';
 import { planetToRealm } from '../../sim/world/planet/chart';
 import type { PlanetDescriptor } from '../../sim/world/universe/generation';
@@ -11,6 +11,7 @@ import { RealmRenderer } from '../realms/render';
 import { FocusedAssets } from '../realms/focusedAssets';
 import type { Atmosphere } from '../world/atmosphere';
 import type { RenderContext } from '../render/engine';
+import type { UniverseShadowOwner } from './lighting';
 
 export interface SettlementProjection {
   version: 1; seed: number; patches: readonly SettlementPatch[];
@@ -22,6 +23,24 @@ export interface SettlementDoor { realm: RealmId; x: number; y: number; z: numbe
 const vector = (p: V3) => new Vector3(p.x, p.y, p.z);
 const inside = (p: { x: number; z: number }, b: SettlementPatch['bounds']) =>
   p.x >= b.x0 && p.x <= b.x1 && p.z >= b.z0 && p.z <= b.z1;
+
+/** A small lens footprint, rather than a zero-width centre ray, protects the
+ * near plane while orbiting beside a wall. This changes only presentation. */
+export function settlementCameraClearance(scene: Scene, pivot: Vector3, eye: Vector3, radius = .3): Vector3 {
+  const offset = eye.subtract(pivot), distance = offset.length();
+  if (distance < .001) return eye;
+  const direction = offset.scale(1 / distance);
+  const reference = Math.abs(direction.y) < .9 ? Vector3.Up() : Vector3.Right();
+  const right = Vector3.Cross(direction, reference).normalize().scale(radius);
+  const vertical = Vector3.Cross(direction, right).normalize().scale(radius);
+  let clear = distance;
+  for (const shift of [Vector3.Zero(), right, right.scale(-1), vertical, vertical.scale(-1)]) {
+    const hit = scene.pickWithRay(new Ray(pivot.add(shift), direction, distance),
+      mesh => !!mesh.metadata?.canonicalSettlement && mesh.isEnabled() && mesh.isVisible);
+    if (hit?.hit) clear = Math.min(clear, Math.max(0, hit.distance - radius));
+  }
+  return pivot.add(direction.scale(clear));
+}
 
 /** Static settlement presentation uses only the host's plans, chunks and door
  * state. Meshes share the canonical spherical chart and a floating-origin parent. */
@@ -45,10 +64,18 @@ export class UniverseSettlements {
   private updateAge = 1;
   private revision = 0;
   private ground: Mesh | null = null;
+  private casters = new Set<AbstractMesh>();
   // Existing asset renderers only use these two shadow registration methods.
   // The universe has its own spherical lighting, not the planar Atmosphere sky.
-  private lighting = { addCaster() {}, removeCaster() {} } as unknown as Atmosphere;
-  constructor(private ctx: RenderContext) {
+  private lighting: Atmosphere;
+  constructor(private ctx: RenderContext, shadows: UniverseShadowOwner = { addCaster() {}, removeCaster() {} }) {
+    this.lighting = {
+      addCaster: (mesh: AbstractMesh) => {
+        if (this.disposed || this.casters.has(mesh)) return;
+        this.casters.add(mesh); shadows.addCaster(mesh);
+      },
+      removeCaster: (mesh: AbstractMesh) => { if (this.casters.delete(mesh)) shadows.removeCaster(mesh); },
+    } as Atmosphere;
     this.root = new TransformNode('canonical-settlements', ctx.scene);
     this.root.setEnabled(false);
     this.assets = new FocusedAssets(ctx.scene, this.lighting);
@@ -84,14 +111,32 @@ export class UniverseSettlements {
   }
 
   private bend(root: TransformNode, patch: SettlementPatch): Mesh[] {
-    const meshes = bendTree(this.spec!, patch.chart, root);
+    const original = root.getChildMeshes();
+    // bendTree materializes InstancedMesh nodes into new spherical Mesh objects.
+    // Preserve the source owner's actual caster choice, including excluded
+    // forest ground/canopies, rather than enabling every replacement blindly.
+    for (const mesh of original) mesh.metadata = { ...mesh.metadata, settlementCastsShadow: this.casters.has(mesh) };
+    const meshes = bendTree(this.spec!, patch.chart, root, (original, replacement) => {
+      // The generic bend clones sourceMesh, so it cannot infer metadata owned
+      // by this particular placed instance (door address, placement, caster).
+      replacement.metadata = { ...replacement.metadata, ...original.metadata };
+    });
+    const retained = new Set<AbstractMesh>(meshes);
+    for (const mesh of original) if (!retained.has(mesh)) this.lighting.removeCaster(mesh);
     root.position.setAll(0); root.rotation.setAll(0); root.rotationQuaternion = null; root.scaling.setAll(1);
     root.parent = this.root;
     for (const mesh of meshes) {
       mesh.parent = root; mesh.receiveShadows = true;
       mesh.metadata = { ...mesh.metadata, canonicalSettlement: patch.id };
+      if (mesh.metadata.settlementCastsShadow) this.lighting.addCaster(mesh);
+      // Ray picking otherwise intersects the unplaced prototype instead of
+      // these actual batched pillars/walls. Retain the existing five lens rays.
+      if (mesh.thinInstanceCount > 0) mesh.thinInstanceEnablePicking = true;
       mesh.computeWorldMatrix(true);
     }
+    // FocusedAssets' disposer captured its pre-bend nodes. Releasing the owned
+    // root must also unregister replacements and any decorated thin batches.
+    root.onDisposeObservable.addOnce(() => { for (const mesh of meshes) this.lighting.removeCaster(mesh); });
     return meshes;
   }
 
@@ -197,14 +242,10 @@ export class UniverseSettlements {
     return null;
   }
 
-  /** Camera-only mesh ray. Never used for character collision or locomotion. */
+  /** Camera-only lens footprint. Never used for character locomotion. */
   constrainCamera(pivot: Vector3, eye: Vector3): Vector3 {
     if (!this.enabled) return eye;
-    const offset = eye.subtract(pivot), distance = offset.length();
-    if (distance < .05) return eye;
-    const hit = this.ctx.scene.pickWithRay(new Ray(pivot, offset.scale(1 / distance), distance),
-      mesh => !!mesh.metadata?.canonicalSettlement && mesh.isEnabled());
-    return hit?.hit ? pivot.add(offset.scale(Math.max(.3, hit.distance - .35) / distance)) : eye;
+    return settlementCameraClearance(this.ctx.scene, pivot, eye);
   }
 
   stats() { return { revision: this.revision, enabled: this.enabled, chunks: this.bentChunks.size,
@@ -215,5 +256,6 @@ export class UniverseSettlements {
     for (const item of this.active.values()) item.dispose(); this.active.clear();
     for (const renderer of this.renderers.values()) renderer.dispose(); this.renderers.clear();
     this.assets.dispose(); this.root.dispose(); this.bentChunks.clear();
+    for (const mesh of [...this.casters]) this.lighting.removeCaster(mesh);
   }
 }
