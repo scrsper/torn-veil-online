@@ -1582,7 +1582,10 @@ export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_en
   | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance'
   | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed'
   // Explicit advancement is a rare state transition, never an XP heartbeat or automatic reward.
-  | 'ontological_advancement';
+  | 'ontological_advancement'
+  // John Smith's own acts (sim/orchestrator): drawing from or opening the finite reserve. They
+  // carry no actor, target or position, so they add to nobody's significance and no mind perceives them.
+  | 'orchestrator';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

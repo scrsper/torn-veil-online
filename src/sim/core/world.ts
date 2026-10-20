@@ -25,6 +25,9 @@ export class World {
   realmExpedition?: import('../world/realms/expedition').RealmExpedition;
   interiors?: import('../world/interiors/grid').InteriorRegistry;
   canonicalTower?: import('../world/interiors/towerTypes').CanonicalTowerRun;
+  /** John Smith's record: attention, ledgers, quests per interface holder and the finite reserve.
+   * Orchestrator state beside the world; no mind, goal, combat or economy path reads it. */
+  johnSmith?: import('../orchestrator/types').JohnSmithState;
   ecology: import('../ecology/types').EcologyState | null = null;
   kernel = emptyKernel();
   /** Save handoff for the attached canonical scheduler. The callback reads its live state;

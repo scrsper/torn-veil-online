@@ -3,6 +3,7 @@ import { TowerController } from './towerController';
 import { applyTowerCommand, type TowerCommand } from './canonicalTower';
 import { applyExpeditionCommand, validateExpeditionSave, type ExpeditionCommand } from './realmExpedition';
 import type { MovementInput } from '../sim/physical/prediction';
+import { applyJohnSmithCommand } from '../sim/orchestrator';
 
 /** Ordered host operations. Recorded server time, never client time, expires input.
  * The replay replica uses the same canonical simulation; it is not a second ruleset. */
@@ -11,7 +12,8 @@ export type RealmOperation = {type:'bind';id:string;epoch:string}
   | {type:'command';input:unknown;now:number} | {type:'move';input:MovementInput}
   | {type:'interact'} | {type:'confirm';id:number} | {type:'cancel'}
   | {type:'navigate';target:'portal'|'tower'}
-  | {type:'tower';command:TowerCommand} | {type:'expedition';command:ExpeditionCommand};
+  | {type:'tower';command:TowerCommand} | {type:'expedition';command:ExpeditionCommand}
+  | {type:'johnsmith';command:unknown};
 export interface RealmContinuation {
   citySteps:number;
   realm:ReturnType<RealmSession['checkpointControl']>;
@@ -54,6 +56,8 @@ export class RealmRuntime {
       case 'confirm':return s.confirm(op.id);
       case 'cancel':return s.cancel();
       case 'navigate':return s.navigate(op.target);
+      // A holder's request to John Smith: validated, never throws, replayed exactly.
+      case 'johnsmith':return applyJohnSmithCommand(s.world,s.person.id,op.command);
       case 'tower':case 'expedition':{
         // Rare structural mutations retain one rollback capture. Routine autosaves
         // never enter this path and never stringify the live history.
