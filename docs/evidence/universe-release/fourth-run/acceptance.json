@@ -1,0 +1,4602 @@
+{
+  "revision": "00118c9",
+  "mode": "journey",
+  "started": "2026-10-20T20:13:25.064Z",
+  "note": "Ordinary UI quality/recovery acceptance against a parent-created isolated capability fixture. No client capability grant, observer teleport, save edit or direct movement injection. This is not a progression-earned character claim.",
+  "checks": [
+    "Controlled town character is rendered",
+    "Town and spherical preview share canonical identity and items",
+    "Inactive page projects actual town before entry",
+    "UAL motion pack is loaded and hash verified",
+    "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+    "Idle names its actual source clip and destination rig",
+    "Isolated fixture is admitted for interplanetary personal flight",
+    "Explore preserves the actual current preview position",
+    "Mapped settlement traversal retains canonical identity",
+    "Opening ground controls produces no rejected travel command",
+    "Help suppresses G/F/C travel commands",
+    "Actual wheel input zooms the rendered camera toward the character",
+    "Ground view hides the world marker over the character",
+    "Both projected foot landmarks and a boot-sized margin clear the viewport and HUD",
+    "Ordinary drag completes a measured 360-degree free orbit",
+    "Ground orbit and zoom: route state unchanged",
+    "Ground orbit and zoom: canonical heading unchanged",
+    "Recenter places the camera behind the transported character heading",
+    "Reversing wheel input restores the preferred distance",
+    "Contact route uses the documented 1600 m home chart",
+    "Home surface admits canonical return",
+    "Controlled town character is rendered",
+    "Fully rendered town retains original person, body and inventory"
+  ],
+  "failure": "Error: Ground waypoint made no linear or angular progress for 4.5 seconds",
+  "errors": [],
+  "http": [],
+  "route": [
+    {
+      "label": "flat-forward",
+      "target": {
+        "x": 11312.5,
+        "z": 3128
+      },
+      "start": {
+        "x": 11312.5,
+        "y": 1.0624999999997726,
+        "z": 3113.6999999999002
+      },
+      "observations": [
+        {
+          "elapsed": 58,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0,
+            "y": -0.9468786772162775,
+            "z": 0.32159099899274696
+          },
+          "headingError": 3.141592653589793,
+          "steeringError": 3.141592653589793,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 1054,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.7242871743701426,
+            "y": -0.6528713641360463,
+            "z": 0.22173648985688582
+          },
+          "headingError": 2.331592653589793,
+          "steeringError": 2.331592653589793,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 1957,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.9914583481916865,
+            "y": -0.12349542880761613,
+            "z": 0.04194309078543922
+          },
+          "headingError": 1.7015926535897932,
+          "steeringError": 1.7015926535897932,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 2901,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.7780731968879211,
+            "y": 0.5948042089458642,
+            "z": -0.2020149828722986
+          },
+          "headingError": 0.8915926535897931,
+          "steeringError": 0.8915926535897931,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 3713,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.34439346725838965,
+            "y": 0.8889537569357521,
+            "z": -0.3019177996401603
+          },
+          "headingError": 0.35159265358979286,
+          "steeringError": 0.35159265358979286,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 4514,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": -0.18729466354290353,
+            "y": 0.9301225003636988,
+            "z": -0.31590005274695976
+          },
+          "headingError": -0.18840734641020718,
+          "steeringError": -0.18840734641020718,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 5235,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.17075182895114518,
+            "y": 0.932972881499926,
+            "z": -0.31686813550050136
+          },
+          "headingError": 0.1715926535897929,
+          "steeringError": 0.1715926535897929,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 5921,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": -0.0982485937451089,
+            "y": 0.9422975866353014,
+            "z": -0.320035110649434
+          },
+          "headingError": -0.0984073464102072,
+          "steeringError": -0.0984073464102072,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 7062,
+          "position": {
+            "x": 11312.87614163658,
+            "y": 1.0625,
+            "z": 3117.509793963051
+          },
+          "remaining": 10.496947424294913,
+          "heading": {
+            "x": -0.09824831250856102,
+            "y": 0.941525420040296,
+            "z": -0.3222997867004633
+          },
+          "headingError": -0.13424619997813178,
+          "steeringError": -0.13424619997813178,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 8315,
+          "position": {
+            "x": 11313.320682861862,
+            "y": 1.0625,
+            "z": 3122.0122767306025
+          },
+          "remaining": 6.043703360576105,
+          "heading": {
+            "x": -0.0982472549685723,
+            "y": 0.9406059104762069,
+            "z": -0.32497384212943414
+          },
+          "headingError": -0.23461001446737154,
+          "steeringError": -0.23461001446737154,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 9060,
+          "position": {
+            "x": 11313.320682861862,
+            "y": 1.0625,
+            "z": 3122.0122767306025
+          },
+          "remaining": 6.043703360576105,
+          "heading": {
+            "x": 0.2586206026178186,
+            "y": 0.9130819791977004,
+            "z": -0.3152723951855076
+          },
+          "headingError": 0.1253899855326285,
+          "steeringError": 0.1253899855326285,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 10268,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625,
+            "z": 3126.0465400636863
+          },
+          "remaining": 1.9706171670856776,
+          "heading": {
+            "x": 0.25862106037009946,
+            "y": 0.9122266191547915,
+            "z": -0.3177384812050064
+          },
+          "headingError": 0.39363927747155963,
+          "steeringError": 0.39363927747155963,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 10976,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": 0.08150391926381483,
+            "y": 0.941222683267568,
+            "z": -0.32780630202489514
+          },
+          "headingError": 0.2136392774596788,
+          "steeringError": 0.2136392774596788,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 11765,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": -0.2748229605581675,
+            "y": 0.9080205112572315,
+            "z": -0.31618205433926777
+          },
+          "headingError": -0.14636072254032115,
+          "steeringError": -0.14636072254032115,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 12575,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": 0.08150391926381487,
+            "y": 0.9412226832675681,
+            "z": -0.32780630202489514
+          },
+          "headingError": 0.21363927745967884,
+          "steeringError": 0.21363927745967884,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 13392,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": -0.2748229605581675,
+            "y": 0.9080205112572316,
+            "z": -0.3161820543392678
+          },
+          "headingError": -0.14636072254032112,
+          "steeringError": -0.14636072254032112,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 14179,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": 0.08150391926381487,
+            "y": 0.941222683267568,
+            "z": -0.32780630202489514
+          },
+          "headingError": 0.2136392774596788,
+          "steeringError": 0.2136392774596788,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 14970,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": -0.2748229605581674,
+            "y": 0.9080205112572315,
+            "z": -0.31618205433926777
+          },
+          "headingError": -0.146360722540321,
+          "steeringError": -0.146360722540321,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 15784,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": 0.08150391926381498,
+            "y": 0.9412226832675681,
+            "z": -0.32780630202489514
+          },
+          "headingError": 0.21363927745967892,
+          "steeringError": 0.21363927745967892,
+          "reverse": false,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 16559,
+          "position": {
+            "x": 11312.240526886884,
+            "y": 1.0625000000002274,
+            "z": 3126.0465400635085
+          },
+          "remaining": 1.9706171672619355,
+          "heading": {
+            "x": -0.18729291800303782,
+            "y": 0.9276674643976144,
+            "z": -0.3230393758723667
+          },
+          "headingError": -0.05636072254032098,
+          "steeringError": -0.05636072254032098,
+          "reverse": false,
+          "mode": "surface"
+        }
+      ],
+      "turns": [
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.81,
+          "estimatedTailMs": 114
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.6300000000000001,
+          "estimatedTailMs": 99.60000000000004
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.8100000000000002,
+          "estimatedTailMs": 153.84000000000003
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.5400000000000001,
+          "estimatedTailMs": 85.53600000000009
+        },
+        {
+          "requestedMs": 93.12658532766261,
+          "actualRadians": 0.5400000000000001,
+          "estimatedTailMs": 158.33844880340254
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.36000000000000004,
+          "estimatedTailMs": 171.335379521361
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.2700000000000001,
+          "estimatedTailMs": 146.53415180854444
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.36000000000000004,
+          "estimatedTailMs": 166.61366072341778
+        },
+        {
+          "requestedMs": 35.408160094115374,
+          "actualRadians": 0.18000000000000002,
+          "estimatedTailMs": 105.40056823289788
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.35999999999999993,
+          "estimatedTailMs": 150.1602272931591
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.35999999999999993,
+          "estimatedTailMs": 168.0640909172636
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.3599999999999999,
+          "estimatedTailMs": 175.2256363669054
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.3599999999999999,
+          "estimatedTailMs": 178.0902545467621
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.3599999999999998,
+          "estimatedTailMs": 179.23610181870478
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.35999999999999993,
+          "estimatedTailMs": 179.6944407274819
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.26999999999999996,
+          "estimatedTailMs": 149.87777629099276
+        }
+      ],
+      "walks": [
+        {
+          "requestedMs": 550,
+          "metres": 3.84999902054108,
+          "reverse": false,
+          "estimatedTailMs": 0
+        },
+        {
+          "requestedMs": 550,
+          "metres": 4.549998411845361,
+          "reverse": false,
+          "estimatedTailMs": 59.999863872459535
+        },
+        {
+          "requestedMs": 550,
+          "metres": 4.199998741136224,
+          "reverse": false,
+          "estimatedTailMs": 53.99983764637446
+        }
+      ],
+      "elapsed": 16580
+    }
+  ],
+  "stops": [
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 907,
+        "lastSeq": 1
+      },
+      "minimumSeq": 4,
+      "observations": [
+        {
+          "elapsed": 268,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 919,
+          "lastSeq": 5,
+          "revision": 925
+        },
+        {
+          "elapsed": 388,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 921,
+          "lastSeq": 5,
+          "revision": 927
+        },
+        {
+          "elapsed": 521,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 923,
+          "lastSeq": 5,
+          "revision": 929
+        },
+        {
+          "elapsed": 654,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 927,
+          "lastSeq": 5,
+          "revision": 933
+        }
+      ],
+      "ack": {
+        "seq": 5,
+        "brake": false,
+        "lastActiveSeq": 4,
+        "status": 200,
+        "ok": true,
+        "revision": 925,
+        "lastSeq": 5
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 654,
+        "ticks": 4,
+        "lastSeq": 5
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 927,
+        "lastSeq": 5
+      },
+      "minimumSeq": 8,
+      "observations": [
+        {
+          "elapsed": 166,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 937,
+          "lastSeq": 9,
+          "revision": 947
+        },
+        {
+          "elapsed": 292,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 939,
+          "lastSeq": 9,
+          "revision": 949
+        },
+        {
+          "elapsed": 424,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 941,
+          "lastSeq": 9,
+          "revision": 951
+        },
+        {
+          "elapsed": 552,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 945,
+          "lastSeq": 9,
+          "revision": 955
+        }
+      ],
+      "ack": {
+        "seq": 9,
+        "brake": false,
+        "lastActiveSeq": 8,
+        "status": 200,
+        "ok": true,
+        "revision": 947,
+        "lastSeq": 9
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 552,
+        "ticks": 4,
+        "lastSeq": 9
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 945,
+        "lastSeq": 9
+      },
+      "minimumSeq": 12,
+      "observations": [
+        {
+          "elapsed": 264,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 957,
+          "lastSeq": 13,
+          "revision": 971
+        },
+        {
+          "elapsed": 382,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 959,
+          "lastSeq": 13,
+          "revision": 973
+        },
+        {
+          "elapsed": 489,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 961,
+          "lastSeq": 13,
+          "revision": 975
+        },
+        {
+          "elapsed": 605,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 963,
+          "lastSeq": 13,
+          "revision": 977
+        }
+      ],
+      "ack": {
+        "seq": 13,
+        "brake": false,
+        "lastActiveSeq": 12,
+        "status": 200,
+        "ok": true,
+        "revision": 971,
+        "lastSeq": 13
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 605,
+        "ticks": 4,
+        "lastSeq": 13
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 963,
+        "lastSeq": 13
+      },
+      "minimumSeq": 16,
+      "observations": [
+        {
+          "elapsed": 114,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 973,
+          "lastSeq": 17,
+          "revision": 991
+        },
+        {
+          "elapsed": 230,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 975,
+          "lastSeq": 18,
+          "revision": 994
+        },
+        {
+          "elapsed": 344,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 977,
+          "lastSeq": 18,
+          "revision": 996
+        },
+        {
+          "elapsed": 465,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 979,
+          "lastSeq": 18,
+          "revision": 998
+        }
+      ],
+      "ack": {
+        "seq": 17,
+        "brake": true,
+        "lastActiveSeq": 16,
+        "status": 200,
+        "ok": true,
+        "revision": 991,
+        "lastSeq": 17
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 465,
+        "ticks": 4,
+        "lastSeq": 18
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 979,
+        "lastSeq": 18
+      },
+      "minimumSeq": 20,
+      "observations": [
+        {
+          "elapsed": 277,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 989,
+          "lastSeq": 21,
+          "revision": 1011
+        },
+        {
+          "elapsed": 388,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 991,
+          "lastSeq": 21,
+          "revision": 1013
+        },
+        {
+          "elapsed": 497,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 994,
+          "lastSeq": 21,
+          "revision": 1016
+        },
+        {
+          "elapsed": 633,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 995,
+          "lastSeq": 21,
+          "revision": 1017
+        }
+      ],
+      "ack": {
+        "seq": 21,
+        "brake": false,
+        "lastActiveSeq": 20,
+        "status": 200,
+        "ok": true,
+        "revision": 1011,
+        "lastSeq": 21
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 633,
+        "ticks": 4,
+        "lastSeq": 21
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 995,
+        "lastSeq": 21
+      },
+      "minimumSeq": 22,
+      "observations": [
+        {
+          "elapsed": 259,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1003,
+          "lastSeq": 23,
+          "revision": 1027
+        },
+        {
+          "elapsed": 383,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1005,
+          "lastSeq": 23,
+          "revision": 1029
+        },
+        {
+          "elapsed": 508,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1007,
+          "lastSeq": 23,
+          "revision": 1031
+        },
+        {
+          "elapsed": 629,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1011,
+          "lastSeq": 23,
+          "revision": 1035
+        }
+      ],
+      "ack": {
+        "seq": 23,
+        "brake": false,
+        "lastActiveSeq": 22,
+        "status": 200,
+        "ok": true,
+        "revision": 1027,
+        "lastSeq": 23
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 629,
+        "ticks": 4,
+        "lastSeq": 23
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 1011,
+        "lastSeq": 23
+      },
+      "minimumSeq": 24,
+      "observations": [
+        {
+          "elapsed": 234,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1017,
+          "lastSeq": 25,
+          "revision": 1043
+        },
+        {
+          "elapsed": 360,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1019,
+          "lastSeq": 25,
+          "revision": 1045
+        },
+        {
+          "elapsed": 475,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1021,
+          "lastSeq": 25,
+          "revision": 1047
+        },
+        {
+          "elapsed": 585,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 1023,
+          "lastSeq": 25,
+          "revision": 1049
+        }
+      ],
+      "ack": {
+        "seq": 25,
+        "brake": false,
+        "lastActiveSeq": 24,
+        "status": 200,
+        "ok": true,
+        "revision": 1043,
+        "lastSeq": 25
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 585,
+        "ticks": 4,
+        "lastSeq": 25
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 1025,
+        "lastSeq": 25
+      },
+      "minimumSeq": 30,
+      "observations": [
+        {
+          "elapsed": 129,
+          "position": {
+            "x": -0.3782567190276098,
+            "y": 521.0863777771659,
+            "z": 1522.3504763106218
+          },
+          "tick": 1039,
+          "lastSeq": 31,
+          "revision": 1071
+        },
+        {
+          "elapsed": 253,
+          "position": {
+            "x": -0.3782567190276098,
+            "y": 521.0863777771659,
+            "z": 1522.3504763106218
+          },
+          "tick": 1041,
+          "lastSeq": 32,
+          "revision": 1074
+        },
+        {
+          "elapsed": 380,
+          "position": {
+            "x": -0.3782567190276098,
+            "y": 521.0863777771659,
+            "z": 1522.3504763106218
+          },
+          "tick": 1045,
+          "lastSeq": 32,
+          "revision": 1078
+        },
+        {
+          "elapsed": 496,
+          "position": {
+            "x": -0.3782567190276098,
+            "y": 521.0863777771659,
+            "z": 1522.3504763106218
+          },
+          "tick": 1047,
+          "lastSeq": 32,
+          "revision": 1080
+        }
+      ],
+      "ack": {
+        "seq": 31,
+        "brake": true,
+        "lastActiveSeq": 30,
+        "status": 200,
+        "ok": true,
+        "revision": 1071,
+        "lastSeq": 31
+      },
+      "settled": {
+        "position": {
+          "x": -0.3782567190276098,
+          "y": 521.0863777771659,
+          "z": 1522.3504763106218
+        },
+        "chart": {
+          "x": 11312.87614163658,
+          "y": 1.0625,
+          "z": 3117.509793963051
+        },
+        "elapsed": 496,
+        "ticks": 4,
+        "lastSeq": 32
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": -0.3782567190276098,
+          "y": 521.0863777771659,
+          "z": 1522.3504763106218
+        },
+        "tick": 1047,
+        "lastSeq": 32
+      },
+      "minimumSeq": 38,
+      "observations": [
+        {
+          "elapsed": 168,
+          "position": {
+            "x": -0.8252844258523168,
+            "y": 525.3682293394089,
+            "z": 1520.8779278471497
+          },
+          "tick": 1064,
+          "lastSeq": 39,
+          "revision": 1104
+        },
+        {
+          "elapsed": 292,
+          "position": {
+            "x": -0.8252844258523168,
+            "y": 525.3682293394089,
+            "z": 1520.8779278471497
+          },
+          "tick": 1064,
+          "lastSeq": 39,
+          "revision": 1104
+        },
+        {
+          "elapsed": 431,
+          "position": {
+            "x": -0.8252844258523168,
+            "y": 525.3682293393631,
+            "z": 1520.8779278471657
+          },
+          "tick": 1067,
+          "lastSeq": 39,
+          "revision": 1107
+        },
+        {
+          "elapsed": 571,
+          "position": {
+            "x": -0.8252844258523169,
+            "y": 525.3682293392806,
+            "z": 1520.8779278471943
+          },
+          "tick": 1071,
+          "lastSeq": 39,
+          "revision": 1111
+        }
+      ],
+      "ack": {
+        "seq": 39,
+        "brake": false,
+        "lastActiveSeq": 38,
+        "status": 200,
+        "ok": true,
+        "revision": 1104,
+        "lastSeq": 39
+      },
+      "settled": {
+        "position": {
+          "x": -0.8252844258523169,
+          "y": 525.3682293392806,
+          "z": 1520.8779278471943
+        },
+        "chart": {
+          "x": 11313.320682861862,
+          "y": 1.0625,
+          "z": 3122.0122767306025
+        },
+        "elapsed": 571,
+        "ticks": 3,
+        "lastSeq": 39
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": -0.8252844258523169,
+          "y": 525.3682293392806,
+          "z": 1520.8779278471943
+        },
+        "tick": 1073,
+        "lastSeq": 39
+      },
+      "minimumSeq": 40,
+      "observations": [
+        {
+          "elapsed": 254,
+          "position": {
+            "x": -0.8252844258523169,
+            "y": 525.3682293392806,
+            "z": 1520.8779278471943
+          },
+          "tick": 1079,
+          "lastSeq": 41,
+          "revision": 1121
+        },
+        {
+          "elapsed": 389,
+          "position": {
+            "x": -0.8252844258523169,
+            "y": 525.3682293392806,
+            "z": 1520.8779278471943
+          },
+          "tick": 1081,
+          "lastSeq": 41,
+          "revision": 1123
+        },
+        {
+          "elapsed": 501,
+          "position": {
+            "x": -0.8252844258523169,
+            "y": 525.3682293392806,
+            "z": 1520.8779278471943
+          },
+          "tick": 1083,
+          "lastSeq": 41,
+          "revision": 1125
+        },
+        {
+          "elapsed": 633,
+          "position": {
+            "x": -0.8252844258523169,
+            "y": 525.3682293392806,
+            "z": 1520.8779278471943
+          },
+          "tick": 1087,
+          "lastSeq": 41,
+          "revision": 1129
+        }
+      ],
+      "ack": {
+        "seq": 41,
+        "brake": false,
+        "lastActiveSeq": 40,
+        "status": 200,
+        "ok": true,
+        "revision": 1121,
+        "lastSeq": 41
+      },
+      "settled": {
+        "position": {
+          "x": -0.8252844258523169,
+          "y": 525.3682293392806,
+          "z": 1520.8779278471943
+        },
+        "chart": {
+          "x": 11313.320682861862,
+          "y": 1.0625,
+          "z": 3122.0122767306025
+        },
+        "elapsed": 633,
+        "ticks": 4,
+        "lastSeq": 41
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": -0.8252844258523169,
+          "y": 525.3682293392806,
+          "z": 1520.8779278471943
+        },
+        "tick": 1087,
+        "lastSeq": 41
+      },
+      "minimumSeq": 47,
+      "observations": [
+        {
+          "elapsed": 133,
+          "position": {
+            "x": 0.2609236660099266,
+            "y": 529.2013795115271,
+            "z": 1519.5486042730543
+          },
+          "tick": 1103,
+          "lastSeq": 48,
+          "revision": 1152
+        },
+        {
+          "elapsed": 259,
+          "position": {
+            "x": 0.26092366600992667,
+            "y": 529.2013795115029,
+            "z": 1519.5486042730627
+          },
+          "tick": 1105,
+          "lastSeq": 49,
+          "revision": 1155
+        },
+        {
+          "elapsed": 381,
+          "position": {
+            "x": 0.2609236660099267,
+            "y": 529.2013795114627,
+            "z": 1519.5486042730765
+          },
+          "tick": 1107,
+          "lastSeq": 49,
+          "revision": 1157
+        },
+        {
+          "elapsed": 504,
+          "position": {
+            "x": 0.2609236660099267,
+            "y": 529.2013795114061,
+            "z": 1519.5486042730963
+          },
+          "tick": 1111,
+          "lastSeq": 49,
+          "revision": 1161
+        }
+      ],
+      "ack": {
+        "seq": 48,
+        "brake": true,
+        "lastActiveSeq": 47,
+        "status": 200,
+        "ok": true,
+        "revision": 1152,
+        "lastSeq": 48
+      },
+      "settled": {
+        "position": {
+          "x": 0.2609236660099267,
+          "y": 529.2013795114061,
+          "z": 1519.5486042730963
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625,
+          "z": 3126.0465400636863
+        },
+        "elapsed": 504,
+        "ticks": 4,
+        "lastSeq": 49
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.2609236660099267,
+          "y": 529.2013795114061,
+          "z": 1519.5486042730963
+        },
+        "tick": 1111,
+        "lastSeq": 49
+      },
+      "minimumSeq": 50,
+      "observations": [
+        {
+          "elapsed": 171,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112774,
+            "z": 1519.5486042731413
+          },
+          "tick": 1117,
+          "lastSeq": 51,
+          "revision": 1169
+        },
+        {
+          "elapsed": 296,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112455,
+            "z": 1519.5486042731523
+          },
+          "tick": 1119,
+          "lastSeq": 51,
+          "revision": 1171
+        },
+        {
+          "elapsed": 426,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1123,
+          "lastSeq": 51,
+          "revision": 1175
+        },
+        {
+          "elapsed": 546,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1125,
+          "lastSeq": 51,
+          "revision": 1177
+        }
+      ],
+      "ack": {
+        "seq": 51,
+        "brake": false,
+        "lastActiveSeq": 50,
+        "status": 200,
+        "ok": true,
+        "revision": 1169,
+        "lastSeq": 51
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 546,
+        "ticks": 4,
+        "lastSeq": 51
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1125,
+        "lastSeq": 51
+      },
+      "minimumSeq": 52,
+      "observations": [
+        {
+          "elapsed": 281,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1133,
+          "lastSeq": 53,
+          "revision": 1187
+        },
+        {
+          "elapsed": 417,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1135,
+          "lastSeq": 53,
+          "revision": 1189
+        },
+        {
+          "elapsed": 528,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1137,
+          "lastSeq": 53,
+          "revision": 1191
+        },
+        {
+          "elapsed": 648,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1141,
+          "lastSeq": 53,
+          "revision": 1195
+        }
+      ],
+      "ack": {
+        "seq": 53,
+        "brake": false,
+        "lastActiveSeq": 52,
+        "status": 200,
+        "ok": true,
+        "revision": 1187,
+        "lastSeq": 53
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 648,
+        "ticks": 4,
+        "lastSeq": 53
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1141,
+        "lastSeq": 53
+      },
+      "minimumSeq": 54,
+      "observations": [
+        {
+          "elapsed": 266,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1149,
+          "lastSeq": 55,
+          "revision": 1205
+        },
+        {
+          "elapsed": 403,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1151,
+          "lastSeq": 55,
+          "revision": 1207
+        },
+        {
+          "elapsed": 542,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1155,
+          "lastSeq": 55,
+          "revision": 1211
+        },
+        {
+          "elapsed": 660,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1157,
+          "lastSeq": 55,
+          "revision": 1213
+        }
+      ],
+      "ack": {
+        "seq": 55,
+        "brake": false,
+        "lastActiveSeq": 54,
+        "status": 200,
+        "ok": true,
+        "revision": 1205,
+        "lastSeq": 55
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 660,
+        "ticks": 4,
+        "lastSeq": 55
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1157,
+        "lastSeq": 55
+      },
+      "minimumSeq": 56,
+      "observations": [
+        {
+          "elapsed": 301,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1165,
+          "lastSeq": 57,
+          "revision": 1223
+        },
+        {
+          "elapsed": 417,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1168,
+          "lastSeq": 57,
+          "revision": 1226
+        },
+        {
+          "elapsed": 545,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1169,
+          "lastSeq": 57,
+          "revision": 1227
+        },
+        {
+          "elapsed": 675,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1173,
+          "lastSeq": 57,
+          "revision": 1231
+        }
+      ],
+      "ack": {
+        "seq": 57,
+        "brake": false,
+        "lastActiveSeq": 56,
+        "status": 200,
+        "ok": true,
+        "revision": 1223,
+        "lastSeq": 57
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 676,
+        "ticks": 4,
+        "lastSeq": 57
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1173,
+        "lastSeq": 57
+      },
+      "minimumSeq": 58,
+      "observations": [
+        {
+          "elapsed": 283,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1181,
+          "lastSeq": 59,
+          "revision": 1241
+        },
+        {
+          "elapsed": 405,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1183,
+          "lastSeq": 59,
+          "revision": 1243
+        },
+        {
+          "elapsed": 542,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1185,
+          "lastSeq": 59,
+          "revision": 1245
+        },
+        {
+          "elapsed": 674,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1189,
+          "lastSeq": 59,
+          "revision": 1249
+        }
+      ],
+      "ack": {
+        "seq": 59,
+        "brake": false,
+        "lastActiveSeq": 58,
+        "status": 200,
+        "ok": true,
+        "revision": 1241,
+        "lastSeq": 59
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 674,
+        "ticks": 4,
+        "lastSeq": 59
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1189,
+        "lastSeq": 59
+      },
+      "minimumSeq": 60,
+      "observations": [
+        {
+          "elapsed": 275,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1197,
+          "lastSeq": 61,
+          "revision": 1259
+        },
+        {
+          "elapsed": 389,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1199,
+          "lastSeq": 61,
+          "revision": 1261
+        },
+        {
+          "elapsed": 504,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1201,
+          "lastSeq": 61,
+          "revision": 1263
+        },
+        {
+          "elapsed": 646,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1205,
+          "lastSeq": 61,
+          "revision": 1267
+        }
+      ],
+      "ack": {
+        "seq": 61,
+        "brake": false,
+        "lastActiveSeq": 60,
+        "status": 200,
+        "ok": true,
+        "revision": 1259,
+        "lastSeq": 61
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 646,
+        "ticks": 4,
+        "lastSeq": 61
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1205,
+        "lastSeq": 61
+      },
+      "minimumSeq": 62,
+      "observations": [
+        {
+          "elapsed": 282,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1213,
+          "lastSeq": 63,
+          "revision": 1277
+        },
+        {
+          "elapsed": 419,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1215,
+          "lastSeq": 63,
+          "revision": 1279
+        },
+        {
+          "elapsed": 540,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1218,
+          "lastSeq": 63,
+          "revision": 1282
+        },
+        {
+          "elapsed": 667,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1218,
+          "lastSeq": 63,
+          "revision": 1282
+        }
+      ],
+      "ack": {
+        "seq": 63,
+        "brake": false,
+        "lastActiveSeq": 62,
+        "status": 200,
+        "ok": true,
+        "revision": 1277,
+        "lastSeq": 63
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 667,
+        "ticks": 3,
+        "lastSeq": 63
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1222,
+        "lastSeq": 63
+      },
+      "minimumSeq": 64,
+      "observations": [
+        {
+          "elapsed": 243,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1228,
+          "lastSeq": 65,
+          "revision": 1294
+        },
+        {
+          "elapsed": 363,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1231,
+          "lastSeq": 65,
+          "revision": 1297
+        },
+        {
+          "elapsed": 506,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1233,
+          "lastSeq": 65,
+          "revision": 1299
+        },
+        {
+          "elapsed": 636,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1235,
+          "lastSeq": 65,
+          "revision": 1301
+        }
+      ],
+      "ack": {
+        "seq": 65,
+        "brake": false,
+        "lastActiveSeq": 64,
+        "status": 200,
+        "ok": true,
+        "revision": 1294,
+        "lastSeq": 65
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 636,
+        "ticks": 4,
+        "lastSeq": 65
+      }
+    },
+    {
+      "label": "route-failure",
+      "control": "Escape",
+      "before": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "tick": 1237,
+        "lastSeq": 65
+      },
+      "minimumSeq": 65,
+      "observations": [
+        {
+          "elapsed": 157,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1241,
+          "lastSeq": 66,
+          "revision": 1308
+        },
+        {
+          "elapsed": 287,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1241,
+          "lastSeq": 66,
+          "revision": 1308
+        },
+        {
+          "elapsed": 412,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1247,
+          "lastSeq": 66,
+          "revision": 1314
+        },
+        {
+          "elapsed": 530,
+          "position": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "tick": 1249,
+          "lastSeq": 66,
+          "revision": 1316
+        }
+      ],
+      "ack": {
+        "seq": 66,
+        "brake": true,
+        "lastActiveSeq": 64,
+        "status": 200,
+        "ok": true,
+        "revision": 1308,
+        "lastSeq": 66
+      },
+      "settled": {
+        "position": {
+          "x": 0.26092366600992695,
+          "y": 529.2013795112372,
+          "z": 1519.5486042731552
+        },
+        "chart": {
+          "x": 11312.240526886884,
+          "y": 1.0625000000002274,
+          "z": 3126.0465400635085
+        },
+        "elapsed": 530,
+        "ticks": 3,
+        "lastSeq": 66
+      }
+    }
+  ],
+  "inputRequests": [
+    {
+      "seq": 1,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 2,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 3,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 4,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 5,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 6,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 7,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 8,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 9,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 10,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 11,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 12,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 13,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 14,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 15,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 16,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 17,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 18,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 19,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 20,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 21,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 22,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 23,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 24,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 25,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 26,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 27,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 28,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 29,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 30,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 31,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 32,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 33,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 34,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 35,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 36,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 37,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 38,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 39,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 40,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 41,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 42,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 43,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 44,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 45,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 46,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 47,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 48,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 49,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 50,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 51,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 52,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 53,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 54,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 55,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 56,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 57,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 58,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 59,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 60,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 61,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 62,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 63,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 64,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 65,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 66,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    }
+  ],
+  "findings": [],
+  "limits": [],
+  "contactSummaries": [
+    {
+      "name": "ground-route",
+      "file": "contact-ground-route.json",
+      "summary": {
+        "frames": 1664,
+        "duration": 34056.8,
+        "activeFrames": 1664,
+        "airborneActiveFrames": 0,
+        "patchReasons": {
+          "ready": 14
+        },
+        "patchCount": 14,
+        "maximumPatchTriangles": 272,
+        "airborneActiveMs": 0,
+        "missingFrames": 0,
+        "bounded": false,
+        "feet": {
+          "l": {
+            "eligibleFrames": 1117,
+            "stationaryFrames": 854,
+            "stationaryP95AbsMinGap": 1.394718159671924E-05,
+            "minimumGap": -0.0006179126535853906,
+            "maximumGap": 0.0007605584962469272,
+            "longestPenetrationMs": 0,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "l:1",
+                "reference": "u1:20261017:s0:p0",
+                "start": -6.599999999998545,
+                "end": 17229.9,
+                "stage": "ground-route",
+                "maxDrift": 3.692053544063979E-07,
+                "frames": 912,
+                "duration": 17236.5
+              },
+              {
+                "key": "l:4",
+                "reference": "u1:20261017:s0:p0",
+                "start": 17778.6,
+                "end": 18354.9,
+                "stage": "flat-forward",
+                "maxDrift": 4.047078255038757E-06,
+                "frames": 31,
+                "duration": 576.3000000000029
+              },
+              {
+                "key": "l:5",
+                "reference": "u1:20261017:s0:p0",
+                "start": 18618.9,
+                "end": 19257.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 4.31560000901099E-06,
+                "frames": 34,
+                "duration": 638.9000000000015
+              },
+              {
+                "key": "l:6",
+                "reference": "u1:20261017:s0:p0",
+                "start": 20667.5,
+                "end": 21077.4,
+                "stage": "flat-forward",
+                "maxDrift": 4.58982277510218E-06,
+                "frames": 22,
+                "duration": 409.90000000000146
+              },
+              {
+                "key": "l:7",
+                "reference": "u1:20261017:s0:p0",
+                "start": 21348.1,
+                "end": 22077.5,
+                "stage": "flat-forward",
+                "maxDrift": 0.00022833271766253607,
+                "frames": 36,
+                "duration": 729.4000000000015
+              },
+              {
+                "key": "l:8",
+                "reference": "u1:20261017:s0:p0",
+                "start": 22334.199999999997,
+                "end": 23119,
+                "stage": "flat-forward",
+                "maxDrift": 4.857690974719303E-06,
+                "frames": 37,
+                "duration": 784.8000000000029
+              },
+              {
+                "key": "l:10",
+                "reference": "u1:20261017:s0:p0",
+                "start": 23757.9,
+                "end": 24209.300000000003,
+                "stage": "flat-forward",
+                "maxDrift": 1.4836277625874254E-06,
+                "frames": 21,
+                "duration": 451.40000000000146
+              },
+              {
+                "key": "l:21",
+                "reference": "u1:20261017:s0:p0",
+                "start": 26973.300000000003,
+                "end": 27521.9,
+                "stage": "flat-forward",
+                "maxDrift": 1.0333995703300725E-06,
+                "frames": 24,
+                "duration": 548.5999999999985
+              }
+            ],
+            "maximumSettledDrift": 0.00022833271766253607,
+            "measuredVertexCounts": [
+              12
+            ]
+          },
+          "r": {
+            "eligibleFrames": 1233,
+            "stationaryFrames": 854,
+            "stationaryP95AbsMinGap": 2.5808989778335058E-05,
+            "minimumGap": -6.456610437285066E-05,
+            "maximumGap": 2.677286545270503E-05,
+            "longestPenetrationMs": 20.900000000001455,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "r:2",
+                "reference": "u1:20261017:s0:p0",
+                "start": -6.599999999998545,
+                "end": 17452.199999999997,
+                "stage": "ground-route",
+                "maxDrift": 1.3132019719198342E-06,
+                "frames": 923,
+                "duration": 17458.799999999996
+              },
+              {
+                "key": "r:3",
+                "reference": "u1:20261017:s0:p0",
+                "start": 17723.199999999997,
+                "end": 18257.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 2.1317107915105704E-05,
+                "frames": 29,
+                "duration": 534.6000000000058
+              },
+              {
+                "key": "r:11",
+                "reference": "u1:20261017:s0:p0",
+                "start": 23869,
+                "end": 24209.300000000003,
+                "stage": "flat-forward",
+                "maxDrift": 5.472767697970664E-07,
+                "frames": 16,
+                "duration": 340.3000000000029
+              },
+              {
+                "key": "r:13",
+                "reference": "u1:20261017:s0:p0",
+                "start": 25077.4,
+                "end": 25737.1,
+                "stage": "flat-forward",
+                "maxDrift": 4.120777030797196E-06,
+                "frames": 30,
+                "duration": 659.6999999999971
+              },
+              {
+                "key": "r:19",
+                "reference": "u1:20261017:s0:p0",
+                "start": 25987.1,
+                "end": 26216.300000000003,
+                "stage": "flat-forward",
+                "maxDrift": 3.406553406902209E-07,
+                "frames": 11,
+                "duration": 229.20000000000437
+              },
+              {
+                "key": "r:22",
+                "reference": "u1:20261017:s0:p0",
+                "start": 26994.1,
+                "end": 27542.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 1.7583348937158521E-06,
+                "frames": 24,
+                "duration": 548.7000000000044
+              },
+              {
+                "key": "r:23",
+                "reference": "u1:20261017:s0:p0",
+                "start": 27827.5,
+                "end": 28431.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 1.3459410881564693E-06,
+                "frames": 25,
+                "duration": 604.3000000000029
+              },
+              {
+                "key": "r:24",
+                "reference": "u1:20261017:s0:p0",
+                "start": 28688.600000000006,
+                "end": 29265,
+                "stage": "flat-forward",
+                "maxDrift": 5.340427203336709E-06,
+                "frames": 25,
+                "duration": 576.3999999999942
+              },
+              {
+                "key": "r:25",
+                "reference": "u1:20261017:s0:p0",
+                "start": 29521.899999999994,
+                "end": 30049.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 9.67000698267871E-07,
+                "frames": 23,
+                "duration": 527.9000000000087
+              },
+              {
+                "key": "r:26",
+                "reference": "u1:20261017:s0:p0",
+                "start": 30292.800000000003,
+                "end": 30869.199999999997,
+                "stage": "flat-forward",
+                "maxDrift": 4.381055977036863E-06,
+                "frames": 25,
+                "duration": 576.3999999999942
+              },
+              {
+                "key": "r:27",
+                "reference": "u1:20261017:s0:p0",
+                "start": 31105.300000000003,
+                "end": 31674.800000000003,
+                "stage": "flat-forward",
+                "maxDrift": 1.3513011303395766E-05,
+                "frames": 25,
+                "duration": 569.5
+              },
+              {
+                "key": "r:28",
+                "reference": "u1:20261017:s0:p0",
+                "start": 31945.600000000006,
+                "end": 32473.399999999994,
+                "stage": "flat-forward",
+                "maxDrift": 4.2143681052747E-06,
+                "frames": 20,
+                "duration": 527.7999999999884
+              },
+              {
+                "key": "r:29",
+                "reference": "u1:20261017:s0:p0",
+                "start": 32744.199999999997,
+                "end": 34056.8,
+                "stage": "flat-forward",
+                "maxDrift": 1.7027863684277967E-06,
+                "frames": 54,
+                "duration": 1312.6000000000058
+              }
+            ],
+            "maximumSettledDrift": 2.1317107915105704E-05,
+            "measuredVertexCounts": [
+              12
+            ]
+          }
+        },
+        "stages": {
+          "ground-route": {
+            "l": {
+              "frames": 42,
+              "eligibleFrames": 42,
+              "maximumWindowMs": 770.9000000000015,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 42,
+              "eligibleFrames": 42,
+              "maximumWindowMs": 770.9000000000015,
+              "reasons": {}
+            }
+          },
+          "flat-idle": {
+            "l": {
+              "frames": 854,
+              "eligibleFrames": 854,
+              "maximumWindowMs": 16097.399999999994,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 854,
+              "eligibleFrames": 854,
+              "maximumWindowMs": 16097.399999999994,
+              "reasons": {}
+            }
+          },
+          "flat-forward": {
+            "l": {
+              "frames": 768,
+              "eligibleFrames": 221,
+              "maximumWindowMs": 784.8000000000029,
+              "reasons": {
+                "no-stable-support": 446,
+                "unlocked": 43,
+                "weight-below-.98": 27,
+                "releasing": 31
+              }
+            },
+            "r": {
+              "frames": 768,
+              "eligibleFrames": 337,
+              "maximumWindowMs": 1312.6000000000058,
+              "reasons": {
+                "releasing": 43,
+                "unlocked": 35,
+                "weight-below-.98": 42,
+                "no-stable-support": 311
+              }
+            }
+          }
+        },
+        "independent": {
+          "samples": 3956,
+          "maximumError": 1.2440482671793873E-13,
+          "mismatches": []
+        }
+      }
+    }
+  ],
+  "endUniverse": {
+    "state": {
+      "atlasRevision": 1,
+      "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+      "tick": 1301,
+      "explorerId": "p_5",
+      "vesselId": "universe_1:vessel",
+      "systemIndex": 0,
+      "mode": "surface",
+      "position": {
+        "x": 0.26092366600992695,
+        "y": 529.2013795112372,
+        "z": 1519.5486042731552
+      },
+      "forward": {
+        "x": -0.18729291800303782,
+        "y": 0.9276674643976144,
+        "z": -0.3230393758723667
+      },
+      "up": {
+        "x": 0.00016215881360104217,
+        "y": 0.3288880198943404,
+        "z": 0.944368913123732
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "landedPlanetId": "u1:20261017:s0:p0",
+      "landedVesselPosition": {
+        "x": -3.0784811375173877,
+        "y": 524.4641801324371,
+        "z": 1521.0980550469717
+      },
+      "targetPlanetId": "u1:20261017:s0:p0",
+      "cruise": false,
+      "landing": false,
+      "discoveries": [
+        {
+          "planetId": "u1:20261017:s0:p0",
+          "systemIndex": 0,
+          "tick": 0,
+          "explorerId": "p_5",
+          "method": "landed"
+        }
+      ],
+      "events": [],
+      "settlementRevision": 1
+    },
+    "status": {
+      "speed": 0,
+      "altitude": 3.0000000000004547,
+      "nearestPlanetId": "u1:20261017:s0:p0",
+      "canLand": false,
+      "canLaunch": true,
+      "message": "Surface exploration · vessel ready"
+    },
+    "system": {
+      "id": "u1:20261017:s0",
+      "index": 0,
+      "seed": 4060649947,
+      "name": "Cinderveil Expanse",
+      "planets": [
+        {
+          "id": "u1:20261017:s0:p0",
+          "index": 0,
+          "seed": 20261017,
+          "radius": 1600,
+          "center": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "kind": "temperate",
+          "name": "Cinderveil",
+          "atmosphere": 185,
+          "gravity": 9.81,
+          "palette": {
+            "land": "#5b7650",
+            "rock": "#777369",
+            "water": "#184e68",
+            "sky": "#84bad8"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p1",
+          "index": 1,
+          "seed": 3417329974,
+          "radius": 2374,
+          "center": {
+            "x": 16618.641806198448,
+            "y": 1595.3260650858283,
+            "z": -19174.616375932215
+          },
+          "kind": "glacial",
+          "name": "Thalehollow 2",
+          "atmosphere": 187,
+          "gravity": 5.54,
+          "palette": {
+            "land": "#d7e5e9",
+            "rock": "#7195a4",
+            "water": "#244c76",
+            "sky": "#a4c8e5"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p2",
+          "index": 2,
+          "seed": 1314885531,
+          "radius": 1571,
+          "center": {
+            "x": 778.6715281622598,
+            "y": -251.4495262876153,
+            "z": 28287.980624825654
+          },
+          "kind": "volcanic",
+          "name": "Vesperspire 3",
+          "atmosphere": 200,
+          "gravity": 6.55,
+          "palette": {
+            "land": "#4d4141",
+            "rock": "#7c4a3e",
+            "water": "#452e42",
+            "sky": "#bd715f"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p3",
+          "index": 3,
+          "seed": 2074974299,
+          "radius": 2220,
+          "center": {
+            "x": -21935.049110092543,
+            "y": -376.23503245413303,
+            "z": -22659.738179816293
+          },
+          "kind": "oceanic",
+          "name": "Vesperrest 4",
+          "atmosphere": 284,
+          "gravity": 7.84,
+          "palette": {
+            "land": "#6e9e78",
+            "rock": "#7e9290",
+            "water": "#136782",
+            "sky": "#92d4dc"
+          }
+        }
+      ]
+    },
+    "preview": null,
+    "revision": 1368,
+    "lastSeq": 66,
+    "campaign": {
+      "active": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "name": "Veil traveler",
+      "health": 80,
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canExplore": false,
+      "canReturn": true,
+      "flight": {
+        "canHover": true,
+        "canFly": true,
+        "canCrossSpace": true,
+        "spaceEnvelope": true,
+        "speed": 865.229705649791,
+        "acceleration": 342.42520799007684,
+        "maxAltitude": 107282.80382300226,
+        "estimatedEndurance": 135.99343564196337,
+        "manaPerSecond": 2.3530547521608307,
+        "effortPerSecond": 0.0005238104491766719,
+        "protectionStrength": 15.142633953752064,
+        "liftAcceleration": 248.40764331210192,
+        "manaAvailable": 320,
+        "routeManaRequired": 28.23665702592997,
+        "routeEffortRequired": 0.006285725390120062,
+        "routeSeconds": 12,
+        "capacity": {
+          "amplitude": 20,
+          "aperture": 12,
+          "reserve": 320
+        },
+        "estimatedBodyMassKg": 75,
+        "knownLoadKg": 3.5,
+        "unweighedStacks": 0,
+        "safeCarryMassKg": 35.25,
+        "gravityAbilityId": "book-well",
+        "wardAbilityId": "book-ward",
+        "reasons": [],
+        "causes": [
+          "e_1",
+          "e_3",
+          "e_5"
+        ]
+      },
+      "message": "Cinderveil docking link ready.",
+      "footSupport": {
+        "id": "u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815",
+        "available": true,
+        "reason": "ready",
+        "origin": {
+          "x": 0,
+          "y": 528.6239847459567,
+          "z": 1516.5067367972047
+        },
+        "radius": 2.45,
+        "triangles": 232
+      }
+    },
+    "atlas": {
+      "context": "u1:20261017:s0:p0",
+      "queriedPlacements": 10,
+      "queries": 139,
+      "requested": 10,
+      "loaded": 10,
+      "instanced": 10,
+      "pending": 0,
+      "peakPending": 2,
+      "cachedModels": 10,
+      "cacheBytes": 2349492,
+      "cacheTriangles": 38598,
+      "renderedTriangles": 38598,
+      "instances": 10,
+      "budgetRejected": 0,
+      "requestedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "loadedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "instancedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "residentIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "visibilityBasis": "camera frustum; occlusion is not measured",
+      "visibleIds": [],
+      "failures": [],
+      "placements": [
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:30",
+          "assetId": "atlas:nature:tvn_flora_157",
+          "position": {
+            "x": -196.83184971873402,
+            "y": 539.6310284827531,
+            "z": 1499.78657389832
+          },
+          "up": {
+            "x": -0.1225586848056386,
+            "y": 0.3360049160014859,
+            "z": 0.9338522716155626
+          },
+          "yaw": 2.012929954406598,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:29",
+          "assetId": "atlas:nature:tvn_flora_092",
+          "position": {
+            "x": -196.86432761685603,
+            "y": 468.3886183784928,
+            "z": 1523.5256612294686
+          },
+          "up": {
+            "x": -0.12257962713403228,
+            "y": 0.29164705911780525,
+            "z": 0.9486391452599966
+          },
+          "yaw": 4.304748573599802,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:30",
+          "assetId": "atlas:nature:tvn_biome_081",
+          "position": {
+            "x": 204.93748941330466,
+            "y": 535.0667382752919,
+            "z": 1500.3133709410217
+          },
+          "up": {
+            "x": 0.12760740312160937,
+            "y": 0.333167333919858,
+            "z": 0.9341926344589176
+          },
+          "yaw": 6.265790370039204,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:31",
+          "assetId": "atlas:nature:tvn_biome_005",
+          "position": {
+            "x": 193.51295550241093,
+            "y": 590.4623584410405,
+            "z": 1480.926378763295
+          },
+          "up": {
+            "x": 0.12049374564284616,
+            "y": 0.36766024809529296,
+            "z": 0.9221210328538574
+          },
+          "yaw": 0.18250835941716964,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:31",
+          "assetId": "atlas:nature:tvn_flora_177",
+          "position": {
+            "x": -194.07612781537227,
+            "y": 592.8430749574334,
+            "z": 1479.9011943664368
+          },
+          "up": {
+            "x": -0.12084441333460291,
+            "y": 0.3691426369597966,
+            "z": 0.9214826864050042
+          },
+          "yaw": 4.790481541413313,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:29",
+          "assetId": "atlas:nature:tvn_biome_200",
+          "position": {
+            "x": 207.26126539368252,
+            "y": 468.78291859787413,
+            "z": 1522.012267722658
+          },
+          "up": {
+            "x": 0.1290543371069007,
+            "y": 0.2918947189276925,
+            "z": 0.9477037781585665
+          },
+          "yaw": 3.192784937999634,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:28",
+          "assetId": "atlas:nature:tvn_flora_097",
+          "position": {
+            "x": -207.33329940216007,
+            "y": 407.9109541505371,
+            "z": 1539.444944293144
+          },
+          "up": {
+            "x": -0.12909835978586767,
+            "y": 0.2539902431079239,
+            "z": 0.9585523302911408
+          },
+          "yaw": 4.081464635030378,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:28",
+          "assetId": "atlas:nature:tvn_flora_179",
+          "position": {
+            "x": 206.77716862470308,
+            "y": 404.3012035480144,
+            "z": 1540.4608853668365
+          },
+          "up": {
+            "x": 0.1287529069892298,
+            "y": 0.2517442114246665,
+            "z": 0.9591910867788521
+          },
+          "yaw": 5.567494119403184,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:32",
+          "assetId": "atlas:nature:tvn_flora_064",
+          "position": {
+            "x": -196.73027030485622,
+            "y": 643.9062274565256,
+            "z": 1458.0528011661593
+          },
+          "up": {
+            "x": -0.12249705498434385,
+            "y": 0.40093787512859624,
+            "z": 0.9078784565169111
+          },
+          "yaw": 5.435829371037925,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:32",
+          "assetId": "atlas:nature:tvn_flora_007",
+          "position": {
+            "x": 198.56158082283463,
+            "y": 649.00429562981,
+            "z": 1455.659679085953
+          },
+          "up": {
+            "x": 0.12362914271015762,
+            "y": 0.40408544468384877,
+            "z": 0.906328190264105
+          },
+          "yaw": 5.040495570952604,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        }
+      ],
+      "budgets": {
+        "models": 28,
+        "bytes": 67108864,
+        "triangles": 1200000,
+        "instances": 80,
+        "instanceTriangles": 1800000,
+        "meshInstances": 640,
+        "range": 256
+      }
+    },
+    "avatar": {
+      "ready": true,
+      "loading": false,
+      "error": "",
+      "bodyId": "b_5",
+      "phase": "ground",
+      "visible": true,
+      "position": {
+        "x": 0.2604371895691238,
+        "y": 528.2147154515542,
+        "z": 1516.715497533784
+      },
+      "cameraOccluded": false,
+      "cameraClearance": 3.000000000000001,
+      "assetPath": "people/wren.glb",
+      "presentationRevision": "authored-motion-2026-10-20.1",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 146.46000000000004,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          false,
+          true
+        ],
+        "canonicalFacing": 0,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            -0.2428431510925293,
+            -0.8518473505973816,
+            -2.8010218143463135
+          ],
+          [
+            0.16087816655635834,
+            -1.2056528329849243,
+            -2.6649160385131836
+          ]
+        ],
+        "contacts": [
+          false,
+          true
+        ],
+        "radialContacts": {
+          "active": true,
+          "reference": "u1:20261017:s0:p0",
+          "origin": {
+            "x": 0.26092366600992695,
+            "y": 529.2013795112372,
+            "z": 1519.5486042731552
+          },
+          "up": {
+            "x": 0.0001621588136010422,
+            "y": 0.32888801989434047,
+            "z": 0.9443689131237322
+          },
+          "resetReason": null,
+          "feet": [
+            {
+              "side": "l",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 103
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 100
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 110
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 109
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 99
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 96
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 120
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 113
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 112
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 111
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 119
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 10
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": false,
+              "lockId": null,
+              "weight": 0,
+              "releasing": false,
+              "contact": false,
+              "support": null,
+              "anchor": null,
+              "solePoints": [
+                {
+                  "x": -0.04030249610074593,
+                  "y": 528.4077234978195,
+                  "z": 1516.6362521162343
+                },
+                {
+                  "x": -0.031132479179373673,
+                  "y": 528.4609110710229,
+                  "z": 1516.6189295670713
+                },
+                {
+                  "x": -0.00744256441222324,
+                  "y": 528.4922967671224,
+                  "z": 1516.6101465909608
+                },
+                {
+                  "x": 0.014856044207514296,
+                  "y": 528.5065074758193,
+                  "z": 1516.6063227862119
+                },
+                {
+                  "x": 0.03601199225823942,
+                  "y": 528.4969774430763,
+                  "z": 1516.6079479841403
+                },
+                {
+                  "x": 0.055357662611946495,
+                  "y": 528.4407907659629,
+                  "z": 1516.6259379584126
+                },
+                {
+                  "x": 0.03804106788841505,
+                  "y": 528.3025631366925,
+                  "z": 1516.681879134287
+                },
+                {
+                  "x": 0.02876600765796286,
+                  "y": 528.2881844564217,
+                  "z": 1516.6871856662426
+                },
+                {
+                  "x": 0.013438949340891931,
+                  "y": 528.2790546939291,
+                  "z": 1516.6903208770534
+                },
+                {
+                  "x": -0.004806672471891926,
+                  "y": 528.2844474254465,
+                  "z": 1516.687548716384
+                },
+                {
+                  "x": -0.01972936741405501,
+                  "y": 528.3008760121936,
+                  "z": 1516.6805329187202
+                },
+                {
+                  "x": -0.0337334732835734,
+                  "y": 528.4376148879822,
+                  "z": 1516.6248512506063
+                }
+              ],
+              "signedGaps": [
+                -0.011315147050008467,
+                -0.006519470274611652,
+                0.05572395151768093,
+                0.056772413209180514,
+                -0.008694199511611402,
+                -0.010176391396801019,
+                -0.0028097743081202165,
+                0.0005749111915249373,
+                0.06152542714228105,
+                0.0606752861230933,
+                0.05943572424790782,
+                -0.012253832818356685
+              ],
+              "reason": "no-stable-support"
+            },
+            {
+              "side": "r",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2146
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2149
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2159
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2160
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2150
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2153
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2169
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2161
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2162
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2163
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2170
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2060
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": true,
+              "lockId": 29,
+              "weight": 1,
+              "releasing": false,
+              "contact": true,
+              "support": {
+                "point": {
+                  "x": 0.4680623742913263,
+                  "y": 528.0218772367939,
+                  "z": 1516.7824552533007
+                },
+                "normal": {
+                  "x": 0.0003124765255016336,
+                  "y": 0.328860538523163,
+                  "z": 0.9443784456247803
+                },
+                "source": "settlement:u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815"
+              },
+              "anchor": {
+                "x": 0.4680623742913263,
+                "y": 528.0218772367939,
+                "z": 1516.7824552533007
+              },
+              "solePoints": [
+                {
+                  "x": 0.4475337188415884,
+                  "y": 528.0896785293262,
+                  "z": 1516.7611075992813
+                },
+                {
+                  "x": 0.49211754421638865,
+                  "y": 528.1309459901588,
+                  "z": 1516.7482966698421
+                },
+                {
+                  "x": 0.5152803176236508,
+                  "y": 528.1301334447833,
+                  "z": 1516.750262067764
+                },
+                {
+                  "x": 0.5281787837458407,
+                  "y": 528.107708888326,
+                  "z": 1516.7569376430108
+                },
+                {
+                  "x": 0.5339959799704822,
+                  "y": 528.0694372444325,
+                  "z": 1516.768111534656
+                },
+                {
+                  "x": 0.5160689738481774,
+                  "y": 528.0182934526184,
+                  "z": 1516.784724983509
+                },
+                {
+                  "x": 0.444098438313961,
+                  "y": 527.9330429575443,
+                  "z": 1516.8215089489138
+                },
+                {
+                  "x": 0.4225940668774062,
+                  "y": 527.9251153258148,
+                  "z": 1516.825573592686
+                },
+                {
+                  "x": 0.40365165668496095,
+                  "y": 527.9284011082914,
+                  "z": 1516.8253328493154
+                },
+                {
+                  "x": 0.39458259711002364,
+                  "y": 527.9432241147077,
+                  "z": 1516.820221003144
+                },
+                {
+                  "x": 0.39350990422543597,
+                  "y": 527.960017595283,
+                  "z": 1516.814075977356
+                },
+                {
+                  "x": 0.525145304694473,
+                  "y": 528.0474552775333,
+                  "z": 1516.7735025592635
+                }
+              ],
+              "signedGaps": [
+                0.0021304905312241394,
+                0.003617295692350592,
+                0.005213398839764922,
+                0.004147146970377841,
+                0.0021153137102721507,
+                0.000979920027687066,
+                0.007659891278137778,
+                0.00888464839464706,
+                0.009731940680769345,
+                0.00977629134375838,
+                0.009495439315846985,
+                -2.5285951231332044E-05
+              ],
+              "reason": null
+            }
+          ]
+        },
+        "spineTiltDeg": 3.605829293519303
+      },
+      "motionAvailability": {
+        "ual": {
+          "loaded": true,
+          "verified": true,
+          "reason": "Audited CC0 bytes; own rig retarget"
+        }
+      },
+      "joints": [
+        {
+          "name": "pelvis",
+          "rotation": [
+            0.41435430954588215,
+            -0.048397874643404296,
+            -0.1054371486622695,
+            0.9026910421734404
+          ]
+        },
+        {
+          "name": "spine_03",
+          "rotation": [
+            -0.01041361680065523,
+            0.0003277568280828163,
+            0.00023758906873702773,
+            0.999945633096541
+          ]
+        },
+        {
+          "name": "upperarm_l",
+          "rotation": [
+            0.1961539277994605,
+            0.16907347745723397,
+            -0.5111700678243255,
+            0.8195382096913763
+          ]
+        },
+        {
+          "name": "upperarm_r",
+          "rotation": [
+            0.1714536445917636,
+            -0.1632843309911535,
+            0.4974441285079505,
+            0.8345603614665205
+          ]
+        },
+        {
+          "name": "calf_l",
+          "rotation": [
+            0.18648861312394496,
+            0.10744206722644076,
+            -0.022665747251267285,
+            0.9763013464651589
+          ]
+        },
+        {
+          "name": "calf_r",
+          "rotation": [
+            0.13407685042453676,
+            0.14236316845417316,
+            -0.006303800303051907,
+            0.9806713968244737
+          ]
+        }
+      ],
+      "landmarks": {
+        "pelvis": {
+          "x": -0.0032848226837813854,
+          "y": -0.7121862769126892,
+          "z": -2.006913185119629
+        },
+        "hand_l": {
+          "x": -0.2540279030799866,
+          "y": -0.6460131406784058,
+          "z": -2.2032814025878906
+        },
+        "hand_r": {
+          "x": 0.2111850082874298,
+          "y": -0.7503543496131897,
+          "z": -2.0008034706115723
+        },
+        "head": {
+          "x": 0.0021713008172810078,
+          "y": -0.3940017521381378,
+          "z": -1.4364882707595825
+        },
+        "foot_l": {
+          "x": -0.2428431510925293,
+          "y": -0.8518473505973816,
+          "z": -2.8010218143463135
+        },
+        "foot_r": {
+          "x": 0.16087816655635834,
+          "y": -1.2056528329849243,
+          "z": -2.6649160385131836
+        }
+      }
+    },
+    "camera": {
+      "mode": "ground",
+      "yaw": 0,
+      "renderedYaw": -9.383803531830274E-265,
+      "pitch": 0.4886921905584123,
+      "renderedPitch": 0.4886921905584123,
+      "preferredDistance": 3,
+      "renderedDistance": 3.000000000000001,
+      "desiredDistance": 3,
+      "obstructionDistance": 3.000000000000001,
+      "inputRevision": 277,
+      "fov": 0.9075712110370514,
+      "maxHorizonSpeed": 1.5707963267948966,
+      "input": {
+        "yawPerPixel": 0.004,
+        "pitchPerPixel": 0.0035,
+        "minPitch": -0.2617993877991494,
+        "maxPitch": 1.3089969389957472,
+        "minDistance": 3,
+        "maxDistance": 18
+      },
+      "position": {
+        "x": -8.312228245101324E-05,
+        "y": 2.3233638941086805,
+        "z": -1.3826289900215167
+      },
+      "target": {
+        "x": -0.00031620727611609076,
+        "y": -0.6413316302910825,
+        "z": -1.841519383552924
+      },
+      "up": {
+        "x": 0.00016215757749543118,
+        "y": 0.3288880155338885,
+        "z": 0.9443689146425253
+      },
+      "tangentHeading": {
+        "x": -0.18729291800303768,
+        "y": 0.9276674643976144,
+        "z": -0.3230393758723667
+      },
+      "worldPosition": {
+        "x": 0.26084054372747595,
+        "y": 531.5247434053458,
+        "z": 1518.1659752831338
+      },
+      "worldTarget": {
+        "x": 0.26060745873381086,
+        "y": 528.5600478809461,
+        "z": 1517.7070848896024
+      },
+      "renderedBodyPosition": {
+        "x": 0.26092366600992695,
+        "y": 529.2013795112372,
+        "z": 1519.5486042731552
+      },
+      "nearestPlanetId": "u1:20261017:s0:p0"
+    },
+    "lighting": {
+      "air": 0.999219631611158,
+      "day": 1,
+      "elevation": 0.6956158319460847,
+      "stars": 0.0007803683888419899,
+      "shadows": true,
+      "altitudeFill": 0,
+      "fillIntensity": 0.5498049079027895,
+      "environmentIntensity": 0.4997658894833474,
+      "casters": 112,
+      "triangles": 49923,
+      "registered": 2079,
+      "shadowMap": 2048,
+      "environment": "kloppenheim_06_puresky_1k.hdr"
+    },
+    "settlements": {
+      "revision": 1,
+      "enabled": true,
+      "chunks": 12,
+      "focused": 56,
+      "pending": 0,
+      "terrain": true,
+      "errors": []
+    },
+    "terrain": {
+      "planets": 4,
+      "tiles": 168,
+      "vertices": 59304,
+      "triangles": 107520,
+      "pendingTiles": 0,
+      "rebuilds": 220,
+      "decorations": 0
+    },
+    "vessel": {
+      "visible": true,
+      "position": {
+        "x": -3.3394048035273145,
+        "y": -4.737199378800028,
+        "z": 1.5494507738164884
+      }
+    },
+    "footSupport": {
+      "id": "u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815",
+      "available": true,
+      "reason": "ready",
+      "triangles": 232
+    },
+    "phase": "Surface exploration · vessel ready"
+  },
+  "endTown": {
+    "ready": true,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3,
+        "grade": null
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1,
+        "grade": "Bronze-grade"
+      }
+    ],
+    "position": {
+      "x": 11312.240526886884,
+      "y": 1.0625,
+      "z": 3126.0465400635085
+    },
+    "loaded": 81,
+    "focused": {
+      "instances": 56,
+      "pending": 0,
+      "error": "",
+      "forests": [
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-cross",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 45,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 90,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2205,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 720,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 410,
+              "sourceTrees": 45
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-branches",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 53,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 106,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2597,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 848,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 498,
+              "sourceTrees": 53
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-turn",
+          "assetId": "tv_48_01_broadleaf_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-turn",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 46,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 46,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2254,
+              "sourceTrees": 46
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 736,
+              "sourceTrees": 46
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 432,
+              "sourceTrees": 46
+            }
+          ]
+        }
+      ]
+    },
+    "meshes": 3143,
+    "camera": {
+      "mode": "third-person",
+      "yaw": 3.141592653589793,
+      "renderedYaw": 3.141592653589793,
+      "movementYaw": 3.141592653589793,
+      "pitch": 0.3839724354387525,
+      "preferred": 4,
+      "blocked": false,
+      "position": {
+        "x": 48.240526886884254,
+        "y": 4.506797613732818,
+        "z": 50.33780464524132
+      },
+      "want": 4,
+      "dist": 0,
+      "limit": 4.2,
+      "pitchDeg": 22,
+      "fovDeg": 52,
+      "reason": "explore",
+      "framing": "orbit",
+      "rawDistance": 0,
+      "elevatedBy": 0,
+      "nearPlaneBlocked": false,
+      "actualFovDeg": 60.71894216176973
+    },
+    "controlledBody": {
+      "id": "b_5",
+      "enabled": true,
+      "position": {
+        "x": 48.240526886884254,
+        "y": 1.0625,
+        "z": 54.04654006350847
+      },
+      "yaw": -2.953174775621488,
+      "screen": {
+        "x": 720.000166092427,
+        "y": 556.117235304877,
+        "z": 0.9777450650067382
+      }
+    },
+    "controlledLook": {
+      "assetPath": "people/wren.glb",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 135.22800000071527,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          true,
+          true
+        ],
+        "canonicalFacing": -2.953174775621488,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            48.48301696777344,
+            1.1377589702606201,
+            54.16339111328125
+          ],
+          [
+            48.033721923828125,
+            1.1367710828781128,
+            53.84557342529297
+          ]
+        ],
+        "contacts": [
+          true,
+          true
+        ],
+        "radialContacts": null,
+        "spineTiltDeg": 2.5982425039104524
+      }
+    }
+  },
+  "checkpoint": {
+    "format": 1,
+    "sequence": 5342,
+    "engine": "d42707b0293c8af93821f24eba35c2bfaad185643fd59cb982c67f25a161ed53",
+    "worldFile": "world-5342-9c01c378-81c6-4cae-9152-5fa1819cae64.json.gz",
+    "sha256": "7d35884f9d13f72777f22148cca02a464b052eeb1c2f82cc3cb4cdbd5bcbf5aa",
+    "bytes": 48080,
+    "control": {
+      "citySteps": 0,
+      "realm": {
+        "input": {
+          "x": 0,
+          "z": 0,
+          "sprint": false
+        },
+        "inputUntil": 0,
+        "pending": null,
+        "transitionId": 0,
+        "lastRegion": "brass:117,32"
+      },
+      "tower": null,
+      "controller": {
+        "slowAccum": 0.016666666666666666,
+        "interactionTick": 361,
+        "move": {
+          "x": 0,
+          "z": 0,
+          "sprint": false,
+          "expires": 0
+        },
+        "sequence": -1,
+        "appliedSequence": -1,
+        "control": null
+      }
+    }
+  },
+  "rawEvidence": ".debug/release-journey-oct20-v4 retained locally"
+}

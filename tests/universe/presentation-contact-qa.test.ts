@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, groundWalkDirection, contactChartPosition, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
 
@@ -73,6 +73,68 @@ it('accounts for observed walking tail before the recorded3.86m approach rather 
   const observedTail=4.87/7*1000-550;
   expect(Math.abs(3.86-(requested+observedTail)/1000*7)).toBeLessThan(.65);
   expect(groundWalkPulse(1.02,tail)).toBe(20);
+});
+
+it('selects a positive-progress ordinary WASD direction for every target heading, including both recorded oscillation angles',()=>{
+  for(const angle of [...Array.from({length:360},(_,i)=>i*Math.PI/180),.2136,-.14636]){
+    const direction=groundWalkDirection({x:0,y:0,z:1},{x:0,y:1,z:0},{x:Math.sin(angle),y:0,z:Math.cos(angle)});
+    expect(direction.alignment).toBeGreaterThanOrEqual(Math.cos(Math.PI/8)-1e-12);
+    expect(direction.keys.length).toBeGreaterThanOrEqual(1);
+    expect(direction.keys.every((k:string)=>['w','a','s','d'].includes(k))).toBe(true);
+  }
+});
+
+/** Tiny deterministic surface host mock. The driver still operates only its
+ * keyboard/response API; no live browser, save or canonical fixture is changed. */
+function driveFixture(heading:number,blocked=false){
+  let now=0,seq=0,tick=0;
+  vi.spyOn(Date,'now').mockImplementation(()=>now);
+  type V={x:number;y:number;z:number};
+  const dot=(a:V,b:V)=>a.x*b.x+a.y*b.y+a.z*b.z;
+  const norm=(a:V)=>{const d=Math.hypot(a.x,a.y,a.z);return{x:a.x/d,y:a.y/d,z:a.z/d};};
+  const cross=(a:V,b:V)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+  const a=Math.PI/10+(3113.7-3092.5)/1600,radius=1609.0625;
+  let position:V={x:0,y:Math.sin(a)*radius,z:Math.cos(a)*radius};
+  let forward=norm({x:Math.sin(heading),y:Math.cos(a)*Math.cos(heading),z:-Math.sin(a)*Math.cos(heading)});
+  const held=new Set<string>(),listeners:((r:any)=>void)[]=[],sent:any[]=[];
+  let requested:{predicate:(r:any)=>boolean;resolve:(r:any)=>void}|null=null;
+  let responded:{predicate:(r:any)=>boolean;resolve:(r:any)=>void}|null=null;
+  const input=()=>({throttle:Number(held.has('w'))-Number(held.has('s')),strafe:Number(held.has('d'))-Number(held.has('a')),yaw:0,pitch:0,lift:0,brake:false});
+  const advance=(ms:number)=>{
+    now+=ms;tick+=Math.max(1,Math.ceil(ms/50));const i=input(),up=norm(position),right=cross(forward,up),scale=7*ms/1000/Math.max(1,Math.hypot(i.throttle,i.strafe));
+    if(!blocked){const next=norm({x:position.x+(forward.x*i.throttle+right.x*i.strafe)*scale,y:position.y+(forward.y*i.throttle+right.y*i.strafe)*scale,z:position.z+(forward.z*i.throttle+right.z*i.strafe)*scale});position={x:next.x*radius,y:next.y*radius,z:next.z*radius};const d=dot(forward,next);forward=norm({x:forward.x-next.x*d,y:forward.y-next.y*d,z:forward.z-next.z*d});}
+  };
+  const emit=()=>{
+    const data={seq:++seq,command:{type:'input',input:input()}},request={url:()=> 'http://127.0.0.1:7533/realms/universe/command',method:()=> 'POST',postDataJSON:()=>data};
+    sent.push(data);listeners.forEach(f=>f(request));if(requested?.predicate(request)){requested.resolve(request);requested=null;}
+    const response={url:request.url,request:()=>request,ok:()=>true,status:()=>200,json:async()=>({ok:true,snapshot:{lastSeq:data.seq,revision:tick}})};
+    if(responded?.predicate(response)){responded.resolve(response);responded=null;}
+  };
+  const page={on:(_name:string,f:(r:any)=>void)=>listeners.push(f),evaluate:async()=>{},
+    keyboard:{down:async(key:string)=>{if(key==='Escape'){advance(130);held.clear();emit();}else{held.add(key);emit();}},up:async(key:string)=>{held.delete(key);}},
+    waitForRequest:(predicate:(r:any)=>boolean)=>new Promise(resolve=>{requested={predicate,resolve};}),
+    waitForResponse:(predicate:(r:any)=>boolean)=>new Promise(resolve=>{responded={predicate,resolve};}),waitForTimeout:async(ms:number)=>advance(ms)};
+  const read=async()=>({lastSeq:seq,revision:tick,system:{planets:[{center:{x:0,y:0,z:0},radius:1600}]},
+    state:{mode:'surface',tick,position:{...position},forward:{...forward}}});
+  const report:any={},noop=async()=>{};
+  const qa=createContactQA({page,report,read,save:noop,check:noop,orbit:noop,zoom:noop,recenter:noop});
+  return{qa,read,report,sent,time:()=>now};
+}
+
+it.each([0,Math.PI/2,Math.PI,.2136,-.14636])('reaches and acknowledges the strict waypoint from body heading%f despite130ms input tail',async heading=>{
+  const f=driveFixture(heading);await f.qa.drive({x:11312.5,z:3128},'mock-waypoint');
+  const end=contactChartPosition(await f.read());
+  expect(Math.hypot(end.x-11312.5,end.z-3128)).toBeLessThan(.65);
+  expect(f.time()).toBeLessThan(18000);
+  expect(f.sent.every(p=>p.command.input.yaw===0)).toBe(true);
+  expect(f.report.contactQA.stops.every((s:any)=>s.ack.ok&&s.settled.ticks>=3)).toBe(true);
+});
+
+it('fails a physically blocked mock route within the existing stall bound instead of claiming arrival',async()=>{
+  const f=driveFixture(Math.PI,true);
+  await expect(f.qa.drive({x:11312.5,z:3128},'blocked')).rejects.toThrow('no linear or angular progress');
+  expect(f.time()).toBeGreaterThan(4500);expect(f.time()).toBeLessThan(6500);
+  expect(f.report.contactQA.route[0].reached).toBeUndefined();
 });
 
 it('splits contact eligibility by actual stage even when a lock began during the prior stage',()=>{

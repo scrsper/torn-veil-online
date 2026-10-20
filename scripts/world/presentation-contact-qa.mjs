@@ -28,6 +28,18 @@ export function groundRouteProgress(previous,remaining,headingError,now){
 }
 export function groundTurnPulse(error,tailMs){return clamp((Math.abs(error)-.03)/1.8*1000-tailMs,20,260);}
 export function groundWalkPulse(remaining,tailMs){return clamp((remaining-.4)/7*1000-tailMs,20,550);}
+/** Select ordinary body-relative WASD, matching the shared surface integrator's
+ * normalized diagonals. Precise body yaw is not a precondition for walking. */
+export function groundWalkDirection(forward,up,desired){
+ const right=norm(cross(forward,up));let best=null;
+ for(const throttle of [-1,0,1])for(const strafe of [-1,0,1]){
+  if(!throttle&&!strafe)continue;
+  const direction=norm(add(mul(forward,throttle),mul(right,strafe))),alignment=dot(direction,desired);
+  if(!best||alignment>best.alignment)best={throttle,strafe,direction,alignment,
+   keys:[...(throttle?[throttle>0?'w':'s']:[]),...(strafe?[strafe>0?'d':'a']:[])]};
+ }
+ return best;
+}
 export function isNeutralGroundRequest(value,lastActiveSeq){
  const input=value?.command?.input;
  return Number.isSafeInteger(value?.seq)&&value.seq>lastActiveSeq&&value.command?.type==='input'
@@ -235,16 +247,14 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
  };
  const drive=async(target,label)=>{
   await stage(label);const began=Date.now(),initial=await read(),start=contactChartPosition(initial),attempt={label,target,start,observations:[]};report.contactQA.route.push(attempt);
-  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:Date.now(),phase:null},settled=false,turnTailMs=0,walkTailMs=0;
+  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:Date.now(),phase:null},settled=false,walkTailMs=0;
   try{
    while(Date.now()-began<18000){
     const view=await read(),p=contactChartPosition(view),remaining=Math.hypot(p.x-target.x,p.z-target.z);
     const {up,desired}=targetDirection(view,target),forward=norm(sub(view.state.forward,mul(up,dot(view.state.forward,up))));
     const headingError=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
-    // A small overshoot is corrected with ordinary S, not a full turnaround.
-    const reverse=remaining<2&&Math.abs(headingError)>Math.PI/2;
-    const turn=reverse?Math.atan2(Math.sin(headingError+Math.PI),Math.cos(headingError+Math.PI)):headingError;
-    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,headingError,steeringError:turn,reverse,mode:view.state.mode});
+    const walk=groundWalkDirection(forward,up,desired);
+    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,headingError,walk,mode:view.state.mode});
     if(view.state.mode!=='surface')throw Error('Ground route left the surface');
     if(remaining<.65){
      const stopped=settled?view:await stopGround(label+'-candidate'),final=contactChartPosition(stopped);
@@ -252,41 +262,22 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
      if(attempt.candidate.remaining<.65){attempt.reached=final;return;}
      continue;
     }
-    progress=groundRouteProgress(progress,remaining,turn,Date.now());
+    // This driver never waits for exact yaw. Only real distance progress keeps
+    // its stall timer alive; angular-only evidence remains separately tested.
+    progress=groundRouteProgress(progress,remaining,0,Date.now());
     if(Date.now()-progress.lastProgress>4500)throw Error('Ground waypoint made no linear or angular progress for 4.5 seconds');
-    let requestedTurnMs=null,requestedWalkMs=null;
-    if(Math.abs(turn)>.14){
-     await page.keyboard.up('w');const key=turn>0?'ArrowLeft':'ArrowRight';
-     requestedTurnMs=groundTurnPulse(turn,turnTailMs);
-     const requested=page.waitForRequest(request=>{
-      if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
-      try{const p=request.postDataJSON();return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&p.command.input.yaw===Math.sign(turn);}catch{return false;}
-     },{timeout:3000}).then(request=>({request}),error=>({error}));
-     await page.keyboard.down(key);const observed=await requested;
-     if(observed.error)throw Error('Ordinary turn input was not sent to the host');
-     await page.waitForTimeout(requestedTurnMs);
-    }else{
-     requestedWalkMs=groundWalkPulse(remaining,walkTailMs);const throttle=reverse?-1:1,key=reverse?'s':'w';
-     const requested=page.waitForRequest(request=>{
-      if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
-      try{const p=request.postDataJSON();return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&p.command.input.throttle===throttle;}catch{return false;}
-     },{timeout:3000}).then(request=>({request}),error=>({error}));
-     await page.keyboard.down(key);const observed=await requested;
-     if(observed.error)throw Error('Ordinary walking input was not sent to the host');
-     await page.waitForTimeout(requestedWalkMs);
-    }
+    const requestedWalkMs=groundWalkPulse(remaining*walk.alignment,walkTailMs);
+    const requested=page.waitForRequest(request=>{
+     if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
+     try{const p=request.postDataJSON(),i=p.command?.input;return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&i.throttle===walk.throttle&&i.strafe===walk.strafe&&i.yaw===0;}catch{return false;}
+    },{timeout:3000}).then(request=>({request}),error=>({error}));
+    await Promise.all(walk.keys.map(key=>page.keyboard.down(key)));const observed=await requested;
+    if(observed.error)throw Error('Ordinary walking input was not sent to the host');
+    await page.waitForTimeout(requestedWalkMs);
     const stopped=await stopGround(label+'-pulse',view);settled=true;
-    if(requestedTurnMs!==null){
-     const actual=Math.abs(Math.atan2(dot(up,cross(forward,stopped.state.forward)),dot(forward,stopped.state.forward)));
-     const measuredTail=clamp(actual/1.8*1000-requestedTurnMs,0,300);
-     turnTailMs=turnTailMs*.4+measuredTail*.6;
-     attempt.turns??=[];attempt.turns.push({requestedMs:requestedTurnMs,actualRadians:actual,estimatedTailMs:turnTailMs});
-    }
-    if(requestedWalkMs!==null){
-     const actual=len(sub(stopped.state.position,view.state.position)),measuredTail=clamp(actual/7*1000-requestedWalkMs,0,300);
-     walkTailMs=walkTailMs*.4+measuredTail*.6;
-     attempt.walks??=[];attempt.walks.push({requestedMs:requestedWalkMs,metres:actual,reverse,estimatedTailMs:walkTailMs});
-    }
+    const actual=len(sub(stopped.state.position,view.state.position)),measuredTail=clamp(actual/7*1000-requestedWalkMs,0,300);
+    walkTailMs=walkTailMs*.4+measuredTail*.6;
+    attempt.walks??=[];attempt.walks.push({requestedMs:requestedWalkMs,metres:actual,keys:walk.keys,estimatedTailMs:walkTailMs});
    }
    throw Error('Ground waypoint exceeded the 18-second bound');
   }finally{await release();attempt.elapsed=Date.now()-began;await save();}
@@ -327,5 +318,5 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
    report.contactQA.routeFailure=String(error);await release();try{await stopGround('route-failure');}catch(stopError){report.contactQA.stopFailure=String(stopError);}await save();throw error;
   }finally{await stop({required:true});}
  };
- return{start,stage,stop,groundRoute,soleClip,release,stopGround};
+ return{start,stage,stop,groundRoute,soleClip,release,stopGround,drive};
 }
