@@ -18,8 +18,14 @@ Bronze–Diamond trials and the source Diamond row require peak level and victor
 at the current band. Diamond ends the leveled ladder; godhood remains an ontological transition.
 
 Threat levels for people, animals and items are capability estimates against an ordinary
-reference adult, used for experience valuation and display only. Other people's levels are not
-observer knowledge. Rejected: XP awarded by callers or floor counters, retroactive conversion
+reference adult. They value opponents for experience, feats and the defeat development
+stimulus (never the opponent's rank label or earned level: an opponent is worth the threat it
+presented while striking), and observed threat (species and visible equipment only) is what
+a player may see of a stranger. Other people's levels are not observer knowledge. Defeats are
+read from a per-body encounter tally in the shared hit resolver (effective damage, whom the
+body struck), never from a scan of the global log; blows on someone already out of the fight
+count for nothing and a surrender credits its opponents. Foundation experience needs a
+canonical cause; ordinary labour and growing up strengthen without levelling. Rejected: XP awarded by callers or floor counters, retroactive conversion
 of pre-ledger history, rank-label combat multipliers, banking overflow across ranks. Measured
 consequence: current content tops out near Iron-band threat, so higher-band levels need
 higher-threat content. Schema 32. See docs/LEVELING_AND_RANKS.md.

@@ -53,21 +53,31 @@ marks each completed level and the peak; a breakthrough reopens the next rank at
 
 | Source | Adapter | Amount | Exploit limits |
 |---|---|---|---|
-| Defeat | `recordDefeatExperience`, called by the shared hit resolver `Simulation.applyHit` | `0.1 × xpToNext(victimLevel) × gap × share` | Only a defeating blow. A person must have resisted each credited contributor (agreed trial, or struck them this encounter); an animal must be wild and killed. Each victim pays a person once, ever. A contributor needs a quarter of the victim's health in damage. |
+| Defeat | `recordDefeatExperience`, called by the shared hit resolver `Simulation.applyHit` | `0.1 × xpToNext(victimLevel) × gap × share` | Only a defeating blow on someone still in the fight: a body already down, yielded, subdued or held pays nothing, so finishing or executing them is not a defeat. A person must have resisted each credited contributor (an agreed trial, or they struck that contributor this encounter); an animal must be wild and killed. Shares count **effective** damage only (never overkill). A contributor needs a quarter of the victim's health. Each victim pays a person once, ever. |
+| Surrender | `beginSurrender` on `entity_surrendered` | as a defeat | Yielding is being overcome: the same encounter, resistance and share rules credit the contributors once. |
 | Practice | `recordCapabilityPractice` (existing ledger) | 300 per credited effective hour | The capability ledger's own provenance, novelty, repetition and daily limits. |
-| Foundations | `develop()` on each new integer point | `round(25 × 1.2^(value−8))` | Each value once; values held when the ledger opened are baseline. |
+| Foundations | `develop()` on each new integer point | `round(25 × 1.2^(value−8))` | Each value once; values held when the ledger opened are baseline. Only development with a canonical cause pays: a fight, credited practice, a meditation, an understanding. Ordinary labour and growing up strengthen a body without levelling it. |
 | Tower floor | `observeCanonicalTower` on `tower_floor_cleared` | `0.25 × xpToNext(mean warden level) × gap` | One clear per floor, derived from canonical defeats. |
-| Learning | `learnArcaneSource` on `arcane_learned` | `0.3 × xpToNext(own level)` | Each form once (learning is idempotent). |
-| Achievement | `achieve` | `levels × xpToNext(own level)` | Once per person. |
+| Learning | `learnArcaneSource` on `arcane_learned` | `0.3 × xpToNext(min(own, form level))` | Each form once (learning is idempotent); a basic form learned late is worth what it is. |
+| Achievement | `achieve` | `levels × xpToNext(min(own, deed level))` | Once per person, priced by the deed (the opponent, quarry, floor or form), so a trivial first saved for a high rank stays small. |
 
 `gap` (DotF): `min(2.5, 1 + 0.15 × (victim − victor))` above, `max(0, 1 + gap/12)` below, so an
-opponent twelve or more levels weaker teaches nothing. **Victim level** is a person's earned
-level or their equipped threat, whichever is higher (a kitted Tower warden with no history
-is still dangerous); an animal's level is its threat.
+opponent twelve or more levels weaker teaches nothing. **Victim level** is capability, never a
+label: for a person, the strongest threat they actually presented while striking during the
+encounter, or, if they never struck, what they stood ready with at the end (a kitted Tower
+warden with no history is still dangerous; a rank label or earned level adds nothing, and a
+weapon handed over at the last moment adds nothing either). An animal's level is its threat.
 
-A defeat of a person also develops the body through the ordinary `develop()` operator with
-challenge `10 + 0.9 × victimLevel`. Normal-band opponents stay within existing ordinary,
-boar and sparring demands; only stronger opponents can push a ranked body past 20.
+**Encounters.** The shared hit resolver keeps a small per-body tally (`Body.encounter`): the
+effective damage each attacker dealt, whom the body struck, and the strongest threat it
+presented while striking. Entries lapse after ten minutes without a blow; a defeat or a
+surrender closes the encounter. This replaced scanning the global event log, which missed long
+fights in a busy world and could not tell overkill from real damage.
+
+A defeat of a person beyond ordinary mortal threat (Iron band and up) also develops the body
+through the ordinary `develop()` operator with challenge `10 + 0.9 × victimLevel`; ordinary
+brawls keep their existing effect on village life. Only such opponents can push a ranked body
+past 20.
 
 ## Achievements
 
@@ -76,14 +86,18 @@ boar and sparring demands; only stronger opponents can push a ranked body past 2
 | `first-blood` | First Blood: first resisting opponent overcome | 0.5 |
 | `giant-slayer` | Overcame an opponent five or more levels above you | 1 |
 | `rank-breaker` | Overcame an opponent whose threat lies in a higher rank | 1.5 |
-| `untouched` | Overcame an equal-or-stronger opponent without being struck by them | 0.5 |
+| `untouched` | Overcame an equal-or-stronger opponent that could fight back, without being struck by them | 0.5 |
 | `last-stand` | Delivered a defeating blow below a sixth of your health | 0.5 |
 | `quarry:<species>` | First wild kill of a species | 0.25 |
 | `awakened` | First arcane form learned | 0.5 |
 | `exceptional` | A foundation developed to 15 | 0.5 |
 | `tower:1/10/25/50/75/100` | Tower milestone trials | 0.5–1.5 |
 | `breakthrough:<rank>` | Each rank reached; credited on the advancement event itself | 0.5 |
-| `peak:<rank>` | A full track | 0 |
+| `peak:<rank>` | A full track (peak Diamond is the summit of the ladder) | 0 |
+
+Rewards are `levels × xpToNext(min(own level, deed level))`; the deed level is the opponent's
+or quarry's threat, the floor's warden level, the form's grade, or Normal band for an
+exceptional foundation.
 
 ## The rank vessel
 
@@ -104,6 +118,8 @@ enters the existing `embodiedStrikeMultiplier` extension point. Development now 
 every leveled rank up to the vessel's ceiling, with potential shifted by the same lift, so a
 remade body meets the same resistance relative to its new limit; Normal bodies are unchanged.
 The strength/dexterity expression clamp is `max(2, ceiling/16)`, also unchanged for Normal.
+Source victories still measure control against the **original** body, so a vessel's larger
+health does not soften the unchanged 97% Gold control gate.
 
 ## Routes to Diamond
 
@@ -160,19 +176,36 @@ band; the test suite asserts this for both routes.
 ## What the player sees
 
 * Journal (and the Babylon menu's Journal tab): `Iron 3 · level 14`, an experience bar,
-  progress to peak, the vessel, achievements, and the next breakthrough's remaining reasons.
-* Realm character sheet: level line, achievements, the next breakthrough's status and an
-  **Attempt the … breakthrough** button (new `advance` command → shared timed action).
-* Tower HUD: level and experience beside rank.
+  progress to peak, the vessel, achievements, aggregate band-victory counts (never the levels
+  of individual defeated people), the next breakthrough's remaining reasons and the practice
+  that breakthrough actually needs.
+* **Announcements** (Dungeon Crawler Carl "System"): the player's own level-ups, peaks,
+  achievements and breakthroughs appear as toasts in the realm client and Tower HUD, from their
+  own events only, and never replay on reconnect.
+* **Observed threat:** a stranger is read only by species and the weapons, armor and foci they
+  visibly wear or wield, as an ordinary adult body. The Tower HUD shows it for the selected
+  target ("target looks Iron-grade (≈level 11)"); realm residents carry it. It is a lower bound,
+  deliberately: hidden foundations, health, vessels and forms are not observable.
+* **Item grades:** carried combat items show their grade to their holder ("Iron-grade weapon
+  (item level 11)"); ordinary goods have none.
+* Realm character sheet: level line, achievements, each route's requirements named ("Iron by
+  bodily practice", "Iron by essence integration") and an **Attempt the … breakthrough** button
+  (`advance` command → shared timed action). A breakthrough already under way shows its time
+  left instead of the button; the command refuses a duplicate or ineligible attempt.
+* Tower HUD: level and experience, once, in the same wording as the other surfaces.
 * Observatory / developer inspection: earned level, vessel, and equipped and intrinsic threat.
 
 ## Persistence
 
-Schema 32. `progression/persistence.ts` fails closed on malformed ledgers or vessels: ranks
-and track bounds, foundations, defeated ids, feats (real attack receipts), achievements (real
+Schema 32. `progression/persistence.ts` fails closed on malformed ledgers, vessels or
+encounter tallies: ranks and track bounds, foundations, defeated ids, feats (distinct, each a
+real defeating attack or surrender of a credited victim), achievements (real
 `achievement_earned` or advancement events by the same person), vessel values equal to the
-table and to the advancement event, base health per own body, and attributes within the
-ceiling. Compaction pins feats, achievements, the track event and the vessel event; the recent
+table and to the advancement event, an embodied trial's own receipt (the rank below, peak, its
+distinct feats among its causes), base health per own body, and every person's attributes
+within their ceiling (20 without a vessel). Arcane validation accepts a victory's control
+measured against the original or any remade body, and a source transformation followed by a
+later embodied breakthrough of the same person. Compaction pins feats, achievements, the track event and the vessel event; the recent
 receipt window is informational and pins nothing. Arcane save bounds rise for schema 32 to fit
 Diamond capacity (mana 480, cast power 120, damage/effects 6,000, range 300, radius 40).
 
@@ -190,11 +223,16 @@ Diamond capacity (mana 480, cast power 120, damage/effects 6,000, range 300, rad
 * **Steel weapons are worth about one rank of threat** in the existing strike model, and armor
   is capped by the 65% per-hit rule, so even floor-100 harnesses grade Normal. These are
   observations about existing balance that the scale makes visible, not changes to it.
-* Defeat XP of the very weakest kills a fresh player makes is small; at Normal, foundations
-  and practice dominate. No human pacing has been measured; the constants are authored policy
-  in `progression/levels.ts`, documented here, and reported by `npm run leveling:report`.
-* Levels of others are not projected to the player. An observable threat reading (from
-  visible species and equipment only) would fit the epistemic rules and is a natural next step.
+* **Measured climb** (`src/headless/towerClimb.ts`, seed 918271, hybrid bot, accelerated input):
+  Normal 2 after floor 1, Normal 5 after floor 3 and **peak Normal after floor 4**, where wardens
+  first carry daggers and harness and assess at level 11. Experience then overflows. The bot
+  fails floor 10 within 600 s on this branch and floor 9 on `main`, with 36–40 of the 48
+  victories source Iron needs: a pre-existing wall that the leveling bottleneck now makes
+  visible. This is a bot strategy, not human pacing; no human pacing has been measured.
+* Experience gains inherently hint at an opponent's danger (as in any RPG); the projection
+  limits this to the player's own totals and aggregate band counts.
+* The constants are authored policy in `progression/levels.ts`, documented here, and reported
+  by `npm run leveling:report`.
 
 ## Files, commands and tests
 
