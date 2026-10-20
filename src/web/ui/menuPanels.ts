@@ -83,7 +83,7 @@ export function abilitiesTab(svc: PanelServices): TabDef {
       const practice = j.practice as { skill: string; hours: number; level: string; days: number }[];
       if (practice.length) {
         body.append(h('h2', { class: 'tv-h2', style: 'margin-top:1.2rem', text: 'Practice' }));
-        for (const p of practice) body.append(h('div', { class: 'tv-row', style: 'cursor:default' }, h('div', { class: 'grow', text: titleCase(p.skill) }), h('span', { class: 'tv-muted', text: `${p.hours.toFixed(1)} h of ${j.practiceHoursRequired} h · ${p.days} day${p.days === 1 ? '' : 's'} · ${p.level}` })));
+        for (const p of practice) body.append(h('div', { class: 'tv-row', style: 'cursor:default' }, h('div', { class: 'grow', text: titleCase(p.skill) }), h('span', { class: 'tv-muted', text: `${p.hours.toFixed(1)} h${j.practiceHoursRequired ? ` of ${j.practiceHoursRequired} h` : ''} · ${p.days} day${p.days === 1 ? '' : 's'} · ${p.level}` })));
       }
       body.append(h('h2', { class: 'tv-h2', style: 'margin-top:1.2rem', text: 'Practice mode' }),
         h('div', { style: 'display:flex;gap:.4rem;flex-wrap:wrap' },
@@ -98,7 +98,13 @@ export function journalTab(svc: PanelServices): TabDef {
       const s = svc.snapshot(); if (!s) return; const j = s.journal;
       const own = svc.ownBody();
       const meter = (label: string, v: number, good = true) => h('div', { style: 'display:grid;grid-template-columns:8rem 1fr 3.5rem;gap:.6rem;align-items:center' }, h('span', { class: 'tv-muted', text: label }), h('div', { class: 'tv-meter' }, h('i', { style: { width: `${Math.max(0, Math.min(1, v)) * 100}%`, ...(good ? {} : { background: 'linear-gradient(90deg,#8e2f38,#d15660)' }) } })), h('span', { class: 'tv-gold', text: pct(v) }));
+      const xp = j.experience;
       const left = h('div', null, h('h2', { class: 'tv-h2', text: own?.name ?? 'You' }), h('div', { class: 'tv-sub', text: `Stage: ${j.stage}` }),
+        ...(xp?.leveled ? [h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: `${xp.label} · level ${xp.level}` }),
+          h('div', { class: 'tv-meter' }, h('i', { style: { width: `${xp.peak ? 100 : Math.min(100, xp.xpIntoLevel / Math.max(1, xp.xpForLevel) * 100)}%` } })),
+          h('div', { class: 'tv-sub', text: xp.peak ? `${xp.peakText} ${xp.lifetimeXp.toLocaleString()} lifetime experience`
+            : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience · ${xp.rankXp.toLocaleString()} of ${xp.peakXp.toLocaleString()} to peak ${xp.stage}` }),
+          xp.vessel ? h('div', { class: 'tv-sub', text: `${xp.vessel.stage} vessel: ×${xp.vessel.resilience} resilience, ×${xp.vessel.force} force, foundations to ${xp.vessel.ceiling}` }) : null] : []),
         h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Condition' }),
         h('div', { class: 'tv-grid', style: 'gap:.35rem' }, meter('Energy', j.condition.energy), meter('Hydration', j.condition.hydration), meter('Fatigue', j.condition.fatigue, false), meter('Sleep debt', Math.min(1, j.condition.sleepDebt / 24), false)),
         h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Foundations' }),
@@ -113,8 +119,10 @@ export function journalTab(svc: PanelServices): TabDef {
       const skills = j.skills as { skill: string; level: string }[];
       right.append(h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Skills' }), skills.length ? h('div', { style: 'display:flex;gap:.4rem;flex-wrap:wrap' }, ...skills.map(k => h('span', { class: 'tv-chip', text: `${titleCase(k.skill)} · ${k.level}` }))) : h('p', { class: 'tv-muted', text: 'Nothing you would call a skill yet.' }));
       if (j.veil) right.append(h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'The veil' }), h('div', { class: 'tv-sub', text: `Strain ${(j.veil as { strain: number }).strain}` }));
+      if (xp?.achievements.length) right.append(h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Achievements' }),
+        h('div', { style: 'display:flex;gap:.4rem;flex-wrap:wrap' }, ...xp.achievements.map(a => h('span', { class: 'tv-chip', text: a.title }))));
       const adv = j.advancement;
-      right.append(h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Breakthrough' }), adv.eligible ? h('p', { class: 'tv-good', text: 'You are ready to attempt the breakthrough (Abilities).' }) : h('ul', { style: 'margin:.2rem 0 0 1.1rem;padding:0;color:var(--muted)' }, ...(adv.remaining as string[]).slice(0, 4).map(r => h('li', { text: r }))));
+      right.append(h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: adv.next ? `Breakthrough to ${adv.next}` : 'Breakthrough' }), adv.eligible ? h('p', { class: 'tv-good', text: 'You are ready to attempt the breakthrough (Abilities).' }) : h('ul', { style: 'margin:.2rem 0 0 1.1rem;padding:0;color:var(--muted)' }, ...(adv.remaining as string[]).slice(0, 4).map(r => h('li', { text: r }))));
       body.append(h('div', { class: 'tv-two' }, left, right));
     },
   };

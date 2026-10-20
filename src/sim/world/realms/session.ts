@@ -4,6 +4,9 @@ import {combatState} from '../../../bridge/combatState';
 import {guardHeld} from '../../physical/guard';
 import {equipmentProjection} from '../../physical/equipment';
 import {arcaneProgress} from '../../physical/arcana/growth';
+import {experienceSummary,recentAnnouncements} from '../../progression/experience';
+import {itemGrade,observedThreat} from '../../progression/threat';
+import {assessBreakthrough,breakthroughUnderway} from '../../core/advancement';
 import {handInteractions} from '../../physical/hand';
 import {recogniseClass} from '../../mind/vocation';
 import type {Body} from '../../core/types';
@@ -181,11 +184,12 @@ export class RealmSession {
     const door = this.nearbyDoor(), portal = w.distance2d(p, portalPoint(realm)) < 4.5;
     const visible=w.persons().filter(n=>n.id===this.person.id||w.primaryBody(n.id)?.present&&realmAt(w.primaryBody(n.id)!.pos.x,w.primaryBody(n.id)!.pos.z)===realm&&w.distance2d(p,w.primaryBody(n.id)!.pos)<80&&w.grid.lineOfSight({...p,y:p.y+1.6},{...w.primaryBody(n.id)!.pos,y:w.primaryBody(n.id)!.pos.y+1.6},80));
     return { focusedAssets:realm==='brass'?this.grid.focusedTown:null,realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
-      person: { id: this.person.id, name: this.person.name, rank: this.person.ontology.stage, inventory: this.person.inventory.map(id => { const i = w.item(id)!; return { id, name: i.name, quantity: i.quantity }; }) },
+      person: { id: this.person.id, name: this.person.name, rank: this.person.ontology.stage, inventory: this.person.inventory.map(id => { const i = w.item(id)!; return { id, name: i.name, quantity: i.quantity, grade: (g => g && (g.role !== 'source' || g.power > 1) ? g.grade : null)(itemGrade(i)) }; }) },
       body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
       avatar:this.visual(this.body),
       growth:arcaneProgress(w,this.person,this.body),
-      development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{}},
+      development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{},
+        experience:experienceSummary(w,this.person),announcements:recentAnnouncements(w,this.person),breakthrough:(({eligible,next,reasons})=>({eligible,next,reasons:reasons.slice(0,4),underway:breakthroughUnderway(w,this.person)}))(assessBreakthrough(w,this.person))},
       interactions:handInteractions(this.sim,this.person),
       casts:visible.flatMap(n=>{const b=w.primaryBody(n.id),c=b?.arcana?.cast;return b&&c&&c.completeAt+.3>=w.physicalTime?[{...c,origin:{...b.pos}}]:[];}),
       expedition: w.realmExpedition ? { active: w.realmExpedition.active, status: w.realmExpedition.status, runId: w.realmExpedition.runId, revision: w.realmExpedition.revision } : null,
@@ -193,7 +197,7 @@ export class RealmSession {
       tower: this.inTower(), pending: this.pending ? { ...this.pending, destination: REALMS[this.pending.to].name } : null,
       prompt: portal ? 'E · Cross the Veil' : door ? `E · ${w.isDoorOpen(door.door) ? 'Close' : 'Open'} ${door.name}` : this.inTower() ? 'Tower of Chrysanthus · Atrium' : 'WASD · Explore   Shift · Run   E · Interact',
       doors: [...w.grid.doorStates].map(([index, open]) => ({ index, open })),
-      residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
+      residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, observedThreat: (t => t && { level: t.level, grade: t.grade })(observedThreat(w, b)), pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
       stats: { canonicalPeople: w.persons().length, cachedChunks: this.grid.cachedChunks, persistedEdits: w.grid.diffs.size, doors: w.grid.doorStates.size, eventCount: w.events.length } };
   }
   regionPlan() { return realmResidency(this.world.canonicalTower?.active ? this.world.canonicalTower.returnPos : this.body.pos); }

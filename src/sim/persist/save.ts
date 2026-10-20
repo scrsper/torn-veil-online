@@ -5,6 +5,7 @@ import { validCanonicalTower } from '../world/interiors/towerPersistence';
 import { validSavedRecoil } from '../physical/recoil';
 import { validArcaneWorld } from '../physical/arcana/persistence';
 import { restoreJohnSmith } from '../orchestrator/state';
+import { validProgressionWorld } from '../progression/persistence';
 import { snapshotParts, stringifySnapshot } from './json';
 import { stringifyEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
@@ -173,8 +174,11 @@ const KEY = 'infinite-rpg-save-v1';
 // v29 persists consumed contact displacement; older saves have no residual response.
 // v30 retains canonical folded interiors, trial consent and causal Tower receipts.
 // v31 adds source-integrated capability growth and bounded completed-room upkeep.
-export const SAVE_VERSION = 31;
-export const readableSaveVersion = (version: number): boolean => version === 24 || version === 25 || version === 26 || version === 27 || version === 28 || version === 29 || version === 30 || version === SAVE_VERSION;
+// v32 adds earned experience, rank vessels and Diamond. An older reader would clamp developed
+// foundations back to 20 and refuse a Diamond receipt, so it must reject these saves; v31 and
+// older people load with no ledger or vessel (no retroactive experience is inferred).
+export const SAVE_VERSION = 32;
+export const readableSaveVersion = (version: number): boolean => version === 24 || version === 25 || version === 26 || version === 27 || version === 28 || version === 29 || version === 30 || version === 31 || version === SAVE_VERSION;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -479,6 +483,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // Additive orchestrator record (no schema bump): absent on older saves, refused when malformed.
     if (data.johnSmith !== undefined) { const johnSmith = restoreJohnSmith(data.johnSmith); if (!johnSmith) return null; world.johnSmith = johnSmith; }
     if (!validArcaneWorld(world, data.version)) return null;
+    if (!validProgressionWorld(world, data.version)) return null;
     restoreMartialPersistence(world, data);
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }

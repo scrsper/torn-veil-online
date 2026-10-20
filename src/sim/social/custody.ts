@@ -1,3 +1,4 @@
+import { recordSurrenderExperience } from '../progression/experience';
 import type { Conflict, EntityId, Person, Tick } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_DAY } from '../core/time';
@@ -37,12 +38,14 @@ export function beginSurrender(world: World, who: Person, toId: EntityId, reason
   who.mind.alarm = 0;
   const body = world.primaryBody(who.id);
   if (body && !body.dead) { body.pose = 'downed'; body.poseUntil = world.physicalTime + 6; body.path = null; body.attackTarget = null; }
-  world.emit('entity_surrendered', {
+  const ev = world.emit('entity_surrendered', {
     actor: who.id, target: toId, pos: body ? { ...body.pos } : undefined, placeId: body ? world.placeAt(body.pos)?.id : undefined,
     significance: 0.6, visibility: 16, loudness: 8, category: 'history',
     data: { toId, reason, conflictId: conflict?.id },
     summary: `${who.name} surrendered to ${world.nameOf(toId)}`,
   });
+  // Yielding is being overcome: whoever really fought them shares it as a defeat.
+  recordSurrenderExperience(world, who, ev);
 }
 
 /** Clear a surrender once it has held long enough with no renewed aggression. */

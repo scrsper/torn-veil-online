@@ -61,6 +61,7 @@ export async function startRealms(): Promise<void> {
   const el = (id: string) => document.getElementById(id)!;
   const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
   let state: RealmSnapshot | null = null, avatar: BodyVisual | null = null, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
+  const announced = new Set<string>(); let announcedReady = false;
   let controllerToken = '', transitioning = false, binding: any = null, sequence = 0, mouseGuard = false, targetId = '', guideStarted = false;
   const receipts: any[] = [];
   const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/socket`);
@@ -89,6 +90,9 @@ export async function startRealms(): Promise<void> {
     if (m.type === 'john_smith_result') john.result(m);
     if (m.type !== 'state') return;
     state = m.state; const s = state!; lastStateAt = performance.now();
+    // System announcements for this person's own new level-ups, achievements and breakthroughs.
+    for (const a of s.development.announcements) { if (announced.has(a.id)) continue; if (announcedReady) toast(a.text); announced.add(a.id); }
+    announcedReady = true;
     renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
@@ -109,14 +113,20 @@ export async function startRealms(): Promise<void> {
     if (s.pending) el('rv-choice-title').textContent = `Enter ${s.pending.destination}?`;
     el('rv-name').textContent = s.person.name;
     const contents = el('rv-character'); contents.replaceChildren();
-    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`, ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
+    const xp = s.development.experience, rankUp = s.development.breakthrough;
+    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`,
+      ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? xp.peakText : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience`}`] : []),
+      ...(xp.achievements.length ? [`Achievements: ${xp.achievements.map(a => a.title).join(' · ')}`] : []),
+      ...(rankUp.next ? [`${rankUp.next} by bodily practice: ${rankUp.underway !== null ? `breakthrough under way, ${Math.ceil(rankUp.underway)} s left; stay still` : rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
+      ...s.person.inventory.map(i => `${i.name} × ${i.quantity}${i.grade ? ` · ${i.grade}` : ''}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
       s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
       ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),
-      `${s.growth.next??'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
+      `${s.growth.next?`${s.growth.next} by essence integration`:'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
       `Intrinsic force ${s.growth.intrinsicCapacity.amplitude} / reach ${s.growth.intrinsicCapacity.aperture}; with equipment ${s.growth.capacity.amplitude} / ${s.growth.capacity.aperture}`]) { const p = document.createElement('p'); p.textContent = line; contents.append(p); }
     const actionButton=(label:string,action:InteractionCommand)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>command(action);contents.append(b);};
     if(s.growth.eligible)actionButton(`Integrate sources — ${s.growth.next}`,{type:'integrate_arcana'});
+    if(rankUp.eligible&&rankUp.next&&rankUp.underway===null)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
     for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }

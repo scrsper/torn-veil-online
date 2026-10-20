@@ -1,4 +1,14 @@
-# Current candidate: Focused Babylon reconciliation (2026-10-14)
+# Current candidate: Levels and the Normal→Diamond ladder (2026-10-19)
+
+Branch `claude/vigilant-dirac-3f6zc3`. Adds `src/sim/progression/{levels,experience,threat,persistence}.ts`:
+exponential levels (ten per rank, Normal–Diamond) fed only by canonical receipts for players and
+NPCs, rank vessels applied by every breakthrough, level-gated embodied Bronze–Diamond trials, a
+source Diamond row, capability threat for people/animals and item grades, schema 32. Existing
+Normal→Iron and Iron–Gold source gates are unchanged. Current Tower content tops out near
+Iron-band threat, so higher-band levels and Diamond are reachable mechanically, not yet in play.
+`AGENTS.md`, named by `CLAUDE.md`, is absent from this checkout. See `docs/LEVELING_AND_RANKS.md`.
+
+# Previous: Focused Babylon reconciliation (2026-10-14)
 
 The intended game is the canonical third-person town, forest and Tower using the
 verified focused asset pack. `a0c8692` preserves both local-main `6114afe` and

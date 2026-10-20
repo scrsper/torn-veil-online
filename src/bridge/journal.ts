@@ -1,6 +1,8 @@
 import type { Person } from '../sim/core/types';
 import type { World } from '../sim/core/world';
-import { assessAdvancement, IRON_PRACTICE_SECONDS } from '../sim/core/advancement';
+import { assessBreakthrough, IRON_PRACTICE_SECONDS } from '../sim/core/advancement';
+import { EMBODIED_TRIALS } from '../sim/progression/levels';
+import { experienceSummary } from '../sim/progression/experience';
 import { knownName } from '../sim/mind/people';
 import { requestTypeLabel } from '../sim/core/requests';
 import { ATTRIBUTE_IDS } from '../sim/core/human';
@@ -29,7 +31,7 @@ export function playerJournal(world: World, p: Person) {
     .map(([region, v]) => ({ region, severity: (v ?? 0) >= 0.6 ? 'severe' : (v ?? 0) >= 0.25 ? 'serious' : 'minor' }));
   const skills = Object.entries(p.skills).filter(([, v]) => (v ?? 0) >= 0.1).map(([skill, v]) => ({ skill, level: band(v ?? 0) }))
     .sort((a, b) => a.skill.localeCompare(b.skill));
-  const advancement = assessAdvancement(world, p);
+  const advancement = assessBreakthrough(world, p);
   // One's own body is self-knowledge: foundations and how far along the next point is.
   const foundations = ATTRIBUTE_IDS.map(id => ({ id, value: p.attributes[id], progress: Math.round((p.development?.progress[id] ?? 0) * 100) / 100 }));
   const knownTechniques = Object.values(p.knowledge).filter(k => k.kind === 'technique' && typeof (k.claim.skill ?? k.claim.family) === 'string');
@@ -43,8 +45,10 @@ export function playerJournal(world: World, p: Person) {
   return {
     commitments, obligations: owed, injuries, skills,
     condition: { fatigue: p.physiology.fatigue, energy: p.physiology.energy, hydration: p.physiology.hydration, sleepDebt: p.physiology.sleepDebt },
-    stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: IRON_PRACTICE_SECONDS / 3600,
+    stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: advancement.next === 'Iron' ? IRON_PRACTICE_SECONDS / 3600 : EMBODIED_TRIALS[advancement.next as keyof typeof EMBODIED_TRIALS]?.practiceHours ?? null,
     veil: knowsVeil(p) ? { strain: Math.round(veilStrain(world, p) * 100) / 100 } : null,
-    advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons },
+    advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons, next: advancement.next },
+    // One's own level, experience and achievements are self-knowledge, like foundations.
+    experience: experienceSummary(world, p),
   };
 }

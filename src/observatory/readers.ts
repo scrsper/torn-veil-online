@@ -8,6 +8,8 @@ import { underServedPosts } from '../sim/world/labor';
 import { conversationReachable } from '../sim/mind/socialEvidence';
 import { knownName } from '../sim/mind/people';
 import { buildContext } from '../language/context';
+import { experienceSummary } from '../sim/progression/experience';
+import { personThreat } from '../sim/progression/threat';
 
 export const EVENT_FILTERS = ['physical', 'work', 'economic', 'trade', 'social', 'communication', 'knowledge', 'combat', 'injury', 'lifecycle', 'wildlife', 'progression'] as const;
 export function eventGroups(e: WorldEvent): string[] {
@@ -22,7 +24,7 @@ export function eventGroups(e: WorldEvent): string[] {
   if (/injur|wound|heal|downed|attack/.test(t)) groups.add('injury');
   if (/birth|born|death|died|age|marriage|conceiv/.test(t)) groups.add('lifecycle');
   if (/animal|ecology|wildlife|hunt|butcher/.test(t)) groups.add('wildlife');
-  if (/practice|skill|training|advanc|breakthrough|attribute|martial/.test(t)) groups.add('progression');
+  if (/practice|skill|training|advanc|breakthrough|attribute|martial|level_|achievement/.test(t)) groups.add('progression');
   if (e.category === 'social' || /relationship|concern|pursuit|obligation|goal_/.test(t)) groups.add('social');
   if (!groups.size) groups.add(e.category === 'cognition' ? 'knowledge' : 'physical');
   return [...groups];
@@ -42,7 +44,8 @@ export function inspectPerson(w: World, id: string) {
       mind: { goal: p.mind.goal, adoptionEvent: adoption ? eventRow(adoption) : null, plan: p.mind.plan, currentAction: p.mind.plan[0] ?? null, candidates: p.mind.decision, reports: p.mind.reports ?? {}, concerns: p.mind.concerns ?? [], pursuits: p.mind.pursuits ?? [], obligations: p.mind.obligations ?? [], motivation: p.mind.goal?.reasons ?? [] },
       relationships: Object.entries(p.relationships).map(([who, state]) => ({ id: who, name: w.nameOf(who), ...state, changes: history.filter(e => e.type === 'relationship_changed' && e.actor === id && e.target === who).slice(-6).map(eventRow) })),
       economy: { money: p.wealth, inventory: p.inventory.map(i => w.item(i)), owned: w.items().filter(i => i.ownerId === id), workplace: w.place(p.workId), household: w.get(p.householdId ?? ''), pressure: Object.values(p.knowledge).filter(k => /short|food|supply|work|debt/.test(k.key)).map(k => ({ belief: k.key, confidence: k.confidence })), productionRequests: w.requests.filter(r => JSON.stringify(r).includes(id)).slice(-12) },
-      progression: { skills: p.skills, ontology: p.ontology, capability: p.capability, development: p.development },
+      progression: { skills: p.skills, ontology: p.ontology, capability: p.capability, development: p.development,
+        levels: experienceSummary(w, p), vessel: p.vessel ?? null, threat: personThreat(w, p) },
     },
     beliefs: Object.values(p.knowledge).sort((a, b) => b.learnedAt - a.learnedAt || a.key.localeCompare(b.key)).map(k => ({ ...k, description: describeClaim(w, k, p), learnedTime: formatWorldTime(k.learnedAt), sourceNameAsKnown: k.source.from ? knownName(p, k.source.from) : null,
       revisions: history.filter(e => /knowledge|belief|inferred/.test(e.type) && e.actor === id && (e.data.key === k.key || e.data.knowledgeKey === k.key)).slice(-8).map(eventRow) })),

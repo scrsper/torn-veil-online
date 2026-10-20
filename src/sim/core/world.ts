@@ -461,7 +461,10 @@ export class World {
       capabilityEvidence: Object.values(p.capability?.bySkill ?? {}).map(record => record.sourceEventIds) });
     // Martial execution/provenance remains in saved people after death or forgetting.
     // Discovered definitions also outlive their discoverer and any surviving manual.
-    for (const p of this.persons()) { visit(p.martial); visit(p.arcana); visit(p.combatTrial); }
+    for (const p of this.persons()) { visit(p.martial); visit(p.arcana); visit(p.combatTrial);
+      // Experience gates and validation name feats, achievements and the vessel's breakthrough.
+      // The recent receipt window is informational and does not pin ordinary practice events.
+      visit(p.experience?.feats); visit(p.experience?.achievements); visit(p.experience?.trackEventId); visit(p.vessel?.eventId); }
     visit(this.canonicalTower);
     for (const b of this.bodies()) { visit(b.arcana); visit(b.recoil); }
     for (const b of this.bodies()) if (b.guard && b.guard.until > this.physicalTime) visit(b.guard.eventId);
