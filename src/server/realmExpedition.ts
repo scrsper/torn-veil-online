@@ -45,6 +45,7 @@ function boundCheckpoint(x: unknown, r: RealmExpedition): x is TowerCheckpoint {
 /** All validation precedes mutation. Caller must atomically persist before acknowledging.
  * Schema/sequence checks are NOT proof of combat: no checkpoint changes Person or Items. */
 export function applyExpeditionCommand(s: RealmSession, c: ExpeditionCommand): RealmExpedition {
+  if (s.world.universeExpedition?.active) throw Error('Return from the universe before entering another expedition');
   if (!c || typeof c.id !== 'string' || c.id.length < 8 || c.id.length > 100 || !Number.isSafeInteger(c.revision)) throw Error('Invalid expedition command.');
   const digest = createHash('sha256').update(JSON.stringify(c)).digest('hex');
   const previous = s.world.realmExpedition;

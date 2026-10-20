@@ -1,15 +1,53 @@
 import { describe, expect, it } from 'vitest';
 import { NullEngine, Scene, Vector3 } from '@babylonjs/core';
 import { add, dot, length, normalize, scale, type V3 } from '../../src/sim/world/planet/planet';
+import { dirToCube } from '../../src/sim/world/planet/scatter';
 import { generateSystem, terrainHeight, universeSpec } from '../../src/sim/world/universe/generation';
-import { UniverseTerrain, buildTerrainTile, selectTerrainTiles, surfaceDecorations, terrainTileDirection, type TerrainTile } from '../../src/web/universe/terrain';
+import { TERRAIN_GRAIN_SIZE, UniverseTerrain, buildGroundTextureData, buildTerrainTile, selectTerrainTiles, surfaceDecorations, terrainTileDirection, type TerrainTile } from '../../src/web/universe/terrain';
 
 const system = generateSystem(universeSpec(20261019), 3);
 const planet = system.planets[0];
 const point = (data: number[], i: number): V3 => ({ x: data[i * 3], y: data[i * 3 + 1], z: data[i * 3 + 2] });
 const keyOf = (tile: TerrainTile) => `${tile.face}/${tile.level}/${tile.x}/${tile.y}`;
+const surfaceTileLevel = (scene: Scene, direction: V3): number => {
+  const cube = dirToCube(direction);
+  const u = Math.atan(cube.u) / (Math.PI / 4) * .5 + .5;
+  const v = Math.atan(cube.v) / (Math.PI / 4) * .5 + .5;
+  const mesh = scene.meshes.find(mesh => {
+    if (!mesh.name.startsWith('terrain:') || !mesh.isEnabled()) return false;
+    const [face, level, x, y] = mesh.name.slice(mesh.name.lastIndexOf(':') + 1).split('/').map(Number);
+    return face === cube.f && Math.floor(u * 2 ** level) === x && Math.floor(v * 2 ** level) === y;
+  });
+  return mesh ? Number(mesh.name.slice(mesh.name.lastIndexOf(':') + 1).split('/')[1]) : -1;
+};
 
 describe('universe terrain geometry', () => {
+  it('samples matching ground texture colors on every cube-face join, including reversed and rotated edges', () => {
+    const texture = buildGroundTextureData(), size = TERRAIN_GRAIN_SIZE;
+    const sample = (u: number, v: number) => {
+      const tx = (u - Math.floor(u)) * size - .5, ty = (v - Math.floor(v)) * size - .5;
+      const x = Math.floor(tx), y = Math.floor(ty), fx = tx - x, fy = ty - y;
+      const pixel = (x: number, y: number) => texture[(((y + size) % size) * size + (x + size) % size) * 3];
+      return (pixel(x, y) * (1 - fx) + pixel(x + 1, y) * fx) * (1 - fy)
+        + (pixel(x, y + 1) * (1 - fx) + pixel(x + 1, y + 1) * fx) * fy;
+    };
+    const cells = 8, edgeColors = new Map<string, number>(); let matches = 0;
+    for (let face = 0; face < 6; face++) {
+      const tile = { face, level: 0, x: 0, y: 0 }, geometry = buildTerrainTile(planet, tile, cells);
+      for (let y = 0; y <= cells; y++) for (let x = 0; x <= cells; x++) {
+        if (x !== 0 && x !== cells && y !== 0 && y !== cells) continue;
+        const dir = terrainTileDirection(tile, x / cells, y / cells);
+        const key = [dir.x, dir.y, dir.z].map(n => n.toFixed(9)).join('/');
+        const index = y * (cells + 1) + x;
+        const color = sample(geometry.uvs[index * 2], geometry.uvs[index * 2 + 1]);
+        const previous = edgeColors.get(key);
+        if (previous !== undefined) { expect(color).toBeCloseTo(previous, 7); matches++; }
+        edgeColors.set(key, color);
+      }
+    }
+    expect(matches).toBeGreaterThan(80);
+  });
+
   it('samples the authoritative height at every surface vertex and points normals outward', () => {
     for (let face = 0; face < 6; face++) {
       const tile = { face, level: 2, x: 1, y: 2 }, cells = 4;
@@ -70,6 +108,47 @@ describe('universe terrain geometry', () => {
 });
 
 describe('universe terrain streaming', () => {
+  it('keeps every planet covered and bounds residency when crossing worlds before prior detail finishes loading', () => {
+    const engine = new NullEngine(), scene = new Scene(engine);
+    const terrain = new UniverseTerrain(scene, system, true);
+    const direction = normalize({ x: .217, y: .531, z: .819 });
+    for (const destination of [...system.planets, ...system.planets.slice().reverse(), system.planets[0]]) {
+      const observer = add(destination.center, scale(direction, destination.radius + terrainHeight(destination, direction) + 4));
+      for (let frame = 0; frame < 5; frame++) terrain.update(observer, observer);
+      const resident = scene.meshes.filter(mesh => mesh.name.startsWith('terrain:'));
+      expect(resident.length).toBeLessThanOrEqual(102 + (system.planets.length - 1) * 6);
+      expect(terrain.stats().pendingTiles).toBeLessThanOrEqual(96);
+      for (const world of system.planets) {
+        const enabled = resident.filter(mesh => mesh.name.startsWith(`terrain:${world.id}:`) && mesh.isEnabled());
+        for (let face = 0; face < 6; face++) {
+          const area = enabled.reduce((sum, mesh) => {
+            const [f, level] = mesh.name.slice(mesh.name.lastIndexOf(':') + 1).split('/').map(Number);
+            return sum + (f === face ? 4 ** -level : 0);
+          }, 0);
+          expect(area).toBe(1);
+        }
+        if (world !== destination) expect(enabled.length).toBe(6);
+      }
+      expect(scene.meshes.filter(mesh => mesh.name.startsWith('surface-detail:')).length).toBeLessThanOrEqual(1);
+    }
+    terrain.dispose();
+    expect(scene.meshes.length).toBe(0); expect(scene.materials.length).toBe(0); expect(scene.textures.length).toBe(0);
+    scene.dispose(); engine.dispose();
+  });
+
+  it('prioritizes the ground beneath a newly arrived observer before refining the remote hemisphere', () => {
+    const engine = new NullEngine(), scene = new Scene(engine);
+    const terrain = new UniverseTerrain(scene, { ...system, planets: [planet] });
+    const direction = normalize({ x: .217, y: .531, z: .819 });
+    const observer = add(planet.center, scale(direction, planet.radius + terrainHeight(planet, direction) + 3));
+    const initial = terrain.stats().rebuilds;
+    // Budget in completed uploads, not wall-clock timings or render frame count.
+    while (terrain.stats().rebuilds - initial < 32) terrain.update(observer, observer);
+    expect(surfaceTileLevel(scene, direction)).toBeGreaterThanOrEqual(6);
+    expect(terrain.stats().pendingTiles).toBeGreaterThan(0);
+    terrain.dispose(); scene.dispose(); engine.dispose();
+  });
+
   it('replans Babylon Vector3 observers from surface to orbit and back on the same planet', () => {
     const engine = new NullEngine(), scene = new Scene(engine);
     const terrain = new UniverseTerrain(scene, { ...system, planets: [planet] }, true);

@@ -3,6 +3,7 @@ import { realmAt, realmSeed } from '../realms/layout';
 import { FoldedRealmGrid } from './grid';
 import { interiorSlot } from './layout';
 import type { CanonicalTowerRun } from './towerTypes';
+import { canonicalPlayerBodyId } from '../universe/binding';
 
 const ids = (x: unknown, max: number): x is string[] => Array.isArray(x) && x.length <= max
   && x.every(id => typeof id === 'string' && !!id && id.length <= 200) && new Set(x).size === x.length;
@@ -14,10 +15,10 @@ export function validCanonicalTower(w: World, value: unknown, version: number): 
     const r = value as CanonicalTowerRun;
     if (version < 30 || !r || r.version !== 1 || r.authority !== 'canonical' || !(w.grid instanceof FoldedRealmGrid)
       || typeof r.id !== 'string' || !r.id || r.id.length > 128 || r.seed !== realmSeed(w.seed, 'canonical-tower')
-      || r.personId !== w.playerId || w.primaryBody(r.personId)?.id !== r.bodyId || r.towerId !== 'veil:tower:chrysanthus'
+      || r.personId !== w.playerId || canonicalPlayerBodyId(w, r.personId) !== r.bodyId || r.towerId !== 'veil:tower:chrysanthus'
       || !['aether', 'brass'].includes(r.realm) || ![r.returnPos?.x, r.returnPos?.y, r.returnPos?.z].every(Number.isFinite)
       || (w.realmSpec?.focusedKit&&r.realm==='brass'? !w.grid.movementGeometryAt(r.returnPos.x,r.returnPos.z)?.fits(r.returnPos.x,r.returnPos.y,r.returnPos.z,.3,1.75):r.returnPos.y!==1) || realmAt(r.returnPos.x, r.returnPos.z) !== r.realm
-      || typeof r.active !== 'boolean' || r.active && w.realmExpedition?.active
+      || typeof r.active !== 'boolean' || r.active && (w.realmExpedition?.active || w.universeExpedition?.active)
       || !['open', 'fallen', 'completed'].includes(r.status) || !Number.isSafeInteger(r.revision) || r.revision < 0
       || !Number.isInteger(r.floor) || r.floor < 1 || r.floor > 100
       || !Array.isArray(r.floors) || r.floors.length !== r.floor || !Array.isArray(r.commands) || r.commands.length > 512) return false;

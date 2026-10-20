@@ -1483,7 +1483,7 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-export type EventType = 'system_quest_reward' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'universe_entered' | 'universe_returned' | 'universe_travel' | 'system_quest_reward' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

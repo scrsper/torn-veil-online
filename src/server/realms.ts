@@ -15,6 +15,7 @@ import {launchHome,liveObservatoryScript} from './launchHome';
 import {inspectPerson,eventRow} from '../observatory/readers';
 import {arcaneProgress} from '../sim/physical/arcana/growth';
 import {recogniseClass} from '../sim/mind/vocation';
+import {RealmUniverseApi} from './realmUniverseApi';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
 // A verified portable upgrade can be installed without overwriting the original
@@ -41,7 +42,7 @@ function apply(op: RealmOperation): any {
 apply({ type: 'disconnect' }); await journal.flush();
 function rebindTower() {
   towerController = journal.runtime.tower; towerSignature = '';
-  if (owner && !session.world.realmExpedition?.active) owner.send(JSON.stringify({ type: 'binding', interaction: apply({ type: 'bind', id: ownerToken, epoch: randomUUID() }) }));
+  if (owner && !session.world.realmExpedition?.active && !session.world.universeExpedition?.active) owner.send(JSON.stringify({ type: 'binding', interaction: apply({ type: 'bind', id: ownerToken, epoch: randomUUID() }) }));
 }
 function failPersistence(e: unknown) {
   saveError = String(e); updateError = saveError; console.error('Realm persistence failed:', e);
@@ -58,14 +59,22 @@ async function checkpoint() {
   try { await journal.checkpoint(); } catch (e) { failPersistence(e); } finally { checkpointBusy = false; }
 }
 const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.config.ts'), server: { middlewareMode: true, hmr: false } });
+const universeApi = new RealmUniverseApi({
+  session: () => session, token: () => owner ? ownerToken : '', ready: () => !updateError,
+  apply: op => apply(op), persist: () => persist(true),
+}, port);
 const server = createServer(async (req, res) => {
   if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) { res.writeHead(403).end(); return; }
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+  if (await universeApi.handle(req, res, url.pathname)) return;
+  if (universeApi.busy && req.method === 'POST') {
+    res.writeHead(409, { 'content-type': 'application/json' }).end(JSON.stringify({ error: 'The character crossing is being saved. Try again shortly.' })); return;
+  }
   if(req.method==='GET'&&url.pathname==='/favicon.ico'){res.writeHead(204).end();return;}
   if(req.method==='GET'&&((url.pathname==='/'&&!url.search)||['/observatory','/history'].includes(url.pathname))){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(launchHome(url.pathname));return;}
   if(req.method==='GET'&&url.pathname==='/observatory-live.js'){res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'});res.end(liveObservatoryScript);return;}
   if(req.method==='GET'&&url.pathname==='/realms/inspection'){
-    const w=session.world,id=url.searchParams.get('person')||session.person.id,p=w.person(id),b=p&&w.primaryBody(p.id);
+    const w=session.world,id=url.searchParams.get('person')||session.person.id,p=w.person(id),b=p&&(p.id===session.person.id?session.body:w.primaryBody(p.id));
     if(!p||!b){res.writeHead(404).end();return;}
     res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});
     res.end(JSON.stringify({ready:!updateError,build:{commit:serverCommit,clientMode:staticRoot?'compiled':'development',client:clientBuild,engine:journal.store.engine},save:{path:savePath,store:journal.store.dir,persistent:true},
@@ -127,14 +136,14 @@ const server = createServer(async (req, res) => {
 const ws = new WebSocketServer({ noServer: true, maxPayload: 4096 });
 server.on('upgrade', (req, socket, head) => {
   const validOrigin = [`http://127.0.0.1:${port}`, `http://localhost:${port}`].includes(req.headers.origin ?? '');
-  if (!['/realms/socket', '/realms/expedition/socket', '/realms/ascent/socket'].includes(req.url ?? '') || !validOrigin) { socket.destroy(); return; }
+  if (!['/realms/socket', '/realms/expedition/socket', '/realms/ascent/socket', '/realms/universe/socket'].includes(req.url ?? '') || !validOrigin) { socket.destroy(); return; }
   ws.handleUpgrade(req, socket, head, client => ws.emit('connection', client, req));
 });
-let owner: WebSocket | null = null, ownerToken = '', signature = '', stepMs: number[] = [],towerReady='';
+let owner: WebSocket | null = null, ownerToken = '', signature = '', stepMs: number[] = [],towerReady='',universeView=false;
 ws.on('connection', (client, req) => {
   if (updateError) { client.close(1011, 'World paused after an update error. Restart the host to restore its last good save.'); return; }
   if (owner) { client.close(4001, 'This world already has a controller. Close its tab first.'); return; }
-  owner = client; ownerToken = randomUUID(); signature = ''; towerView = req.url === '/realms/ascent/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
+  owner = client; ownerToken = randomUUID(); signature = ''; towerView = req.url === '/realms/ascent/socket'; universeView = req.url === '/realms/universe/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
   rebindTower();
   towerReady='';towerSignature='';
   client.send(JSON.stringify({ type: 'controller', token: ownerToken })); let budget = 0, budgetAt = Date.now();
@@ -144,6 +153,7 @@ ws.on('connection', (client, req) => {
     if (++budget > 180) return;
     try {
       const m = JSON.parse(data.toString());
+      if (universeApi.busy || session.world.universeExpedition?.active && m.type !== 'save') return;
       if(m.type==='tower_ready'){const geometry=towerController?.geometry();if(towerView&&geometry?.assetScene&&m.interiorId===geometry.id)towerReady=geometry.id;return;}
       if(towerView&&towerController?.geometry()?.assetScene&&towerReady!==towerController.geometry()!.id)return;
       if (m.type === 'command' && !session.world.realmExpedition?.active) {
@@ -163,7 +173,7 @@ ws.on('connection', (client, req) => {
 let tick = 0;
 /** John Smith's pass over the owner's quests (journaled). Each completion it records is announced once. */
 function settleObjectives() {
-  if (!owner) return;
+  if (!owner || session.world.universeExpedition?.active) return;
   const before = new Map(session.objectives().map(o => [o.id, o]));
   const result = apply({ type: 'objectives' }) as import('../sim/quests').ReconcileResult;
   for (const receipt of result.completed)
@@ -171,17 +181,25 @@ function settleObjectives() {
 }
 let scheduler = new FixedScheduler(1000 / 60, performance.now());
 const timer = setInterval(() => {
-  if (updateError || !owner || owner.readyState !== WebSocket.OPEN) return;
+  if (updateError || universeApi.busy || !owner || owner.readyState !== WebSocket.OPEN) return;
   try { scheduler.run(performance.now(), () => {
+    if (universeApi.busy) return;
     const start = performance.now();
+    const wasFlying = session.world.universeExpedition?.active && session.world.universeExpedition.state.mode === 'flight';
     if(session.world.canonicalTower?.active&&towerView){const geometry=towerController?.geometry();if(geometry?.assetScene&&towerReady!==geometry.id){if(towerSignature!==geometry.id){towerSignature=geometry.id;owner!.send(JSON.stringify({type:'tower_geometry',plan:geometry}));owner!.send(JSON.stringify({...apply({type:'frame'}),saveError,serverMs:0}));}return;}}
     if (session.world.canonicalTower?.active) {
       if (!towerController) rebindTower();
       for (const receipt of apply({ type: 'step', now: performance.now() })) if (towerView) owner!.send(JSON.stringify(receipt));
     } else { for(const receipt of apply({ type: 'step', now: performance.now() })) owner!.send(JSON.stringify(receipt)); } stepMs.push(performance.now() - start); if (stepMs.length > 600) stepMs.shift();
+    if (wasFlying && session.world.universeExpedition?.state.mode === 'surface') { void universeApi.persistOutcome(); return; }
     if (tick % 60 === 59) settleObjectives();
     if (++tick % 6) return;
     if (tick % 300 === 0) void persist(); if (tick % 1800 === 0) void checkpoint();
+    if (session.world.universeExpedition?.active) {
+      if (!universeView) owner!.send(JSON.stringify({ type: 'universe_active' }));
+      return;
+    }
+    if (universeView) return;
     if (session.world.canonicalTower?.active && towerView && towerController) {
       const geometry = towerController.geometry();
       if (geometry?.id !== towerSignature) { towerSignature = geometry?.id ?? ''; owner!.send(JSON.stringify({ type: 'tower_geometry', plan: geometry })); }
@@ -210,3 +228,11 @@ async function close() { if (closing) return; closing = true; clearInterval(time
   try { if (updateError) await journal.abort(); else await journal.close(); } catch (e) { console.error(e); }
   process.exit(updateError ? 1 : 0); }
 process.on('SIGINT', close); process.on('SIGTERM', close);
+// Managed Windows launchers need a portable graceful path; terminating a child
+// process directly does not guarantee that its journal checkpoint completes.
+if (process.env.TV_REALMS_MANAGED === '1') {
+  process.stdin.setEncoding('utf8');
+  let input = '';
+  process.stdin.on('data', chunk => { input += chunk; if (input.split(/\r?\n/).includes('shutdown')) { process.stdin.pause(); void close(); } });
+  process.stdin.on('end', () => { process.stdin.pause(); void close(); });
+}

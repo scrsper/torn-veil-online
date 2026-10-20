@@ -5,6 +5,7 @@ import type { CanonicalTowerRun } from '../sim/world/interiors/towerTypes';
 
 export interface TowerCommand { id: string; type: 'enter' | 'ascend' | 'return'; revision: number; runId?: string }
 export function applyTowerCommand(s: RealmSession, c: TowerCommand): CanonicalTowerRun {
+  if (s.world.universeExpedition?.active) throw Error('Return from the universe before entering the Tower');
   if (!c || typeof c.id !== 'string' || !/^[\w:-]{8,100}$/.test(c.id) || !Number.isSafeInteger(c.revision)
     || !['enter', 'ascend', 'return'].includes(c.type) || Object.keys(c).some(k => !['id', 'type', 'revision', 'runId'].includes(k))) throw Error('Invalid Tower command');
   const digest = createHash('sha256').update(JSON.stringify(c)).digest('hex'), run = s.world.canonicalTower;

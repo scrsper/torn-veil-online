@@ -2,9 +2,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, rmdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
 import { UniverseRuntime, validateUniversePayload } from '../../src/server/universeRuntime';
 import { createUniverseServer } from '../../src/server/universe';
 import { neutralInput } from '../../src/sim/world/universe/travel';
+import { add, normalize, scale, sub } from '../../src/sim/world/planet/planet';
 
 const dirs: string[] = [], runtimes: UniverseRuntime[] = [];
 const directory = () => { const path = mkdtempSync(join(tmpdir(), 'torn-veil-universe-test-')); dirs.push(path); return path; };
@@ -105,6 +108,10 @@ describe('universe host persistence and command authority', () => {
     for (let i = 0; i < 110 && airborne.state.mode === 'flight'; i++) airborne.step();
     expect(airborne.state.mode).toBe('surface');
     const landed = airborne.snapshot();
+    const durableTouchdown = JSON.parse(readFileSync(join(dir, 'universe-v1.json'), 'utf8')).payload;
+    expect(durableTouchdown.state.mode).toBe('surface');
+    expect(durableTouchdown.state.tick).toBe(landed.state.tick);
+    expect(durableTouchdown.state.events).toEqual(landed.state.events);
     airborne.close();
     const restored = open(dir);
     expect(restored.state.mode).toBe('surface');
@@ -124,6 +131,24 @@ describe('universe host persistence and command authority', () => {
     expect(() => open(dir)).toThrow();
     expect(readFileSync(path, 'utf8')).toBe(corrupt);
   });
+  it('fences a superseded writer before it can mutate or overwrite the replacement host', () => {
+    const dir = directory(), oldHost = open(dir), lockPath = join(dir, 'writer.lock');
+    // Simulate an external recovery replacing only this test's lock while the
+    // previous writer is still alive. The stale writer must notice ownership loss.
+    renameSync(lockPath, join(dir, 'previous-writer.lock'));
+    const replacement = open(dir);
+    replacement.step(2); replacement.save();
+    const committed = readFileSync(join(dir, 'universe-v1.json'), 'utf8');
+    expect(() => oldHost.command({
+      sessionId: oldHost.sessionId, seq: 1, command: { type: 'launch' },
+    })).toThrow('ownership');
+    expect(oldHost.state.mode).toBe('surface');
+    expect(() => oldHost.step()).toThrow('ownership');
+    expect(() => oldHost.snapshot()).toThrow('ownership');
+    oldHost.close();
+    expect(readFileSync(join(dir, 'universe-v1.json'), 'utf8')).toBe(committed);
+    expect(replacement.snapshot().state.tick).toBe(2);
+  });
   it('rejects invalid physics/provenance even in a structurally valid payload', () => {
     const r = open(), snapshot = r.snapshot();
     const payload = { spec: snapshot.spec, state: snapshot.state, revision: snapshot.revision };
@@ -139,6 +164,19 @@ describe('universe host persistence and command authority', () => {
     expect(() => validateUniversePayload(embedded)).toThrow('intersects terrain');
     embedded.state.mode = 'flight'; embedded.state.landedPlanetId = null; embedded.state.landedVesselPosition = null;
     expect(() => validateUniversePayload(embedded)).toThrow('intersects terrain');
+  });
+  it('rejects JSON enum coercion and impossible in-progress landing states', () => {
+    const r = open();
+    r.command({ sessionId: r.sessionId, seq: 1, command: { type: 'launch' } });
+    const payload = { spec: r.spec, state: structuredClone(r.state), revision: r.revision };
+    expect(() => validateUniversePayload({ ...payload, state: { ...payload.state, mode: ['flight'] } })).toThrow();
+    expect(() => validateUniversePayload({
+      ...payload, state: { ...payload.state, events: payload.state.events.map(event => ({ ...event, type: ['launch'] })) },
+    })).toThrow();
+    const p = r.snapshot().system.planets[0], radial = normalize(sub(payload.state.position, p.center));
+    payload.state.position = add(p.center, scale(radial, p.radius + 1000));
+    payload.state.velocity = { x: 0, y: 0, z: 0 }; payload.state.landing = true;
+    expect(() => validateUniversePayload(payload)).toThrow('landing');
   });
   it('serves snapshots and intent commands while rejecting untrusted origins and oversized bodies', async () => {
     const r = open(), server = createUniverseServer(r);
@@ -165,5 +203,40 @@ describe('universe host persistence and command authority', () => {
       });
       expect(oversized.status).toBe(400);
     } finally { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }
+  });
+  it('exits a managed host after bind failure without waiting for launcher stdin to close', async () => {
+    const occupied = createServer();
+    await new Promise<void>(resolve => occupied.listen(0, '127.0.0.1', resolve));
+    const address = occupied.address();
+    if (!address || typeof address === 'string') throw Error('Missing reserved port');
+    const child = spawn(process.execPath, ['--import', 'tsx', 'src/server/universe.ts'], {
+      cwd: process.cwd(), windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env, TORN_VEIL_UNIVERSE_HOME: directory(), TORN_VEIL_UNIVERSE_PORT: String(address.port),
+        TORN_VEIL_UNIVERSE_MANAGED: '1',
+      },
+    });
+    let stderr = '', forced = false;
+    try {
+      const code = await new Promise<number | null>((resolve, reject) => {
+        let timeout = setTimeout(() => { forced = true; child.kill(); }, 3500);
+        child.stderr.on('data', chunk => {
+          stderr += String(chunk);
+          if (stderr.includes('EADDRINUSE')) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => { forced = true; child.kill(); }, 700);
+          }
+        });
+        child.once('error', error => { clearTimeout(timeout); reject(error); });
+        child.once('exit', value => { clearTimeout(timeout); resolve(value); });
+      });
+      expect(stderr).toContain('EADDRINUSE');
+      expect(forced, 'managed host remained alive after reporting its fatal bind error').toBe(false);
+      expect(code).toBe(1);
+    } finally {
+      child.stdin.destroy();
+      if (child.exitCode === null && child.signalCode === null) child.kill();
+      await new Promise<void>((resolve, reject) => occupied.close(error => error ? reject(error) : resolve()));
+    }
   });
 });

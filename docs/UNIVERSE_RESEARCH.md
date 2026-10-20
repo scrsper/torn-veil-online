@@ -61,3 +61,50 @@ need their own evidence; generator tests do not establish those behaviors.
 This implementation is an initial universe geography and travel foundation. It
 does not establish feature parity with No Man's Sky, autonomous civilizations on
 every generated planet, a fully streamed voxel planet, or interstellar continuity.
+
+## Canonical realm bridge
+
+Schema 32 adds a version 1 `World.universeExpedition` binding. It references the
+existing Person and Body, the universe seed, a vessel identity, a planar return
+anchor, authoritative travel state, and transition receipts. Inventory, health,
+rank, quest ledgers and retained Tower progress remain on their existing records.
+The standalone universe preview save is never imported into this campaign binding.
+
+Boarding is an explicit Veil gateway transition. The planar Body becomes
+`present=false`, removing it from physical targeting and living-body indices.
+Its retained planar coordinates identify the eventual arrival anchor. The
+binding's travel coordinates identify its universe-domain residency; those
+coordinates are never passed to planar collision or perception. Returning requires
+a real surface landing on Cinderveil and proximity to the vessel, then restores
+the same Body at the checked anchor. When a resident occupies that point, a
+deterministic search can select supported, unoccupied ground within three metres,
+using the ordinary movement sweep to reject paths through walls. The history keeps
+both the requested anchor and actual arrival; fully obstructed arrivals are refused.
+The town-to-globe gateway is not continuous
+physical flight across the existing planar town geometry.
+
+The existing RealmJournal is the sole persistence authority. Structural entry and
+return use checked revisions, idempotency receipts and normal runtime rollback.
+Travel input and every travel outcome replay as ordered realm operations. Three
+existing 60 Hz realm steps advance one 20 Hz travel step; the partial cadence and
+bounded input lease are saved. Realm simulation continues during the trip:
+ordinary residents move and choose goals while the traveller is absent. The
+canonical history records boarding, return, launch, landing, warp and collision
+outcomes with the actual Person as actor. Repeated acknowledgements do not reset
+the controller or recreate a transition.
+
+Older schema 24–31 snapshots remain readable. A malformed universe binding never
+licenses an absent canonical player, and an active universe binding cannot overlap
+an active Tower or legacy expedition. Existing engine-fingerprint protection is
+unchanged: a committed old snapshot can migrate, but an uncheckpointed journal tail
+from different mechanics must be completed with its matching engine before upgrade.
+Never discard that tail or modify the user's save to force a new engine to start.
+
+Remaining residency limitations: the distant terrain has no ordinary NPC ecology,
+combat, resource economy, survival exposure or item interactions yet. The absent
+traveller does not receive planar physiology, wounds or recovery processing; no
+health, food, inventory or progression rewards are granted by travel. A general
+domain-aware body/physiology scheduler is required before those systems can claim
+the same simulation coverage as the town. The vessel currently has no fuel,
+construction, ownership transfer or damage model. Interstellar warp remains an
+explicit authored transition between generated system addresses.

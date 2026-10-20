@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "universe:play": "node scripts/world/play-universe.mjs",
+    "universe:campaign": "node scripts/world/play-campaign.mjs",
     "universe:host": "tsx src/server/universe.ts",
     "universe:check": "vitest run tests/universe tests/web-boundary.test.ts",
     "play:build": "node scripts/web/build-current.mjs",

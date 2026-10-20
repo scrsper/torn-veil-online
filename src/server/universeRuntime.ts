@@ -3,82 +3,26 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { generateSystem, terrainHeight, terrainNormal, universeSpec, type StarSystem, type UniverseSpec } from '../sim/world/universe/generation';
+import { generateSystem, universeSpec, type StarSystem, type UniverseSpec } from '../sim/world/universe/generation';
 import {
   applyTravelCommand, createTravelState, neutralInput, parseUniverseCommand, stepTravel, travelStatus,
   type CommandResult, type TravelInput, type TravelState, type TravelStatus,
 } from '../sim/world/universe/travel';
-import { dot, length, normalize, sub, type V3 } from '../sim/world/planet/planet';
+import { validateUniversePayload, type SavePayload } from '../sim/world/universe/persistence';
+export { validateUniversePayload, type SavePayload } from '../sim/world/universe/persistence';
 
 export interface UniverseSnapshot {
   spec: UniverseSpec; system: StarSystem; state: TravelState; revision: number; status: TravelStatus;
   sessionId: string; lastSeq: number;
 }
 export interface UniverseReceipt extends CommandResult { snapshot: UniverseSnapshot }
-interface SavePayload { spec: UniverseSpec; state: TravelState; revision: number }
+
 const FORMAT = 'torn-veil-universe';
 const SAVE_VERSION = 1;
 const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const integer = (v: unknown, min = 0, max = Number.MAX_SAFE_INTEGER): v is number =>
   typeof v === 'number' && Number.isSafeInteger(v) && v >= min && v <= max;
-const vector = (v: unknown): boolean => isRecord(v) && ['x', 'y', 'z'].every(k => typeof v[k] === 'number' && Number.isFinite(v[k]) && Math.abs(Number(v[k])) <= 1e9);
-const identity = (v: unknown): v is string => typeof v === 'string' && /^[a-zA-Z0-9:_-]{1,128}$/.test(v);
 const digest = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-
-/** Saves fail closed, including structurally valid JSON with invalid physics. */
-export function validateUniversePayload(value: unknown): SavePayload {
-  if (!isRecord(value) || !isRecord(value.spec) || value.spec.version !== 1 || !integer(value.spec.seed, 0, 0xffffffff)
-    || !integer(value.revision) || !isRecord(value.state)) throw Error('Unsupported or corrupt universe save');
-  const spec = universeSpec(value.spec.seed), s = value.state;
-  if (!integer(s.tick) || !integer(s.systemIndex, 0, 65535) || !identity(s.explorerId) || !identity(s.vesselId)
-    || s.explorerId === s.vesselId || !['surface', 'flight'].includes(String(s.mode))
-    || !vector(s.position) || !vector(s.forward) || !vector(s.up) || !vector(s.velocity)
-    || typeof s.cruise !== 'boolean' || typeof s.landing !== 'boolean'
-    || !Array.isArray(s.discoveries) || s.discoveries.length > 393216
-    || !Array.isArray(s.events) || s.events.length > 256) throw Error('Invalid universe state');
-  const state = s as unknown as TravelState, system = generateSystem(spec, state.systemIndex);
-  const validPlanet = (id: unknown) => id === null || system.planets.some(p => p.id === id);
-  if (!validPlanet(state.targetPlanetId) || !validPlanet(state.landedPlanetId)
-    || Math.abs(length(state.forward) - 1) > .001 || Math.abs(length(state.up) - 1) > .001
-    || Math.abs(dot(state.forward, state.up)) > .001 || length(state.velocity) > 2700
-    || (state.cruise && (state.mode !== 'flight' || !state.targetPlanetId || state.landing))
-    || (state.landing && state.mode !== 'flight')) throw Error('Invalid navigation state');
-  const clearance = (planet: StarSystem['planets'][number], point: V3) => {
-    const local = sub(point, planet.center);
-    return length(local) - planet.radius - Math.max(0, terrainHeight(planet, normalize(local)));
-  };
-  if (system.planets.some(p => clearance(p, state.position) < 2.9)) throw Error('Saved body intersects terrain');
-  if (state.mode === 'surface') {
-    if (!state.landedPlanetId || !vector(state.landedVesselPosition)) throw Error('Missing landed vessel');
-    const planet = system.planets.find(p => p.id === state.landedPlanetId)!;
-    const bodyDirection = normalize(sub(state.position, planet.center)), vesselDirection = normalize(sub(state.landedVesselPosition!, planet.center));
-    if (Math.abs(clearance(planet, state.position) - 3) > .01
-      || Math.abs(clearance(planet, state.landedVesselPosition!) - 3) > .01
-      || terrainHeight(planet, bodyDirection) < 0 || terrainHeight(planet, vesselDirection) < 0
-      || dot(terrainNormal(planet, bodyDirection), bodyDirection) < .6
-      || dot(terrainNormal(planet, vesselDirection), vesselDirection) < .72
-      || dot(state.up, bodyDirection) < .999) throw Error('Invalid surface location');
-  } else if (state.landedPlanetId !== null || state.landedVesselPosition !== null) throw Error('Flight state retains landed body');
-  const seen = new Set<string>();
-  for (const item of state.discoveries) {
-    if (!isRecord(item) || !identity(item.planetId) || !integer(item.systemIndex, 0, 65535)
-      || !integer(item.tick, 0, state.tick) || item.explorerId !== state.explorerId || item.method !== 'landed'
-      || !generateSystem(spec, item.systemIndex).planets.some(p => p.id === item.planetId)
-      || seen.has(item.planetId)) throw Error('Invalid discovery provenance');
-    seen.add(item.planetId);
-  }
-  if (state.mode === 'surface' && !seen.has(state.landedPlanetId!)) throw Error('Landed world lacks discovery provenance');
-  let previousTick = -1;
-  for (const item of state.events) {
-    if (!isRecord(item) || !integer(item.tick, 0, state.tick) || !integer(item.systemIndex, 0, 65535)
-      || item.actorId !== state.explorerId || !['launch', 'land', 'warp', 'collision'].includes(String(item.type))
-      || (item.planetId !== null && !generateSystem(spec, item.systemIndex).planets.some(p => p.id === item.planetId)))
-      throw Error('Invalid travel event provenance');
-    if (item.tick < previousTick) throw Error('Travel events are out of order');
-    previousTick = item.tick;
-  }
-  return { spec, state: structuredClone(state), revision: value.revision };
-}
 
 export class UniverseRuntime {
   readonly directory: string;
@@ -162,9 +106,12 @@ export class UniverseRuntime {
     if (!integer(count, 1, 10000)) throw Error('Invalid fixed step count');
     for (let i = 0; i < count; i++) {
       if (this.state.tick - this.inputTick >= 10) this.input = neutralInput();
+      const previousMode = this.state.mode;
       stepTravel(this.spec, this.state, this.input);
       this.revision++;
-      if (this.state.tick % 100 === 0) this.save();
+      // Discovery and embodiment changes are durable before a client can observe
+      // touchdown. Routine continuous motion keeps the bounded autosave cadence.
+      if ((previousMode === 'flight' && this.state.mode === 'surface') || this.state.tick % 100 === 0) this.save();
     }
   }
   save(): void {
@@ -174,6 +121,7 @@ export class UniverseRuntime {
       const encoded = JSON.stringify({ format: FORMAT, version: SAVE_VERSION, checksum: digest(payload), payload });
       const temporary = `${this.savePath}.${this.lockToken}.tmp`, fd = openSync(temporary, 'w');
       try { writeFileSync(fd, encoded); fsyncSync(fd); } finally { closeSync(fd); }
+      this.assertHealthy();
       renameSync(temporary, this.savePath);
     } catch (error) {
       this.fault = new Error(`Universe persistence failed; host is paused until recovery: ${error instanceof Error ? error.message : String(error)}`);
@@ -189,10 +137,22 @@ export class UniverseRuntime {
   private assertHealthy(): void {
     if (this.closed) throw Error('Universe host is closed');
     if (this.fault) throw this.fault;
+    try {
+      const lock: unknown = JSON.parse(readFileSync(this.lockPath, 'utf8'));
+      if (!isRecord(lock) || lock.token !== this.lockToken || lock.pid !== process.pid || lock.kind !== FORMAT)
+        throw Error('The writer lock belongs to another host');
+    } catch (error) {
+      this.fault = new Error(`Universe writer ownership lost; host is paused until recovery: ${error instanceof Error ? error.message : String(error)}`);
+      throw this.fault;
+    }
   }
   private releaseLock(): void {
     if (!existsSync(this.lockPath)) return;
-    const lock: unknown = JSON.parse(readFileSync(this.lockPath, 'utf8'));
-    if (isRecord(lock) && lock.token === this.lockToken) unlinkSync(this.lockPath);
+    // A corrupt or replaced lock is evidence owned by recovery/the new writer.
+    // Shutdown must not remove it or hide the original failure with a parse error.
+    try {
+      const lock: unknown = JSON.parse(readFileSync(this.lockPath, 'utf8'));
+      if (isRecord(lock) && lock.token === this.lockToken) unlinkSync(this.lockPath);
+    } catch { /* Preserve an unreadable/replaced lock for explicit recovery. */ }
   }
 }

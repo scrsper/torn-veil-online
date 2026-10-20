@@ -50,11 +50,15 @@ export function startUniverseHost() {
   const runtime = new UniverseRuntime({ directory, seed: configuredSeed === undefined ? undefined : Number(configuredSeed) });
   const origins = process.env.TORN_VEIL_UNIVERSE_ORIGINS?.split(',').map(s => s.trim());
   const server = createUniverseServer(runtime, { port, origins });
+  const managed = process.env.TORN_VEIL_UNIVERSE_MANAGED === '1';
   let timer: ReturnType<typeof setInterval> | undefined, stopping = false;
   const stop = () => {
     if (stopping) return;
     stopping = true;
     if (timer) clearInterval(timer);
+    // The launcher intentionally keeps stdin open. Fatal bind/write errors must
+    // release that handle too, or the failed child remains alive indefinitely.
+    if (managed) process.stdin.pause();
     server.close();
     try { runtime.close(); } catch (error) { console.error('Universe save failed during shutdown:', error); process.exitCode = 1; }
   };
@@ -67,7 +71,7 @@ export function startUniverseHost() {
     }, 50);
   });
   process.once('SIGINT', stop); process.once('SIGTERM', stop);
-  if (process.env.TORN_VEIL_UNIVERSE_MANAGED === '1') {
+  if (managed) {
     process.stdin.setEncoding('utf8');
     process.stdin.resume();
     let pending = '';

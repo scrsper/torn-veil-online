@@ -107,10 +107,10 @@ export async function startCanonicalAscent() {
   let journalOpen=false;
   const toggleJournal=()=>{journalOpen=!journalOpen;el('as-panel').hidden=!journalOpen;release();};
   const release = () => { keys.clear(); mouseGuard=false; inputWasActive = false; send({ type: 'move', x: 0, z: 0, sprint: false }); send({ type: 'guard', held: false }); send({ type: 'crouch', held: false }); };
-  async function leaveView() {
+  async function leaveView(destination = '/?realms') {
     if (movingPage) return; movingPage = true; release();
     await new Promise<void>(resolve => { ws.addEventListener('close', () => resolve(), { once: true }); ws.close(); if (ws.readyState === WebSocket.CLOSED) resolve(); });
-    location.assign('/?realms');
+    location.assign(destination);
   }
   async function transition(type: 'ascend' | 'return') {
     if (!frame || movingPage) return; release();
@@ -170,6 +170,7 @@ export async function startCanonicalAscent() {
     if (m.type === 'binding') { binding = m.interaction; sequence = 0; keys.clear(); }
     if (m.type === 'tower_geometry') drawFloor(m.plan);
     if (m.type === 'tower_returned') void leaveView();
+    if (m.type === 'universe_active') void leaveView('/?universe&campaign');
     if (m.type === 'notice') notice(m.message);
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired','committed'].includes(m.result)) notice(String(m.result).replaceAll('_',' ')); }
     if (m.type !== 'tower_frame' || !binding) return;

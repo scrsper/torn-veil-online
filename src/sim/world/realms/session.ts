@@ -48,10 +48,14 @@ export class RealmSession {
     } else { this.world = new World(seed); generateRealms(this.world); }
     this.sim = new Simulation(this.world);
   }
-  get body() { return this.world.primaryBody(this.world.playerId!)!; }
+  get body() {
+    const binding = this.world.universeExpedition;
+    return (binding?.active ? this.world.body(binding.bodyId) : this.world.primaryBody(this.world.playerId!))!;
+  }
   get person() { return this.world.person(this.world.playerId!)!; }
   get grid() { return this.world.grid as RealmGrid; }
   adoptFocusedWorld(migration?:FocusedTowerMigration):void{
+    if(this.world.universeExpedition?.active)throw Error('Return from the universe before changing realm geometry');
     const w=this.world;if(w.realmSpec?.focusedKit)return;
     if(w.realmExpedition)throw Error('Checkpoint-only legacy expedition needs a separate migration; the original save is retained');
     const run=w.canonicalTower;
@@ -74,7 +78,7 @@ export class RealmSession {
     for(const move of residentMoves){move.body.pos=move.pos;move.body.vel={x:0,y:0,z:0};move.body.path=null;move.body.pathGoal=null;}
   }
   move(input: MovementInput): void {
-    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return;
+    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active || this.world.universeExpedition?.active)) return;
     if (!input || ![input.x, input.z].every(Number.isFinite) || Math.abs(input.x) > 1 || Math.abs(input.z) > 1 || typeof input.sprint !== 'boolean') return;
     if (input.facing !== undefined && (!Number.isFinite(input.facing) || Math.abs(input.facing) > Math.PI)) return;
     // Use the existing shared bounded turn evaluator; the camera never sets a body yaw.
@@ -84,12 +88,12 @@ export class RealmSession {
   /** Space: vault the obstacle ahead or jump the gap ahead; otherwise a hop in place (presentation only). */
   traverse(): 'vault' | 'jump' | 'hop' | 'unable' {
     const w=this.world,b=this.body;
-    if (w.realmExpedition?.active || this.pending || !movementState(w, this.person, b).eligible || combatBusy(b, w.physicalTime) || b.recoil) return 'unable';
+    if (w.universeExpedition?.active || w.realmExpedition?.active || this.pending || !movementState(w, this.person, b).eligible || combatBusy(b, w.physicalTime) || b.recoil) return 'unable';
     return beginTraversal(w, b)?.kind ?? 'hop';
   }
   stop(): void { this.input = { x: 0, z: 0, sprint: false }; this.pending = null; this.body.path = null; }
   navigate(target: 'portal' | 'tower'): boolean {
-    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active) || this.pending || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime)) return false;
+    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active || this.world.universeExpedition?.active) || this.pending || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime)) return false;
     const realm = realmAt(this.body.pos.x, this.body.pos.z)!;
     const destination = target === 'portal' ? { ...portalPoint(realm), z: portalPoint(realm).z - 2 } : realm==='brass'&&this.grid.focusedTown?this.grid.focusedTown.tower.entry:{ x: REALMS[realm].offset + CENTER + 48.5, y: 1, z: CENTER + 48.5 };
     const path = this.world.nav.findPath(this.body.pos, destination);
@@ -97,7 +101,7 @@ export class RealmSession {
     this.body.path = path; this.body.pathIndex = 0; this.body.pathGoal = destination; return true;
   }
   step(dt: number): void {
-    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return;
+    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active || this.world.universeExpedition?.active)) return;
     if (!Number.isFinite(dt) || dt <= 0 || dt > .1) return;
     const w = this.world, before = captureCombatTransforms(w);
     this.advanceMovement(dt);
@@ -106,6 +110,7 @@ export class RealmSession {
   }
   /** Shared controller cadence: move on this World without advancing a second clock. */
   advanceMovement(dt: number, guidedOnly = false): void {
+    if (this.world.universeExpedition?.active) return;
     if (this.body.traversal && Number.isFinite(dt) && dt > 0 && dt <= .1) { advanceTraversal(this.world, this.body, dt); return; }
     if (this.world.realmExpedition?.active || this.world.canonicalTower?.active || !Number.isFinite(dt) || dt <= 0 || dt > .1) return;
     const w = this.world, b = this.body, old = { ...b.pos };
@@ -133,7 +138,7 @@ export class RealmSession {
     return doors.sort((a, b) => this.world.distance2d(p, a.door) - this.world.distance2d(p, b.door))[0];
   }
   interact(): string {
-    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return 'Resume the expedition or return to the atrium.';
+    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active || this.world.universeExpedition?.active)) return 'Resume the expedition or return to the atrium.';
     if (!movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime)) return 'This body cannot interact.';
     const w = this.world, p = this.body.pos, realm = realmAt(p.x, p.z) ?? w.canonicalTower?.realm ?? 'aether';
     if (this.pending) return 'Choose whether to cross the threshold.';
@@ -153,7 +158,7 @@ export class RealmSession {
   }
   confirm(id: number): boolean {
     const t = this.pending;
-    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active) || !t || t.id !== id || t.expires < this.world.physicalTime || this.world.distance2d(this.body.pos, portalPoint(t.from)) >= 4.5 || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime) || this.body.recoil) return false;
+    if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active || this.world.universeExpedition?.active) || !t || t.id !== id || t.expires < this.world.physicalTime || this.world.distance2d(this.body.pos, portalPoint(t.from)) >= 4.5 || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime) || this.body.recoil) return false;
     const destination = portalPoint(t.to), from = { ...this.body.pos };
     // Destination is resolved and checked before changing the existing body. No new
     // Person, inventory, class or progression sheet is created by a crossing.
@@ -167,6 +172,7 @@ export class RealmSession {
   }
   cancel(): void { this.pending = null; this.inputUntil = 0; }
   inTower(): boolean {
+    if (this.world.universeExpedition?.active) return false;
     const p = this.body.pos, realm = realmAt(p.x, p.z);
     if (!realm) return false;
     if(realm==='brass'&&this.grid.focusedTown){const b=this.grid.focusedTown.tower;return p.x>b.x+.6&&p.x<b.x+b.w-.6&&p.z>b.z+.6&&p.z<b.z+b.d-.6;}

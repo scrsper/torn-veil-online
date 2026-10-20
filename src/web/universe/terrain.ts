@@ -88,7 +88,9 @@ export function buildTerrainTile(planet: PlanetDescriptor, tile: TerrainTile, ce
       normals.push(normal.x, normal.y, normal.z);
     } else normals.push(0, 0, 0);
     colors.push(color.r, color.g, color.b, 1);
-    const repeats = planet.radius * Math.PI / 2 / 9;
+    // Integer repeats make every cube border land on the same periodic texture edge.
+    // The grain texture is also reflection/axis symmetric for rotated face charts.
+    const repeats = Math.max(1, Math.round(planet.radius * Math.PI / 2 / 9));
     uvs.push((tile.x + x / cells) / 2 ** tile.level * repeats, (tile.y + y / cells) / 2 ** tile.level * repeats);
   }
   const positionAt = (i: number): V3 => ({ x: positions[i * 3], y: positions[i * 3 + 1], z: positions[i * 3 + 2] });
@@ -189,16 +191,26 @@ export function surfaceDecorations(planet: PlanetDescriptor, observer: V3, lite 
   return result;
 }
 
-function createGroundTexture(scene: Scene): RawTexture {
-  const size = 128, data = new Uint8Array(size * size * 3);
+export const TERRAIN_GRAIN_SIZE = 128;
+/** CPU-generated source pixels make the material's seam behavior testable headlessly. */
+export function buildGroundTextureData(): Uint8Array {
+  const size = TERRAIN_GRAIN_SIZE, data = new Uint8Array(size * size * 3);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const a = x / size * Math.PI * 2, b = y / size * Math.PI * 2;
-    const broad = Math.sin(a * 2 + Math.cos(b * 3)) * Math.cos(b * 2 + Math.sin(a));
-    const grain = decorationHash(0x74657272, 0, x, y);
-    const fine = Math.sin(a * 18 + b * 13) * Math.sin(b * 21 - a * 5);
-    const value = Math.round(216 + broad * 23 + fine * 7 + (grain - .5) * 20);
+    // Sample at texel centers so bilinear wrapping, reflections and 90° rotations
+    // agree exactly. Cube faces share geometry but do not share UV orientation.
+    const a = (x + .5) / size * Math.PI * 2, b = (y + .5) / size * Math.PI * 2;
+    const broad = Math.cos(a * 2) * Math.cos(b * 2) * .65 + Math.cos(a) * Math.cos(b) * .35;
+    const mx = Math.min(x, size - x - 1), my = Math.min(y, size - y - 1);
+    const grain = decorationHash(0x74657272, 0, Math.min(mx, my), Math.max(mx, my));
+    const fine = (Math.cos(a * 18) * Math.cos(b * 18) + Math.cos(a * 29) * Math.cos(b * 29)) * .5;
+    const value = Math.max(0, Math.min(255, Math.round(216 + broad * 23 + fine * 7 + (grain - .5) * 20)));
     data.fill(value, (y * size + x) * 3, (y * size + x) * 3 + 3);
   }
+  return data;
+}
+
+function createGroundTexture(scene: Scene): RawTexture {
+  const size = TERRAIN_GRAIN_SIZE, data = buildGroundTextureData();
   const texture = RawTexture.CreateRGBTexture(data, size, size, scene, true, false, Texture.TRILINEAR_SAMPLINGMODE);
   texture.name = 'universe:procedural-ground-grain';
   texture.wrapU = texture.wrapV = Texture.WRAP_ADDRESSMODE;
@@ -340,10 +352,16 @@ export class UniverseTerrain {
       for (const [key, tile] of state.tiles) {
         if (!state.desired.has(key)) { tile.mesh.dispose(); state.tiles.delete(key); }
       }
-      for (const tile of tiles) if (!state.tiles.has(keyOf(tile))) this.queue.push({ state, tile });
+      const nearestFirst = (a: TerrainTile, b: TerrainTile) => this.distanceToTile(state, a, observer) - this.distanceToTile(state, b, observer);
+      const enqueueBranch = (parent: TerrainTile) => {
+        const children = childrenOf(parent).filter(child => state.desired.has(keyOf(child))).sort(nearestFirst);
+        // Schedule a complete sibling quad before going deeper: every visible handoff
+        // remains atomic, but the nearest branch no longer waits behind the whole globe.
+        for (const tile of children) if (!state.tiles.has(keyOf(tile))) this.queue.push({ state, tile });
+        for (const child of children) enqueueBranch(child);
+      };
+      [...ROOTS].sort(nearestFirst).forEach(enqueueBranch);
     }
-    // Breadth-first prerequisites, then nearest tiles first at that level.
-    this.queue.sort((a, b) => a.tile.level - b.tile.level || this.distanceToTile(a.state, a.tile, observer) - this.distanceToTile(b.state, b.tile, observer));
     // V3 is structural: Babylon Vector3 exposes x/y/z through prototype accessors,
     // so spreading it copies _x/_y/_z instead of a usable canonical coordinate.
     this.lastObserver = { x: observer.x, y: observer.y, z: observer.z }; this.lastNearest = nearest.planet.id;

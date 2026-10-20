@@ -52,7 +52,7 @@ export async function startRealms(): Promise<void> {
   void factory.load(ctx.scene, undefined, ['f', 'm']);
   ui.innerHTML = `<div class="rv-shell">
     <header class="rv-heading"><nav><a href="/">Home</a> · <a href="/observatory">Observatory</a></nav><div class="rv-kicker">TORN VEIL <span>CONNECTED REALMS</span></div><h1 id="rv-title">Opening the Veil</h1><p id="rv-district">Restoring your journey…</p></header>
-    <details class="rv-card rv-wayfinder"><summary>Travel & journal</summary><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button><label class="rv-camera-choice">Camera <select id="rv-camera"><option value="close">Close</option><option value="elevated">Elevated</option><option value="wide">Wide</option></select></label></details>
+    <details class="rv-card rv-wayfinder"><summary>Travel & journal</summary><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-universe">Board the Astral Sea</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button><label class="rv-camera-choice">Camera <select id="rv-camera"><option value="close">Close</option><option value="elevated">Elevated</option><option value="wide">Wide</option></select></label></details>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
     <footer><span>WASD move · X walk · MMB orbit · wheel zoom · LMB strike · K heavy · L low · G guard · Space dodge · E interact · I character · J objectives</span><span id="rv-stream"></span></footer>
@@ -82,6 +82,7 @@ export async function startRealms(): Promise<void> {
     const m = JSON.parse(e.data);
     quests.ingestMessage(m); if (m.type === 'state' && m.state?.questJournal) sliceHud.dispatch({type:'ledger',entries:hudJournal(quests.journal())});
     if (m.type === 'controller') controllerToken = m.token;
+    if (m.type === 'universe_active') { void openUniverse(); return; }
     if (m.type === 'binding') { binding=m.interaction; sequence=0; keys.clear(); }
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired','committed'].includes(m.result))toast(String(m.result).replaceAll('_',' ')); }
     if (m.type === 'regions') renderer.reconcile(m.wanted, m.chunks);
@@ -147,6 +148,16 @@ export async function startRealms(): Promise<void> {
     await new Promise<void>(resolve => { socket.addEventListener('close', () => resolve(), { once: true }); socket.close(); if (socket.readyState === WebSocket.CLOSED) resolve(); });
     location.assign('/?ascent');
   };
+  const openUniverse = async () => {
+    if (transitioning) return; transitioning = true; release();
+    await new Promise<void>(resolve => {
+      const timeout = setTimeout(resolve, 1500);
+      socket.addEventListener('close', () => { clearTimeout(timeout); resolve(); }, { once: true });
+      socket.close(); if (socket.readyState === WebSocket.CLOSED) { clearTimeout(timeout); resolve(); }
+    });
+    location.assign('/?universe&campaign');
+  };
+  el('rv-universe').onclick = () => void openUniverse();
   el('rv-canonical').onclick = async () => {
     if (!state || transitioning) return; transitioning = true; keys.clear();
     try {
