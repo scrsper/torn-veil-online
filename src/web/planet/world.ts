@@ -6,6 +6,7 @@ import {
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
 import { settlementDressing, type Dressing } from '../../sim/world/assets/dressing';
+import { settlementGateways } from '../../sim/world/assets/gateways';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
 import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, regionLandmarks, type LibraryPlacement } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
@@ -191,7 +192,10 @@ export async function startPlanetWorld() {
     return out;
   };
   // Roadside lanterns and settlement furniture (focused pack modules, hash-verified by FocusedAssets), built once within 400 m.
-  const furniture: Dressing[] = [...roadLamps(spec).map(l => ({ ...l, assetId: 'module:lantern_post', radius: LAMP_RADIUS })), ...settlementDressing(spec)];
+  const furniture: Dressing[] = [...roadLamps(spec).map(l => ({ ...l, assetId: 'module:lantern_post', radius: LAMP_RADIUS })), ...settlementDressing(spec),
+    // Stone gateways over the roads into landmark settlements: the arch itself has no radius; its two piers collide.
+    ...settlementGateways(spec).map(g => ({ id: g.id, assetId: g.assetId, dir: g.dir, facing: g.facing, radius: 0, scale: g.scale }))];
+  const gatePiers = settlementGateways(spec).flatMap(g => g.piers);
   const lampRoots = new Map<string, TransformNode | null>(), glowMats: PBRMaterial[] = [];
   const collectGlow = (m: Material | null) => { if (m instanceof PBRMaterial && /glow/i.test(m.name) && !glowMats.includes(m)) glowMats.push(m); };
   let lampCheck = 0;
@@ -200,7 +204,7 @@ export async function startPlanetWorld() {
     await focusedManifest;
     const f = tangentFrame(l.dir), holder = new TransformNode('lamp:' + l.id, scene), up = v(f.up), face = v(l.facing), side = Vector3.Cross(up, face);
     holder.rotationQuaternion = Quaternion.FromRotationMatrix(Matrix.FromValues(side.x, side.y, side.z, 0, up.x, up.y, up.z, 0, face.x, face.y, face.z, 0, 0, 0, 0, 1));
-    holder.position = v(scale(l.dir, surfaceRadius(spec, l.dir) - .05));
+    holder.position = v(scale(l.dir, surfaceRadius(spec, l.dir) - .05 - (l.scale ? .25 : 0))); if (l.scale) holder.scaling.setAll(l.scale);
     const inst = await focused.instantiate({ id: l.id, assetId: l.assetId, position: [0, 0, 0], yaw: 0, floorId: 'planet' });
     inst.root.parent = holder; holder.computeWorldMatrix(true);
     for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); collectGlow(m.material); }
@@ -272,6 +276,7 @@ export async function startPlanetWorld() {
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
     for (const l of furniture) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: l.radius });
+    for (const p of gatePiers) if (arc(spec, here, p.dir) < 8) list.push(p);
     return list;
   };
   // A blocked step keeps whichever tangent component (east or north of the previous spot) is

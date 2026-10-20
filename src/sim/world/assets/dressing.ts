@@ -8,7 +8,7 @@ import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionL
  * markets, taverns and lanes; lantern posts either side of watchposts and gatehouses; braziers
  * at dungeon mouths. A piece is dropped if it would stand inside any library space, against
  * a cooked GLB wall, or on a road. Pure and seeded by the placements. */
-export interface Dressing { id: string; assetId: string; dir: V3; facing: V3; radius: number }
+export interface Dressing { id: string; assetId: string; dir: V3; facing: V3; radius: number; scale?: number }
 const FLANKS: Record<string, [string, string] | undefined> = {
   market_square: ['module:barrel_cluster', 'module:crate_cluster'], tavern: ['module:barrel_cluster', 'module:crate_cluster'], village_lane: ['module:crate_cluster', 'module:barrel_cluster'],
   watchpost: ['module:lantern_post', 'module:lantern_post'], gatehouse: ['module:lantern_post', 'module:lantern_post'], dungeon_junction: ['module:brazier', 'module:brazier'],
