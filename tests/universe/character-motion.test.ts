@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NullEngine, PBRMaterial, Quaternion, Scene, TransformNode, Vector3 } from '@babylonjs/core';
+import { Matrix, NullEngine, PBRMaterial, Quaternion, Scene, TransformNode, Vector3 } from '@babylonjs/core';
 import { flightPresentation, FlightPose, groundedFlightPresentation } from '../../src/web/actors/flightPose';
 import { importedHumanMaterialRole, refineImportedHumanMaterial } from '../../src/web/actors/characterMaterials';
 import { avatarRotation } from '../../src/web/universe/avatar';
@@ -27,7 +27,7 @@ describe('shared character flight presentation', () => {
     for (let i = 0; i < 120; i++) state = flightPresentation(state, { airborne: true, velocity: { x: 0, y: 0, z: 0 } }, 1 / 60);
     expect(state.phase).toBe('hover'); expect(state.pitch).toBeCloseTo(0);
     for (let i = 0; i < 120; i++) state = flightPresentation(state, { airborne: true, velocity: { x: 100, y: 0, z: -1000 } }, 1 / 60);
-    expect(state.phase).toBe('cruise'); expect(state.pitch).toBeGreaterThan(.9); expect(state.pitch).toBeLessThanOrEqual(1.02);
+    expect(state.phase).toBe('cruise'); expect(state.pitch).toBeGreaterThan(1.2); expect(state.pitch).toBeLessThanOrEqual(1.3);
     expect(Math.abs(state.bank)).toBeLessThanOrEqual(.24);
     state = flightPresentation(state, { airborne: false, velocity: { x: 0, y: 0, z: 0 } }, 1 / 60);
     expect(state.phase).toBe('landing'); expect(state.pitch).toBeGreaterThan(.5);
@@ -58,6 +58,68 @@ describe('shared character flight presentation', () => {
     // where the horizontal component is zero.
     state = flightPresentation(state, { airborne: true, velocity: { x: 0, y: -400, z: 0 } }, .05);
     expect(state.phase).toBe('brake');
+  });
+
+  it('reaches into actual ascent/forward velocity while keeping backward and feet-first travel open', () => {
+    const settled = (velocity: Vector3, dt = 1 / 60) => {
+      let state = groundedFlightPresentation();
+      for (let i = 0; i < Math.round(2 / dt); i++) state = flightPresentation(state, { airborne: true, velocity }, dt);
+      return state;
+    };
+    const ascent = settled(new Vector3(0, 154, 0)), cruise = settled(new Vector3(0, 0, -850));
+    expect(ascent.phase).toBe('ascent'); expect(ascent.reach).toBeGreaterThan(.99); expect(ascent.pitch).toBe(0);
+    expect(cruise.pitch).toBeGreaterThan(1.29); expect(cruise.reach).toBeGreaterThan(.99);
+    for (const velocity of [new Vector3(0, -154, 0), new Vector3(0, 0, 80), new Vector3(80, 0, 0)]) {
+      const state = settled(velocity);
+      expect(state.reach).toBe(0); expect(Math.abs(state.pitch)).toBeLessThanOrEqual(.18);
+    }
+    // Same elapsed time yields the same pose at common presentation rates.
+    for (const dt of [1 / 30, 1 / 120]) {
+      const other = settled(new Vector3(0, 0, -850), dt);
+      for (const key of ['pitch', 'bank', 'reach', 'weight'] as const) expect(other[key]).toBeCloseTo(cruise[key], 10);
+    }
+  });
+
+  it('places reaching hands above the head or ahead of cruise on imported rigs at rotated latitudes', () => {
+    const engine = new NullEngine(), scene = new Scene(engine);
+    try {
+      for (const radial of [Vector3.Up(), new Vector3(.2, -.7, .5).normalize()]) {
+        for (const velocity of [new Vector3(0, 154, 0), new Vector3(0, 0, -850)]) {
+          const parent = new TransformNode('actor', scene), root = new TransformNode('import +Z', scene);
+          parent.position.set(12, -7, 30); parent.rotationQuaternion = avatarRotation(Vector3.Forward(true), radial);
+          root.parent = parent; root.rotation.y = Math.PI;
+          const bones = new Map<string, TransformNode>();
+          const bone = (name: string, p: TransformNode, point: Vector3) => {
+            const node = new TransformNode(name, scene); node.parent = p; node.position.copyFrom(point);
+            node.rotationQuaternion = Quaternion.Identity(); bones.set(name, node); return node;
+          };
+          // Fresh authored idle: upper arms hang about 25 degrees off down.
+          for (const [side, sign] of [['l', 1], ['r', -1]] as const) {
+            const upper = bone(`upperarm_${side}`, root, new Vector3(sign * .19, 1.4, 0));
+            const lower = bone(`lowerarm_${side}`, upper, new Vector3(sign * .14, -.3, .02));
+            bone(`hand_${side}`, lower, new Vector3(sign * .04, -.26, .01));
+          }
+          const head = bone('head', root, new Vector3(0, 1.7, 0));
+          const actorBefore = parent.computeWorldMatrix(true).clone(), inverse = Matrix.Invert(actorBefore);
+          const pose = new FlightPose({ root, bones } as CharacterInstance, parent, 1.75);
+          for (let i = 0; i < 120; i++) pose.update({ airborne: true, velocity }, 1 / 60);
+          pose.apply();
+          const local = (node: TransformNode) => { node.computeWorldMatrix(true); return Vector3.TransformCoordinates(node.getAbsolutePosition(), inverse); };
+          const headPoint = local(head), hands = ['l', 'r'].map(side => local(bones.get(`hand_${side}`)!));
+          for (const hand of hands) {
+            if (velocity.y > 0) expect(hand.y).toBeGreaterThan(headPoint.y + .15);
+            else expect(hand.z).toBeLessThan(headPoint.z - .15);
+          }
+          expect(Vector3.Distance(hands[0], hands[1])).toBeGreaterThan(.35);
+          expect(parent.getWorldMatrix().asArray()).toEqual(actorBefore.asArray());
+          const first = hands.map(p => p.clone()); pose.apply();
+          ['l', 'r'].forEach((side, i) => expect(Vector3.Distance(local(bones.get(`hand_${side}`)!), first[i])).toBeLessThan(1e-5));
+          pose.restore();
+          for (const node of bones.values()) expect(Math.abs(Quaternion.Dot(node.rotationQuaternion!, Quaternion.Identity()))).toBeCloseTo(1, 6);
+          parent.dispose();
+        }
+      }
+    } finally { scene.dispose(); engine.dispose(); }
   });
 
   it('measures anatomical spine tilt against the actor radial frame at every latitude', () => {

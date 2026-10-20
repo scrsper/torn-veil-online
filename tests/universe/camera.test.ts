@@ -131,6 +131,22 @@ describe('local spherical orbit camera', () => {
     expect(separation(landed.position, firstVessel.position)).toBeLessThan(.5);
   });
 
+  it('keeps a raised-hand flight silhouette within the frame while limiting speed pullback', () => {
+    for (const speed of [0, 60, 900]) for (const yaw of [0, Math.PI / 2, Math.PI]) {
+      const camera = new SphericalOrbitCamera(); camera.restore({ distance: 6, yaw });
+      const pose = settle(camera, { ...ground, mode: 'personal', velocity: { x: speed, y: 0, z: 0 } });
+      expect(camera.debug.renderedDistance).toBeLessThanOrEqual(8.1 + 1e-8);
+      const view = normalize(sub(pose.target, pose.position));
+      const screenUp = normalize(sub(pose.up, scale(view, dot(pose.up, view))));
+      for (const x of [-.4, .4]) for (const z of [-.4, .4]) for (const y of [-3, -.5]) {
+        const offset = sub({ x, y, z }, pose.position), depth = dot(offset, view);
+        const screenY = .5 - dot(offset, screenUp) / (depth * Math.tan(pose.fov / 2)) * .5;
+        expect(screenY).toBeGreaterThan(.1); expect(screenY).toBeLessThan(.86);
+      }
+      expect(camera.preferredDistance).toBe(6);
+    }
+  });
+
   it('recenters behind the current tangent heading after an orbit and a character turn', () => {
     const camera = new SphericalOrbitCamera(); settle(camera);
     camera.orbitPixels(430, 0);

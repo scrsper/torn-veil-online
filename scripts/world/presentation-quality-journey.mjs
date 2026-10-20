@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { chromium } from 'playwright';
+import {createContactQA} from './presentation-contact-qa.mjs';
 if (process.env.TV_QUALITY_ISOLATED !== '1' || !process.env.TV_QUALITY_URL || !process.env.TV_QUALITY_EXPECT_SAVE)
   throw Error('Require explicit isolated URL, expected save path, and TV_QUALITY_ISOLATED=1.');
 const target = new URL(process.env.TV_QUALITY_URL), mode = process.env.TV_QUALITY_MODE ?? 'journey';
@@ -33,6 +34,8 @@ await mkdir(dirname(output), { recursive: true }); await mkdir(output);
 const report = { mode, started: new Date().toISOString(), savePath: health.savePath,
   note: 'Ordinary UI quality/recovery acceptance against a parent-created isolated capability fixture. No client capability grant, observer teleport, save edit or direct movement injection. This is not a progression-earned character claim.',
   checks: [], samples: [], details: [], errors: [], errorLocations: [], warnings: [], http: [], commands: {}, glbResponses: [], traces: [] };
+const comparisonPath=process.env.TV_QUALITY_COMPARE??'docs/evidence/atlas-flight/final-run/journey.json';
+const comparisonBaseline=JSON.parse(await readFile(comparisonPath,'utf8'));
 const check = (ok, label) => { assert.ok(ok, label); report.checks.push(label); console.log('PASS ' + label); };
 const browser = await chromium.launch({ channel: 'chrome', headless: false, args: ['--use-angle=d3d11', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -90,11 +93,12 @@ const comparisonPage = async () => {
     ['13-other-world-ground','05-other-world-ground','Foreign ground'],
     ['15-returned-home','07-returned-home','Returned home'],
   ];
-  const images = pairs.filter(([name]) => report.samples.some(s => s.name === name)).map(([after,before,title]) =>
-    `<section><h2>${title}</h2><div class="pair"><figure><img src="${escape(imagePath(resolve(oldFolder,before+'.png')))}" alt="Prior ${title}"><figcaption>Prior normal-quality run</figcaption></figure><figure><img src="${after}.png" alt="Current ${title}"><figcaption>Current capture · ${after}</figcaption></figure></div></section>`).join('');
-  const closeups = report.samples.filter(s => /ground-close|walking|hover-front|near-wall|moving-ascent|moving-flight|return-cruise-side|guard-/.test(s.name)).map(s =>
+  const images = pairs.filter(([name]) => report.samples.some(s => s.name === name)).map(([after,legacy,title]) => {
+    const before=comparisonBaseline.samples.some(s=>s.name===after)?after:legacy;
+    return `<section><h2>${title}</h2><div class="pair"><figure><img src="${escape(imagePath(resolve(oldFolder,before+'.png')))}" alt="Prior ${title}"><figcaption>Prior normal-quality run</figcaption></figure><figure><img src="${after}.png" alt="Current ${title}"><figcaption>Current capture · ${after}</figcaption></figure></div></section>`;}).join('');
+  const closeups = report.samples.filter(s => /ground-close|walking|hover-front|near-wall|moving-ascent|moving-flight|return-cruise-side|guard-|contact-/.test(s.name)).map(s =>
     `<figure><img src="${s.name}.png" alt="${escape(s.name)}"><figcaption>${escape(s.name)}</figcaption></figure>`).join('');
-  const details = report.details.map(s => `<figure><img src="${s.name}.png" alt="${escape(s.name)}"><figcaption>${escape(s.name)} · native screenshot clip around actual joint positions</figcaption></figure>`).join('');
+  const details = report.details.map(s => `<figure><img src="${s.name}.png" alt="${escape(s.name)}"><figcaption>${escape(s.name)} · native screenshot clip around ${s.actualSkinVertices?'actual skinned sole vertices':'actual joint positions'}</figcaption></figure>`).join('');
   const rows = report.samples.filter(s => s.metrics).map(s => `<tr><td>${escape(s.name)}</td><td>${s.metrics.p50.toFixed(1)} / ${s.metrics.p95.toFixed(1)}</td><td>${s.metrics.draws}</td><td>${escape(s.avatar?.motion?.source?.source)} / ${escape(s.avatar?.motion?.source?.sourceClip)}</td><td>${escape(s.avatar?.motion?.source?.retargetLook)}</td><td>${escape(s.avatar?.motion?.flight?.phase)}</td></tr>`).join('');
   const sources = [...new Set(report.samples.filter(s => s.avatar?.motion?.source).map(s => JSON.stringify(s.avatar.motion.source)))].map(s => `<li><code>${escape(s)}</code></li>`).join('');
   await writeFile(resolve(output, 'comparison.html'), `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Torn Veil presentation comparison</title>
@@ -112,8 +116,9 @@ const read = () => page.evaluate(() => {
   const d = window.__tvUniverse, c = d?.campaign, s = c?.active ? d?.snapshot : d?.preview ?? d?.snapshot;
   return { state: s?.state, status: s?.status, system: s?.system, preview: d?.preview,
     campaign: c ? { active: c.active, personId: c.personId, bodyId: c.bodyId, name: c.name, health: c.health, inventory: c.inventory,
-      canExplore: c.canExplore, canReturn: c.canReturn, flight: c.flight, message: c.message } : null,
-    atlas: d?.atlas, avatar: d?.avatar, camera: d?.camera, lighting: d?.lighting, settlements: d?.settlements, terrain: d?.stats, vessel: d?.vessel,
+      canExplore: c.canExplore, canReturn: c.canReturn, flight: c.flight, message: c.message,
+      footSupport:c.footSupport?{id:c.footSupport.id,available:c.footSupport.available,reason:c.footSupport.reason,origin:c.footSupport.origin,radius:c.footSupport.radius,triangles:c.footSupport.triangles.length}:null } : null,
+    atlas: d?.atlas, avatar: d?.avatar, camera: d?.camera, lighting: d?.lighting, settlements: d?.settlements, terrain: d?.stats, vessel: d?.vessel,footSupport:d?.footSupport,
     phase: document.querySelector('[data-phase]')?.textContent, toast: document.querySelector('.astral-toast:not([hidden])')?.textContent };
 });
 const detailClips = async (name, view) => {
@@ -134,6 +139,19 @@ const detailClips = async (name, view) => {
     await page.screenshot({path:resolve(output,detailName+'.png'),clip});
     report.details.push({name:detailName,sourceCapture:name,landmarks:names,clip});
   }
+};
+const projectedAvatar = view => {
+  const c=view.camera,l=view.avatar?.landmarks;if(!c||!l)return null;
+  const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z}),dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+  const norm=a=>{const n=Math.hypot(a.x,a.y,a.z);return{x:a.x/n,y:a.y/n,z:a.z/n};};
+  const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+  const forward=norm(sub(c.target,c.position)),right=norm(cross(forward,c.up)),up=cross(right,forward),focal=450/Math.tan(c.fov/2);
+  const points=Object.entries(l).map(([name,p])=>{const d=sub(p,c.position),z=dot(d,forward);return{name,x:720+dot(d,right)/z*focal,y:450-dot(d,up)/z*focal,z};});
+  const visible=points.filter(p=>p.z>.05&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+  return {kind:'projected-rig-landmarks-not-full-mesh',points,
+    height:visible.length?Math.max(...visible.map(p=>p.y))-Math.min(...visible.map(p=>p.y)):null,
+    width:visible.length?Math.max(...visible.map(p=>p.x))-Math.min(...visible.map(p=>p.x)):null,
+    allInside:points.every(p=>p.z>.05&&p.x>15&&p.x<1425&&p.y>15&&p.y<825)};
 };
 const capture = async name => {
   const metrics = await page.evaluate(() => new Promise(resolve => {
@@ -157,14 +175,16 @@ const capture = async name => {
   }));
   await page.screenshot({ path: resolve(output, name + '.png') });
   const view = await read();
+  view.projectedAvatar=projectedAvatar(view);
   report.samples.push({ name, metrics, ...view });
   if(/moving-flight|between-worlds|return-cruise-side/.test(name)
     &&(!view.state.cruise||Math.hypot(...Object.values(view.state.velocity))<=50)){
     await save();await stopBlockedDeparture('A planned moving-flight capture did not have active navigation and speed above50m/s.');
   }
-  if (name === '05-ground-close-front') await detailClips(name, view);
+  if (name === '05-ground-close-front'||/moving-flight-(side|front)/.test(name)) await detailClips(name, view);
   console.log(JSON.stringify({ capture: name, metrics: { ...metrics, motionSamples: undefined, cameraSamples: undefined,lightingSamples:undefined }, mode: view.state?.mode, altitude: view.status?.altitude,
-    phase: view.state?.personalFlight?.phase, mana: view.campaign?.flight.manaAvailable, settlements: view.settlements, avatar: view.avatar?.ready, errors: report.errors.length }));
+    phase: view.state?.personalFlight?.phase, mana: view.campaign?.flight.manaAvailable, settlements: view.settlements, avatar: view.avatar?.ready,
+    avatarPixelHeight:view.projectedAvatar?.height,avatarInsidePlayfield:view.projectedAvatar?.allInside,errors: report.errors.length }));
   await save();
 };
 const select = async id => {
@@ -243,6 +263,7 @@ const stopBlockedDeparture=async reason=>{
     await wait(()=>window.__tvUniverse.snapshot.state.mode==='surface',null,8000);
   }
   report.endUniverse=await read();
+  if(contactQA)await contactQA.stop();
   if(report.endUniverse.campaign.canReturn)report.endTown=await returnToTown(initial,'blocked-departure-returned-town');
   throw Error(reason+' Landed safely before stopping the bounded run.');
 };
@@ -479,6 +500,8 @@ const recordAssessment=async trace=>{
     await save();
   }
 };
+const contactQA=process.env.TV_QUALITY_CONTACTS==='1'
+  ?createContactQA({page,report,output,read,capture,save,check,orbit,zoom,recenter}):null;
 let initial;
 try {
   if(mode==='home-recovery'){
@@ -563,7 +586,9 @@ try {
   check(distance(entered.state.position, currentPreview.state.position) < .05, 'Explore preserves the actual current preview position');
   check(entered.state.settlementRevision === 1 && entered.state.explorerId === initial.campaign.personId, 'Mapped settlement traversal retains canonical identity');
   if (mode === 'restart') {
+    if(contactQA)await contactQA.start('restored-idle');
     await capture('02-restored-reentry');
+    if(contactQA){await contactQA.stage('restored-idle');await page.waitForTimeout(1800);await contactQA.stop({required:true});}
     if(process.env.TV_QUALITY_GUARD==='1'){
       const before=await read(),counts=structuredClone(report.commands),views=[];
       await zoom(-1500);
@@ -615,12 +640,22 @@ try {
   checkRecenter(afterCamera.camera);
   check(Math.abs(afterCamera.camera.preferredDistance - orbitBefore.camera.preferredDistance) < .05,
     'Reversing wheel input restores the preferred distance');
-  await page.keyboard.down('w');
-  try { await capture('07-walking-authored-motion'); } finally { await page.keyboard.up('w'); }
+  if(contactQA){
+    try{await contactQA.groundRoute();}
+    catch(error){
+      report.endUniverse=await read();
+      if(report.endUniverse.campaign.canReturn)report.endTown=await returnToTown(initial,'contact-route-stopped-town');
+      throw error;
+    }
+  }else{
+    await page.keyboard.down('w');
+    try { await capture('07-walking-authored-motion'); } finally { await page.keyboard.up('w'); }
+  }
   await page.waitForTimeout(350);
   const walked = await read();
   check(distance(walked.state.position, entered.state.position) > .2, 'Ordinary walking moves the canonical body during motion capture');
   const beforeLift = await read();
+  if(contactQA)await contactQA.start('takeoff');
   await page.keyboard.press('g');
   await wait(() => !!window.__tvUniverse.snapshot.state.personalFlight);
   const lifted = await read();
@@ -642,6 +677,7 @@ try {
   await page.waitForTimeout(300); await page.keyboard.up('e'); await page.locator('[data-brake]').click();
   await ascentCapture; await page.waitForTimeout(700);
   const airborne = await read();
+  if(contactQA)await contactQA.stop();
   if(airborne.status.altitude<10)await stopBlockedDeparture('Vertical departure stayed at ground height after ordinary ascent input.');
   check(airborne.avatar.visible && airborne.avatar.phase === 'flight', 'Shared hero is visible in personal flight');
   check(airborne.avatar.motion?.flight?.weight > .8 && airborne.avatar.motion.flight.phase !== 'ground',
@@ -673,7 +709,9 @@ try {
   await wait(home => window.__tvUniverse.snapshot.status.nearestPlanetId !== home, home, 90000);
   await capture('11-nearest-world-transition');
   await arrive(other); await recordAssessment(await transit); await capture('12-other-world-approach');
-  await land(other); await capture('13-other-world-ground');
+  if(contactQA)await contactQA.start('foreign-landing');
+  await land(other);if(contactQA)await contactQA.stage('foreign-idle');await capture('13-other-world-ground');
+  if(contactQA){await page.waitForTimeout(1200);await contactQA.stop({required:true});}
   const landed = await read();
   check(landed.avatar.motion?.flight?.weight < .05, 'Landing eases the flight presentation back to ground motion');
   check(landed.state.landedVesselPosition === null, 'Foreign personal landing has no local vessel');
@@ -690,13 +728,16 @@ try {
   assert.deepEqual(reloaded.state.parkedVessel, parked);
   await capture('14-reloaded-foreign-ground');
   await page.keyboard.press('g'); await wait(() => !!window.__tvUniverse.snapshot.state.personalFlight);
-  await navigate(home); await arrive(home); await land(home);
+  await navigate(home); await arrive(home);
+  if(contactQA)await contactQA.start('home-landing');
+  await land(home);if(contactQA)await contactQA.stage('home-idle');
   await capture('15-returned-home');
+  if(contactQA){await page.waitForTimeout(1200);await contactQA.stop({required:true});}
   const returned = await read();
   check(returned.state.parkedVessel && returned.state.landedVesselPosition, 'Home landing restores access to the original parked vessel');
   assert.deepEqual(returned.campaign.inventory, initial.campaign.inventory);
   check(returned.campaign.personId === initial.campaign.personId && returned.campaign.bodyId === initial.campaign.bodyId, 'Home return retains full canonical identity and inventory');
-  await nearWallProbe();
+  if(!contactQA)await nearWallProbe();
   report.endUniverse = await read();
   report.endTown = await returnToTown(initial, '16-returned-town-ready');
   }
@@ -708,7 +749,7 @@ try {
       '10-between-worlds':'03-between-worlds', '13-other-world-ground':'05-other-world-ground', '15-returned-home':'07-returned-home' };
     report.comparison = { baseline: baselinePath, note: 'Single-machine 120-frame samples; different camera framing/settings are recorded, so these are not identical render workloads.',
       captures: report.samples.filter(s => names[s.name]).map(after => {
-        const prior = before.samples.find(s => s.name === names[after.name]);
+        const prior = before.samples.find(s=>s.name===after.name)??before.samples.find(s => s.name === names[after.name]);
         return { after: after.name, before: prior?.name, priorMetrics: prior ? { p50:prior.metrics.p50,p95:prior.metrics.p95,draws:prior.metrics.draws } : null,
           currentMetrics: { p50:after.metrics.p50,p95:after.metrics.p95,draws:after.metrics.draws },
           canonicalPositionDifference: prior?.state?.position && after.state?.position ? distance(prior.state.position, after.state.position) : null };
@@ -731,5 +772,6 @@ try {
   try { report.lastState = await read(); await page.screenshot({ path: resolve(output, 'failure.png') }); } catch {}
   process.exitCode = 1;
 } finally {
+  if(contactQA)try{await contactQA.release();await contactQA.stop();}catch{}
   await save(); clearTimeout(watchdog); await browser.close();
 }

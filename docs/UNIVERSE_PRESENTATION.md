@@ -55,6 +55,40 @@ collision-constrained lens.
 
 ## Lighting and ownership
 
+### Contact/readability local checkpoint
+
+The contact pass adds a read-only floor patch to the campaign projection.
+It comes from the host's existing collision triangles, including raised paving
+and slopes. The browser receives bounded sphere-space triangles around the
+traveler; it does not download the full collision catalog. Missing evidence,
+unsupported faces and an exceeded triangle budget release contact. The lowered
+procedural underlay is never used as a town foot-contact surface.
+
+The spherical avatar passes a fresh absolute origin and radial up direction to
+the shared character. Sole anchors remain in absolute coordinates while the
+renderer rebases. Correction rotates the legs and ankles, leaving the canonical
+body and actor root unchanged. Geometry tests and a partial ordinary-control
+ground run are recorded under `docs/evidence/presentation-quality/contact-pass/`.
+The ground run reached the step and slope but failed its later departure-position
+assertion and returned safely to town. Flat/step contact windows are measured;
+the left foot has no eligible slope-idle frame, while the right remains eligible
+for 20.19 seconds. The exact inactive
+town checkpoint 10649 restores. See [the handoff](UNIVERSE_CONTACT_HANDOFF.md).
+
+Personal-flight framing now scales preferred zoom by 1.15, with at most 1.2 m
+of speed pullback. A default 6 m preference therefore reaches at most 8.1 m in
+clear flight. The camera still obeys manual zoom, orbit, collision and eased
+mode transitions. Raised-hand envelope tests cover the default frame, not all
+possible camera angles or clothing deformation.
+
+The flight overlay now raises the arms during strong vertical ascent and allows
+a stronger, bounded forward lean during forward passage. Existing hemispheric
+and environment fill increase smoothly at altitude, preserving the prior
+surface values through 40 m. No extra light, caster or character material is
+introduced. Actual front/side moving-flight visual acceptance remains pending:
+Jacob requested wrap-up, and no new flight run was started after the ground
+assertion. The Atlas capsule-margin sole-query defect also remains open (U-063).
+
 `src/web/universe/lighting.ts` owns the directional key, hemispheric fill, sky
 dome, environment texture and shadow generator for this scene. The distant sun
 direction is the normalized fixed presentation vector `(0.35, 0.82, 0.45)`.

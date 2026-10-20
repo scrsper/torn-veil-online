@@ -19,6 +19,7 @@ import { constrainUniverseSettlementMovement, universePointToBody } from './univ
 import { recordTravel } from '../sim/world/universe/travel';
 import { settlementGroundAt, planetDirectionToSettlement } from '../sim/world/universe/settlements';
 import type { TravelGeometry } from '../sim/world/universe/travel';
+import { universeContactPatch, type UniverseContactPatch } from './universeContacts';
 
 export interface CanonicalUniverseCommand { type: 'enter' | 'explore' | 'ascend' | 'return'; id: string; revision: number }
 export interface CanonicalUniverseView {
@@ -32,6 +33,7 @@ export interface CanonicalUniverseView {
     canExplore: boolean;
     preview: CanonicalUniverseView['snapshot'];
     doors: { index: number; open: boolean }[];
+    footSupport: UniverseContactPatch | null;
   };
 }
 function projectTraveler(s: RealmSession) {
@@ -145,6 +147,7 @@ export function canonicalUniverseView(s: RealmSession): CanonicalUniverseView {
       rank: p.ontology.stage, health: b.health, maxHealth: b.maxHealth,
       flight: flightAssessment(s), body: projectTraveler(s),
       canExplore: !!preview, preview, doors: [...s.world.grid.doorStates].map(([index, open]) => ({ index, open })),
+      footSupport: universeContactPatch(s, r?.active ? r.state : preview?.state, generateSystem(universeSpec(s.world.seed), 0).planets[0]),
       inventory: p.inventory.flatMap(id => { const item = s.world.item(id); return item ? [{ id, name: item.name, quantity: item.quantity }] : []; }),
       canEnter: enter === null, canReturn: back.message === null, message: r?.active ? back.message ?? 'Cinderveil docking link ready.' : enter ?? 'Veil boarding link ready.' },
   };

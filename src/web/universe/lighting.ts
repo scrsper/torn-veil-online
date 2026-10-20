@@ -20,7 +20,13 @@ export function universeLightState(radial: V3, altitude: number, atmosphere: num
   const elevation = (radial.x * sun.x + radial.y * sun.y + radial.z * sun.z) / (n * sn);
   const air = smooth(1 - Math.max(0, altitude) / Math.max(1, atmosphere));
   const day = smooth((elevation + .12) / .47);
-  return { air, day, elevation, stars: 1 - air * day, shadows: altitude < 120 };
+  // Preserve the established ground treatment. At altitude the same existing
+  // fill/irradiance sources retain readable cloth and limb silhouettes against
+  // space; no camera-following light, glow or extra shadow pass is introduced.
+  const altitudeFill = smooth((Math.max(0, altitude) - 40) / Math.max(160, atmosphere));
+  return { air, day, elevation, stars: 1 - air * day, shadows: altitude < 120,
+    altitudeFill, fillIntensity: .3 + .25 * air * day + .16 * altitudeFill,
+    environmentIntensity: .2 + .3 * air * day + .14 * altitudeFill };
 }
 export interface ShadowCandidate { id: number; distance: number; triangles: number; priority: number }
 /** Babylon reports prototype indices, including for thin-instance batches.
@@ -110,15 +116,16 @@ export class UniverseLighting implements UniverseShadowOwner {
   update(planet: PlanetDescriptor, radial: V3, altitude: number, dt: number) {
     if (this.disposed) return;
     this.state = universeLightState(radial, altitude, planet.atmosphere);
-    const { air, day } = this.state, sky = Color3.FromHexString(planet.palette.sky);
+    const { air, day, altitudeFill } = this.state, sky = Color3.FromHexString(planet.palette.sky);
     this.sky.setVector3('radial', new Vector3(radial.x, radial.y, radial.z).normalize());
     this.sky.setColor3('tint', sky); this.sky.setFloat('air', air); this.sky.setFloat('day', day);
     this.key.intensity = 1.45;
     this.fill.direction.set(radial.x, radial.y, radial.z);
     this.fill.diffuse = Color3.Lerp(new Color3(.4, .48, .68), new Color3(.76, .8, .86), day);
     this.fill.groundColor = Color3.Lerp(new Color3(.04, .05, .09), new Color3(.3, .27, .24), day);
-    this.fill.intensity = .3 + .25 * air * day;
-    this.scene.environmentIntensity = .2 + .3 * air * day;
+    this.fill.groundColor.addInPlace(new Color3(.06, .07, .08).scale(altitudeFill));
+    this.fill.intensity = this.state.fillIntensity;
+    this.scene.environmentIntensity = this.state.environmentIntensity;
     this.scene.clearColor = new Color4(.003, .006, .018, 1);
     this.scene.fogMode = air > .02 ? Scene.FOGMODE_EXP2 : Scene.FOGMODE_NONE;
     this.scene.fogDensity = .00022 * air;

@@ -98,8 +98,9 @@ export class SphericalOrbitCamera {
   update(dt: number, input: SphericalCameraInput, obstruct?: OrbitObstruction): SphericalCameraPose {
     const t = clamp(Number.isFinite(dt) ? dt : 0, 0, .1), radial = normalize(input.radial);
     const tangent = projected(input.forward, radial), speed = length(input.velocity);
-    const factor = input.mode === 'vessel' ? 3.2 : input.mode === 'personal' ? 1.35 : 1;
-    const speedBias = input.mode === 'ground' ? Math.min(.35, speed * .035) : Math.min(3, Math.log1p(speed / 20) * .6);
+    const factor = input.mode === 'vessel' ? 3.2 : input.mode === 'personal' ? 1.15 : 1;
+    const speedBias = input.mode === 'ground' ? Math.min(.35, speed * .035)
+      : Math.min(input.mode === 'personal' ? 1.2 : 3, Math.log1p(speed / 20) * .6);
     const desiredDistance = this.preferredDistance * factor + speedBias;
     // Close ground framing includes boots above the bottom HUD without changing
     // the free orbit angle or the user's preferred distance.

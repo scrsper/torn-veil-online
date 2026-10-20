@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-10-20T19:40:21.321Z",
+  "savePath": ".debug/atlas-flight-qa-2026-10-20T19-33-44-972Z/world.json",
+  "engine": "28105623556baaf54ee1970df52aeddaa63118d14009a730ef05074da16f7b96",
+  "checkpointSequence": 10649,
+  "personId": "p_5",
+  "bodyId": "b_5",
+  "fullInventoryUnchanged": true,
+  "inventoryCount": 5,
+  "active": false,
+  "mode": "surface",
+  "personalFlight": null,
+  "bodyPresentInTown": true,
+  "canExplore": true,
+  "townPosition": {
+    "x": 11311.288343251204,
+    "y": 1.0625000000000002,
+    "z": 3093.0468207969448
+  },
+  "returnedEventId": "e_289",
+  "position": {
+    "x": 0.28940720160577393,
+    "y": 497.38463494335576,
+    "z": 1530.2583344233044
+  },
+  "discoveries": [
+    {
+      "planetId": "u1:20261017:s0:p0",
+      "systemIndex": 0,
+      "tick": 0,
+      "explorerId": "p_5",
+      "method": "landed"
+    }
+  ],
+  "landedVesselPosition": {
+    "x": -3.0784811375173877,
+    "y": 524.4641801324371,
+    "z": 1521.0980550469717
+  },
+  "mana": 320,
+  "footSupport": {
+    "available": true,
+    "triangles": 290
+  },
+  "note": "User requested wrap-up. The harness had already returned ordinarily to rendered town after its departure-position assertion. Browser closed, then managed host shut down gracefully. Exact inactive town checkpoint restores. No flight or browser restart acceptance is claimed for this pass."
+}

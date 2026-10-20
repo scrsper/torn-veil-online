@@ -9,6 +9,7 @@ import { UniverseTerrain } from './terrain';
 import { AtlasSurfaceRenderer } from '../atlas/surface';
 import { atlasPlanetSweep } from '../../sim/world/atlas/collision';
 import { UniverseAvatar } from './avatar';
+import { UniverseFootSupport } from './contactSupport';
 import { SphericalOrbitCamera } from './camera';
 import { UniverseLighting } from './lighting';
 import { UniverseSettlements, type SettlementProjection } from './settlements';
@@ -23,6 +24,7 @@ const units = (n: number) => Math.abs(n) < 1000 ? `${Math.round(n)} m` : `${(n /
 
 /** Free orbit around the host's expedition. No local movement prediction. */
 export async function startUniverse() {
+  const footSupport = new UniverseFootSupport();
   const campaignMode = new URLSearchParams(location.search).has('campaign');
   document.title = 'Torn Veil · The Astral Sea';
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -325,7 +327,14 @@ export async function startUniverse() {
     });
     camera.upVector.copyFrom(vec(cameraPose.up)); camera.position.copyFrom(vec(cameraPose.position));
     camera.setTarget(vec(cameraPose.target)); camera.fov = cameraPose.fov;
-    avatar.update(campaign?.body ?? null, rendered, rendered, facing, radial, s.velocity, personal, showHero, dt, cameraPose.tangentHeading, orbit.debug.renderedDistance);
+    footSupport.setPatch(campaign?.footSupport ?? null);
+    avatar.update(campaign?.body ?? null, rendered, rendered, facing, radial, s.velocity, personal, showHero, dt, cameraPose.tangentHeading, orbit.debug.renderedDistance,
+      !isFlight && (!hasSettlements || nearCamera.id !== homePlanet?.id || !!campaign?.footSupport || settlements.stats().revision > 0)
+        ? { reference: nearCamera.id, origin: rendered, up: radial,
+        sample: (point, axis, radius, maxDistance) => footSupport.sample(nearCamera,
+          campaign?.footSupport?.planetId === nearCamera.id
+            || settlements.groundHeight(nearCamera, vec(point).subtract(vec(nearCamera.center)).normalize()) !== null,
+          s.atlasRevision ?? 0, point, axis, radius, maxDistance) } : null);
     const point = (v: V3) => ({ x: v.x, y: v.y, z: v.z });
     cameraDiagnostics = { ...orbit.debug, position: point(camera.position), target: point(cameraPose.target), up: point(cameraPose.up),
       tangentHeading: point(cameraPose.tangentHeading), worldPosition: point(rendered.add(camera.position)),
@@ -390,7 +399,7 @@ export async function startUniverse() {
     scene.render();
   });
   // Read-only diagnostic surface for bounded browser verification.
-  Object.defineProperty(window, '__tvUniverse', { configurable: true, value: { get snapshot() { return snapshot; }, get campaign() { return campaign; }, get stats() { return terrain?.stats(); }, get atlas() { return atlas.stats(); }, get avatar() { return avatar.stats(); }, get settlements() { return settlements.stats(); }, get camera() { return structuredClone(cameraDiagnostics); }, get lighting() { return lighting.stats(); }, get preview() { return campaign?.preview ?? null; }, get render() { return { drawCalls: engine._drawCalls.current, activeMeshes: scene.getActiveMeshes().length, totalMeshes: scene.meshes.length }; }, get vessel() { return { visible: ship.isEnabled(), position: { x: ship.position.x, y: ship.position.y, z: ship.position.z } }; }, get ready() { return !!(snapshot || campaign?.preview) && !!terrain; } } });
+  Object.defineProperty(window, '__tvUniverse', { configurable: true, value: { get snapshot() { return snapshot; }, get campaign() { return campaign; }, get stats() { return terrain?.stats(); }, get atlas() { return atlas.stats(); }, get avatar() { return avatar.stats(); }, get footSupport() { return footSupport.stats(); }, get settlements() { return settlements.stats(); }, get camera() { return structuredClone(cameraDiagnostics); }, get lighting() { return lighting.stats(); }, get preview() { return campaign?.preview ?? null; }, get render() { return { drawCalls: engine._drawCalls.current, activeMeshes: scene.getActiveMeshes().length, totalMeshes: scene.meshes.length }; }, get vessel() { return { visible: ship.isEnabled(), position: { x: ship.position.x, y: ship.position.y, z: ship.position.z } }; }, get ready() { return !!(snapshot || campaign?.preview) && !!terrain; } } });
   const cleanup = () => {
     if (disposed) return; disposed = true;
     clearInterval(network); clearTimeout(reconnect); campaignSocket?.close(); keys.clear(); pointerUp(); persistCamera();

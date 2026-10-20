@@ -23,9 +23,15 @@ export function flightPresentation(previous: FlightPresentation, input: FlightPr
   // The upright frame rotates as we move between worlds. A shrinking tangent
   // component does not mean the body slowed; magnitude is rotation invariant.
   const brake = airborne && previous.totalSpeed > 12 && step > 0 && (previous.totalSpeed - totalSpeed) / step > 18;
-  const reach = airborne ? limit((speed - 5) / 28, 0, 1) : 0;
+  // Reach follows travel in front of/above the torso, including a genuinely
+  // vertical launch. Lateral/backward motion and feet-first descent retain the
+  // open hover silhouette rather than reaching opposite their velocity.
+  const reachSpeed = airborne ? Math.hypot(Math.max(0, -v!.z), Math.max(0, v!.y)) : 0;
+  const reach = airborne && !brake ? limit((reachSpeed - 5) / 28, 0, 1) : 0;
   const weight = previous.weight + ((airborne ? 1 : 0) - previous.weight) * ease;
-  const targetPitch = airborne ? (brake ? -.18 : Math.min(1.02, speed / (speed + 15))) : 0;
+  const forwardShare = airborne ? limit(-v!.z / Math.max(1, speed), -.25, 1) : 0;
+  const travelLean = airborne ? Math.atan2(speed, Math.max(0, v!.y)) * speed / (speed + 12) : 0;
+  const targetPitch = airborne ? (brake ? -.18 : limit(travelLean * forwardShare, -.18, 1.3)) : 0;
   const targetBank = airborne ? limit(-v!.x / Math.max(10, speed), -.24, .24) : 0;
   const phase = !airborne ? (weight > .01 ? 'landing' : 'ground') :
     previous.weight < .3 ? 'launch' : brake ? 'brake' :
@@ -75,14 +81,18 @@ export class FlightPose {
     const { reach, weight } = this.state;
     for (const side of ['l', 'r']) {
       const sign = this.armSigns.get(side)!;
-      this.aim(`upperarm_${side}`, `lowerarm_${side}`, new Vector3(sign * (.28 - reach * .1), -.95 + reach * 1.87, .08 + reach * .25), weight * .86);
-      this.aim(`lowerarm_${side}`, `hand_${side}`, new Vector3(sign * .08, -.91 + reach * 1.78, .38), weight * .78);
+      // Imported rigs face +Z. The existing root adapter makes that canonical
+      // -Z; aiming in the imported frame keeps both rigs and radial parents
+      // consistent. A bounded 140-degree shoulder swing can reach beyond the
+      // head, where the previous 100-degree cap left the elbows at shoulder level.
+      this.aim(`upperarm_${side}`, `lowerarm_${side}`, new Vector3(sign * (.32 - reach * .18), -.86 + reach * 1.82, .25 + reach * .03), weight * .98, 2.44346);
+      this.aim(`lowerarm_${side}`, `hand_${side}`, new Vector3(sign * .05, -.6 + reach * 1.52, .72 - reach * .34), weight * .94);
       // A small knee flex breaks the rigid standing silhouette during hover;
       // streamline the legs as the arms reach into forward cruise.
       this.aim(`calf_${side}`, `foot_${side}`, new Vector3(sign * .015, -1, -.18 * (1 - reach)), weight * .6);
     }
   }
-  private aim(name: string, childName: string, localDirection: Vector3, weight: number) {
+  private aim(name: string, childName: string, localDirection: Vector3, weight: number, maxAngle = 1.75) {
     const node = this.instance.bones?.get(name), child = this.instance.bones?.get(childName);
     if (!node || !child) return;
     node.computeWorldMatrix(true); child.computeWorldMatrix(true); this.instance.root.computeWorldMatrix(true);
@@ -90,8 +100,7 @@ export class FlightPose {
     const wanted = Vector3.TransformNormal(localDirection, this.instance.root.getWorldMatrix()).normalize();
     const dot = limit(Vector3.Dot(current, wanted), -1, 1), cross = Vector3.Cross(current, wanted);
     if (cross.lengthSquared() < 1e-10) return;
-    // Avoid a frame ever rotating an arm more than 100 degrees from its source.
-    const delta = Quaternion.RotationAxis(cross.normalize(), Math.min(1.75, Math.acos(dot)) * weight);
+    const delta = Quaternion.RotationAxis(cross.normalize(), Math.min(maxAngle, Math.acos(dot)) * weight);
     const base = node.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(node.rotation);
     setWorldRotation(node, delta.multiply(node.absoluteRotationQuaternion));
     this.applied.push({ node, base, post: node.rotationQuaternion!.clone() });

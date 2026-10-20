@@ -47,7 +47,11 @@ Airborne motion uses the authored relaxed idle under a bounded visual overlay, n
 
 The first browser pass caught false braking during steady assisted travel: the tangent-speed component shrank as the radial frame rotated. Braking now compares total velocity magnitude, while lean and reach retain their local directional inputs. A constant-speed rotation regression covers the failure. The spine-tilt diagnostic now measures against the actor's radial up direction, above the flight pivot; it previously reported approximately 67.6 degrees for an upright hero simply because the town was not at the global-Y pole.
 
-The spherical avatar retains the camera's stable tangent heading for vertical steering, and accepts the shared lighting caster owner. Planar foot IK remains disabled on the spherical parent: a proper radial support sampler and frame-aware solver are still necessary. There is no claim of verified spherical foot planting.
+The spherical avatar retains the camera's stable tangent heading for vertical steering, and accepts the shared lighting caster owner. Planar foot IK remains disabled on the spherical parent. The current contact iteration supplies a separate radial solver with absolute anchors, a fresh render-origin frame and host-derived floor triangles inside settlements. Outside mapped settlements it uses the shared canonical terrain/Atlas support functions. Browser acceptance is tracked separately from the geometry checks.
+
+The radial solver measures a support hull of at most thirteen actual boot vertices per foot, selected by distal foot/toe skin weights. Each update evaluates their animated skin transforms before bounded leg/ankle correction; diagnostics reevaluate the same vertices afterward. It checks the centre and full heel/toe footprint, releases unsupported or discontinuous contacts and retains anchors across render-origin shifts. Body stature controls metre limits independently of source import units. The actor root, canonical position, source geometry, textures and skin weights remain unchanged. The planar solver remains on its existing path.
+
+The actual staged Ranger and Wren rigs, their own UAL idle/walk bakes and synthetic rotated/skinned fixtures pass the focused checks. Selected settled minimum sole gaps on the analytic test plane remain below 0.72 mm in the sampled imported-rig frames. This is geometry evidence, not an exhaustive mesh collision claim or rendered town-slope acceptance. The source hashes, measurement method, prototype failures and limits are in [RIG_CHECK.md](evidence/presentation-quality/contact-pass/RIG_CHECK.md).
 
 Optical refinements now recognize the inspected `Human.body`, `Human.low-poly` eye, specific hair, clothing and leather material names on the actual heroes. They preserve source textures, colours, UVs and geometry. Existing character credit requirements remain in `web/public/arena/people/CREDITS.md`. No VRM or other unreviewed character replacement is introduced.
 
@@ -65,7 +69,7 @@ canonical berth retention and the browser/server import boundary. TypeScript
 passed after the final source changes. Browser acceptance is recorded separately
 under `docs/evidence/presentation-quality/`.
 
-Remaining work includes radial foot planting, gesture/flight pose art review against clothing deformation, measured per-rig load/bake cost for the full resident cast, and further character/cloth detail only after that visual review. The current hero meshes exceed the earlier approximately 25k-triangle target (Wren about 35k, Ranger about 45k); this pass does not claim a geometry-budget reduction.
+Remaining work includes live radial-contact acceptance across paving, steps and slopes, gesture/flight pose review against clothing deformation, measured per-rig load/bake cost for the full resident cast, and further character/cloth detail after that visual review. The current hero meshes exceed the earlier approximately 25k-triangle target (Wren about 35k, Ranger about 45k); this pass does not claim a geometry-budget reduction.
 
 ### Measured ground review
 

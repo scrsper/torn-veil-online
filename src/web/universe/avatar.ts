@@ -3,6 +3,7 @@ import { tangentFrame, type V3 } from '../../sim/world/planet/planet';
 import { SharedCharacters } from '../actors/sharedCast';
 import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState } from '../net/messages';
+import type { FootContactFrame } from '../arena/footPlant';
 
 const vector = (p: V3) => new Vector3(p.x, p.y, p.z);
 const copy = (p: V3) => ({ x: p.x, y: p.y, z: p.z });
@@ -45,6 +46,7 @@ export class UniverseAvatar {
   private cameraClearance = Infinity;
   private position: V3 = { x: 0, y: 0, z: 0 };
   private inverse = Matrix.Identity();
+  private contactFrame: FootContactFrame | null = null;
   constructor(private scene: Scene, private lighting: { addCaster(mesh: AbstractMesh): void; removeCaster(mesh: AbstractMesh): void } = { addCaster() {}, removeCaster() {} }) {
     this.people = new SharedCharacters(scene);
     this.parent = new TransformNode('astral-character-frame', scene);
@@ -52,8 +54,10 @@ export class UniverseAvatar {
   }
 
   update(body: BodyState | null, position: V3, origin: V3, forward: V3, radial: V3,
-    velocity: V3, flying: boolean, visible: boolean, dt: number, stableHeading?: V3, cameraClearance = Infinity) {
+    velocity: V3, flying: boolean, visible: boolean, dt: number, stableHeading?: V3, cameraClearance = Infinity,
+    contactFrame: FootContactFrame | null = null) {
     if (this.disposed) return;
+    this.contactFrame = !flying && visible ? contactFrame : null;
     this.phase = visible && body ? flying ? 'flight' : 'ground' : 'hidden';
     this.cameraClearance = cameraClearance;
     this.cameraOccluded = avatarCameraOccluded(this.cameraOccluded, cameraClearance);
@@ -70,7 +74,7 @@ export class UniverseAvatar {
     }
     if (body && this.people.ready && (!this.visual || this.bodyId !== body.bodyId)) {
       this.visual?.dispose();
-      this.visual = this.people.create(body, this.lighting, { planarContacts: false }, 'player');
+      this.visual = this.people.create(body, this.lighting, { planarContacts: false, radialContacts: () => this.contactFrame }, 'player');
       this.bodyId = body.bodyId;
       if (this.visual) this.visual.root.parent = this.parent;
     }
