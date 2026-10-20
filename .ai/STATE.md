@@ -3,8 +3,9 @@
 Combines traversal with public main `8a9fa58`, earned progression and the current
 John Smith authority. Writer schema 33 preserves both independent schema-32
 histories; legacy Tower silver stops after the current authority is initialized.
-Public snapshot preparation is authorized; CI and the integrated ordinary-input
-travel/restart gates remain pending. See `docs/UNIVERSE_RELEASE.md` for current
+Published draft PR72 now has browser-verified implementation `4cde1b4`:53 ordinary
+journey checks pass, including foreign reload and full town return. Exact host
+restart and final-head CI remain required. See `docs/UNIVERSE_RELEASE.md` for current
 evidence and remaining limits. Historical private ancestry remains local.
 
 # Previous candidate: Levels and the Normal→Diamond ladder (2026-10-19)

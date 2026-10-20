@@ -1,8 +1,8 @@
 # Torn Veil current release candidate - October 20, 2026
 
-Universe traversal is being integrated with public main `8a9fa58`, including
-earned progression and John Smith. Publication is authorized, but merge still
-requires CI and integrated ordinary travel/landing/return/restart acceptance.
+Universe traversal integrates public main `8a9fa58`, earned progression and John
+Smith. Source `4cde1b4` passes53 ordinary journey checks with foreign landing/reload
+and town return. Draft PR72 still requires exact host restart and final-head CI.
 See [release status](UNIVERSE_RELEASE.md), [asset setup](UNIVERSE_ASSETS.md) and
 [actual destinations](UNIVERSE_DESTINATIONS.md). Older build records below retain
 their original scope; they do not establish this candidate's acceptance.

@@ -1,9 +1,11 @@
 # Traversal release integration — October 20, 2026
 
-Published draft [PR 72](https://github.com/scrsper/torn-veil-online/pull/72),
-candidate `e278ec4`; merge acceptance is still pending. This file
-supersedes the stopped local checkpoint as the current release handoff, while
-preserving its evidence in `UNIVERSE_CONTACT_HANDOFF.md`.
+The integrated implementation at `4cde1b4` completes the ordinary-input journey:
+53 checks, zero HTTP/browser errors, foreign landing/reload and home/town return.
+[PR 72](https://github.com/scrsper/torn-veil-online/pull/72) remains draft until
+the exact-save host restart and all CI jobs on its final head pass. The PR carries
+the live CI and merge status; this document records the source and evidence.
+Historical contact evidence remains in `UNIVERSE_CONTACT_HANDOFF.md`.
 
 ## Scope and history
 
@@ -33,7 +35,20 @@ the engine-fingerprint guard is unchanged.
   production bundles, all PR CI jobs, and ordinary-input departure, personal
   travel, foreign landing, return and exact-host restart on the integrated source.
 - Required: inspect moving ascent/cruise and foreign-world captures from this
-  revision. Historical captures do not validate the current flight presentation.
+  revision. Root inspected the current ascent, moving side/front space flight,
+  foreign landing and rendered town return; full body remains legible and clear
+  of controls. Weak space contrast and dark/sparse foreign terrain remain limits.
+- Current ordinary journey: **passed**, with original waypoint/departure bounds,
+  accepted neutral input and stable position; [53-check evidence](evidence/universe-release/verified-run/acceptance.json).
+- Exact-save host restart: **pending**. The original managed terminal rejects
+  shutdown input under the current tool approval policy. Its isolated host must
+  stop gracefully before restarting the same save; no forced termination or
+  fingerprint bypass is an acceptable substitute.
+- Final-head CI: required. Earlier published `2447752` passed all four CI jobs;
+  this does not certify later fixes. See PR72 for the current head's checks.
+- Precision limit U076 remains open: one corrected short tap moved1.05 m and
+  failed the retained0.75 m benchmark under118 ms serialized response latency.
+  The full physical route passes, but fine-input precision is not certified.
 - Known presentation limits: left-foot contact on the sampled slope, weak boot
   contact shadows and live minimum-camera hide-threshold coverage. These remain
   explicit issues, not claimed fixes. Geometry penetration/drift/gap limits remain
@@ -61,7 +76,7 @@ Focused collision geometry must be cooked from the checked-in verified sources
 before geometry-dependent tests. No personal campaign is endowed for flight;
 release browser tests use a separately identified capability fixture.
 
-## Validation record so far
+## Validation record
 
 - 73 tests in six progression, John Smith, traversal integration and journal
   recovery files passed on the initial combined source.
@@ -77,6 +92,16 @@ release browser tests use a separately identified capability fixture.
 - Four cutover tests passed after adding an explicit real-worker journal replay,
   repeated cache claim/objectives, checkpoint/JSON reload and retried travel return
   regression. Exactly one historical silver payout and one current cache remain.
+- Latest combined input/API/camera/harness/web-boundary run:69 tests in six files
+  passed. Final TypeScript and Babylon web bundle passed after the frame-clock
+  and response-condition fixes. Test groups overlap and are not additive.
+- Current browser journey on clean `4cde1b4`:53 checks pass, zero HTTP/browser
+  errors. It walks the actual paving/step/slope/departure route, lifts the same
+  body, spends canonical mana, flies to Vesperspire3, lands/reloads, returns home
+  to its original parked vessel, then returns to the rendered town with all items.
+- The live horizon gate passes across6,239 timeline frames: maximum excess
+  2.98e-14 radians above90deg/s, with the unchanged0.003-radian allowance and
+  zero coarse excess. No long steady-speed pose interval was captured.
 - Original contact checkpoint 10649 loads read-only with Person `p_5`, Body
   `b_5`, inventory `i_1`–`i_5`, one discovery and inactive town residency.
   Its original checkpoint manifest remains unchanged.
@@ -84,5 +109,31 @@ release browser tests use a separately identified capability fixture.
   errors, then stopped before flight: a distance-only watchdog treated ordinary
   turning as failed walking progress. Safe ordinary return and exact read-only
   restore of checkpoint 4713 passed, retaining all five items and earned 110 XP.
-  [Preserved evidence](evidence/universe-release/first-run/RESULTS.md). The checker
-  correction, complete journey/restart and final-head CI remain required.
+  [Preserved evidence](evidence/universe-release/first-run/RESULTS.md).
+
+All failed attempts remain preserved: [2](evidence/universe-release/second-run/RESULTS.md),
+[3](evidence/universe-release/third-run/RESULTS.md),
+[4](evidence/universe-release/fourth-run/RESULTS.md),
+[5](evidence/universe-release/fifth-run/RESULTS.md),
+[6](evidence/universe-release/sixth-run/RESULTS.md), and the two short-tap checks
+([first](evidence/universe-release/microtap-first/RESULTS.md),
+[corrected timing](evidence/universe-release/microtap-second/RESULTS.md)).
+Each failed live run returned safely and restored its checkpoint read-only.
+Attempt6 completed travel but failed network-evidence and camera-clock checks;
+attempt7 passes those corrected checks. The benchmark precision failure remains.
+
+## Necessary next work
+
+1. Finish this release's exact-save restart and final-head CI before readiness
+   or merge. Keep the source unchanged across the restart check.
+2. Improve input delivery through ordered host admission and durable receipts,
+   retaining owner/epoch/sequence, structural barriers and journal replay. Do not
+   drop simulation time or submit overlapping commands past the busy fence.
+3. Complete left-foot slope contact, clipped slope-front framing and foreign
+   source-triangle sole coverage. Improve low-contrast flight/terrain composition;
+   measure steady-speed pose correctness and the actual hide/restore threshold.
+4. Continue ordinary spherical interaction/combat/door/Tower integration,
+   survival consequences, canonical ecology/resources and vessel acquisition,
+   fuel/cargo. Add repeated view changes and a long flight/reload/warp endurance
+   pass with measured memory and frame time. These are larger gameplay work,
+   not capabilities established by this release's finite journey.

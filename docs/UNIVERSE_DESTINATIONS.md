@@ -63,7 +63,14 @@ slice. [Generation](../src/sim/world/universe/generation.ts),
 
 ## What was actually visited
 
-The [verified campaign journey](evidence/presentation-quality/verified-run/RESULTS.md)
+The current integrated release at `4cde1b4` completes the
+[53-check journey](evidence/universe-release/verified-run/RESULTS.md): ordinary
+home-town walking/departure, personal flight to Vesperspire3, landing/reload, home
+landing and town return, with zero HTTP/browser errors. The same body, inventory,
+discoveries and original parked vessel survive. Exact host restart and final-head
+CI remain separate gates in [the release record](UNIVERSE_RELEASE.md).
+
+The earlier [verified campaign journey](evidence/presentation-quality/verified-run/RESULTS.md)
 visited Cinderveil and Vesperspire 3, landed/reloaded, flew home and returned to town.
 It passed 51 checks plus a separate 17-check restart follow-up. The earlier
 [standalone explorer](evidence/universe/RESULTS.md) exercised system-1 warp and
