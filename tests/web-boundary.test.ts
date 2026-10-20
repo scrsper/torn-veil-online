@@ -74,6 +74,8 @@ describe('browser bundle boundary', () => {
       'src/sim/world/planet/index.ts', 'src/sim/world/planet/planet.ts', 'src/sim/world/planet/regions.ts', 'src/sim/world/planet/motion.ts',
       'src/sim/world/planet/sky.ts', 'src/sim/world/planet/scatter.ts', 'src/sim/world/planet/chart.ts',
       'src/sim/world/planet/pagoda.ts', 'src/sim/world/planet/roads.ts', 'src/sim/world/planet/aether.ts', 'src/sim/world/planet/ravines.ts', 'src/sim/world/planet/precinct.ts',
+      // Versioned immutable geography queries only. Travel stepping stays on the host.
+      'src/sim/world/universe/generation.ts',
       // Seeded deterministic RNG and realm addresses/names; no World access.
       'src/sim/core/rng.ts', 'src/sim/world/realms/layout.ts',
       // Library registry generated from the torn-veil-assets manifest (ids, hashes, bounds; no binaries).

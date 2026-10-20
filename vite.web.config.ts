@@ -3,6 +3,7 @@ import { createReadStream, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const gatewayPort = process.env.TV_WEB_GATEWAY_PORT ?? '7491';
+const universePort = process.env.TORN_VEIL_UNIVERSE_PORT ?? '7526';
 
 /**
  * Babylon.js browser client. Separate from the legacy Three.js client (root vite.config.ts):
@@ -38,6 +39,6 @@ export default defineConfig({
     rollupOptions: { output: { manualChunks: { babylon: ['@babylonjs/core'] } } },
   },
   // In development the page is served by Vite; the session, health and socket routes are the gateway's, proxied so one origin serves both.
-  server: { port: 5180, host: '127.0.0.1', strictPort: true, proxy: { '/ws': { target: `ws://127.0.0.1:${gatewayPort}`, ws: true, changeOrigin: true }, '/api': { target: `http://127.0.0.1:${gatewayPort}`, changeOrigin: true }, '/launch': { target: `http://127.0.0.1:${gatewayPort}`, changeOrigin: true } } },
+  server: { port: 5180, host: '127.0.0.1', strictPort: true, proxy: { '/api/universe': { target: `http://127.0.0.1:${universePort}`, changeOrigin: true }, '/ws': { target: `ws://127.0.0.1:${gatewayPort}`, ws: true, changeOrigin: true }, '/api': { target: `http://127.0.0.1:${gatewayPort}`, changeOrigin: true }, '/launch': { target: `http://127.0.0.1:${gatewayPort}`, changeOrigin: true } } },
   esbuild: { legalComments: 'none' },
 });

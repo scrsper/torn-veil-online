@@ -12,6 +12,11 @@ private reports remain preserved locally; source branches and historical preview
 
 ## Play
 
+**Procedural world expedition:** this branch includes **Play Torn Veil Universe.cmd**
+(`npm run universe:play`) for surface-to-space flight, generated planets and saved
+discoveries. See [The Astral Sea](docs/UNIVERSE_TRAVERSAL.md) for controls and scope.
+Its explorer save is separate from the town/Tower character campaign below.
+
 The launcher opens one home for Play, character, Tower, persistent Observatory and historical experiments. See the [local repair checkpoint](docs/TORN_VEIL_REPAIR_OCT11.md).
 
 Double-click **Play Torn Veil.cmd** (or `npm run play`) for the persistent
