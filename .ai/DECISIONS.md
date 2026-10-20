@@ -453,3 +453,23 @@ does not define whether an inhabitant exists or replace canonical activity sched
 - Gold's lifetime-quality and proof-cap policy remains unchanged pending design
   review. Store safety must not be used as a pretext to erase early evidence or
   redefine fundamental rank meaning. See docs/TOWER_PERSISTENCE_OCT9.md.
+
+## John Smith orchestrator: watch, emergent quests, overview and finite loot (2026-10-19)
+
+- John Smith recognizes; he never authors. Quests are readings of open matters the holder
+  already knows of (their knowledge, possessions, commitments and deeds) and close only on
+  the holder's own evidence. No recognizer creates a desire, request, threat or encounter.
+- The interface is deliberate system presentation (§61): coarse attention tiers, renown, the
+  reserve and item legend are shown to interface holders and never enter any mind or decision.
+  Names the holder never learned stay out of the projection.
+- No retroactive awards: the record starts at the end of history when John Smith first runs.
+- Orchestrator events carry no actor, target or position, and John Smith never draws from
+  `world.rng`, so he cannot feed significance, perception or any other random stream.
+- The loot reserve is finite and fixed per world (240/96/36/12/4/1). Pacing is authored
+  policy: trial milestones pay only at new altitude, other matters at most once per world day
+  per kind, matters settled by others or self-inflicted worries close unpaid, and the reserve
+  never pays for its own deliveries. Cache contents are a pure function of seed and cache id.
+- `World.johnSmith` is an additive save field (no schema bump), strictly validated; holder
+  commands are journaled realm operations so replay reproduces the record exactly.
+- Leveling, arcana growth and advancement are consumed only through canonical events; this
+  system changes none of them. See docs/JOHN_SMITH_ORCHESTRATOR.md.

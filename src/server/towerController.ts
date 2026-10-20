@@ -7,6 +7,7 @@ import { arcaneProgress, arcaneCapacity } from '../sim/physical/arcana/growth';
 import { recentAnnouncements } from '../sim/progression/experience';
 import { observedThreat } from '../sim/progression/threat';
 import { towerResidency } from '../sim/world/interiors/residency';
+import { observeJohnSmith } from '../sim/orchestrator';
 
 /** One controller on the existing simulation. No arena fixture, free regeneration,
  * scripted enemies, second character or browser-owned progression is installed. */
@@ -19,7 +20,7 @@ export class TowerController {
   bind(id: string, epoch?: string) { return this.bridge.bindInteraction(id, LOCAL_CHANNEL, epoch); }
   step(now = performance.now()) {
     const receipts = this.bridge.stepInteraction(now, dt => this.session.advanceMovement(dt,this.bridge.hasInteractionControl()));
-    observeCanonicalTower(this.session.world); return receipts;
+    observeCanonicalTower(this.session.world); observeJohnSmith(this.session.world); return receipts;
   }
   frame() {
     const { world: w, person: p, body: b } = this.session, f = currentTowerFloor(w), run = w.canonicalTower;

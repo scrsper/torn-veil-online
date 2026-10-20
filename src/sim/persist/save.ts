@@ -4,6 +4,7 @@ import { attachInteriorGrid, validInteriorRegistry } from '../world/interiors/gr
 import { validCanonicalTower } from '../world/interiors/towerPersistence';
 import { validSavedRecoil } from '../physical/recoil';
 import { validArcaneWorld } from '../physical/arcana/persistence';
+import { restoreJohnSmith } from '../orchestrator/state';
 import { validProgressionWorld } from '../progression/persistence';
 import { snapshotParts, stringifySnapshot } from './json';
 import { stringifyEventTable, decodeEventTable } from './eventTable';
@@ -259,7 +260,7 @@ function checkpointData(world: World, compactEvents: boolean): { snapshot: Recor
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
+  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, johnSmith: world.johnSmith, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -479,6 +480,8 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     }
     if (!validCombatTrials(world, data.version) || !validCanonicalTower(world, data.canonicalTower, data.version)) return null;
     world.canonicalTower = data.canonicalTower;
+    // Additive orchestrator record (no schema bump): absent on older saves, refused when malformed.
+    if (data.johnSmith !== undefined) { const johnSmith = restoreJohnSmith(data.johnSmith); if (!johnSmith) return null; world.johnSmith = johnSmith; }
     if (!validArcaneWorld(world, data.version)) return null;
     if (!validProgressionWorld(world, data.version)) return null;
     restoreMartialPersistence(world, data);

@@ -1589,6 +1589,9 @@ export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_en
   | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed'
   // Explicit advancement is a rare state transition, never an XP heartbeat or automatic reward.
   | 'ontological_advancement'
+  // John Smith's own acts (sim/orchestrator): drawing from or opening the finite reserve. They
+  // carry no actor, target or position, so they add to nobody's significance and no mind perceives them.
+  | 'orchestrator'
   // Earned levels (progression/experience.ts): a completed level or a recognised achievement.
   // Semantic transitions only; experience credit itself is ledger state, never an event.
   | 'level_attained' | 'achievement_earned';

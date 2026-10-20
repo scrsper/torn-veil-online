@@ -19,6 +19,15 @@ Ordinary World save schema 26 retains older 24/25 reads. Tower atrium is integra
 the expedition state handoff remains separate. See `docs/CONNECTED_REALMS.md` and
 `docs/CONNECTED_REALMS_INTEGRATION.md` for scope, evidence and branch boundaries.
 
+John Smith orchestrator: `src/sim/orchestrator/` reads canonical events after each realm
+host step (`observeJohnSmith`, called from `server/towerController.ts`), recognizes emergent
+quests from the holder's own knowledge (`recognizers.ts`), keeps ledgers, feats, attention and
+item deeds (`watch.ts`, `feats.ts`) and runs the finite seed-fixed loot reserve (`reserve.ts`).
+Holder commands are journaled `johnsmith` realm operations; `overview.ts` is the allowlisted
+interface projection drawn by `src/web/realms/johnSmith.ts`. It reads leveling and advancement
+only through their canonical events. Contract, pacing and evidence:
+`docs/JOHN_SMITH_ORCHESTRATOR.md`; tests `tests/john-smith*.test.ts`.
+
 Same-world workbench: `src/observatory/viewport.ts` attaches the shared bridge to the existing isolated World/Simulation; `src/web/net/observatory.ts` adapts the Babylon client. Panel layout is in `src/observatory/public/workbench.*`. Workflow and bounds: `docs/OBSERVATORY_WORKBENCH.md`.
 
 Developer Observatory: `src/observatory/` hosts a loopback-only disposable world, read-only
