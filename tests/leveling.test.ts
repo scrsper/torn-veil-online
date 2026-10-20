@@ -14,8 +14,11 @@ import { deserialize, serialize } from '../src/sim/persist/save';
 import { learnArcaneSource, requestArcaneCast, stepArcana } from '../src/sim/physical/arcana/runtime';
 import { advanceExertion } from '../src/sim/physical/exertion';
 import { arcaneCapacity, assessArcaneTransformation, integrateArcaneSources, TRANSFORMATIONS } from '../src/sim/physical/arcana/growth';
-import { creditExperience, earnedStanding, experienceSummary } from '../src/sim/progression/experience';
-import { creatureThreat, itemGrade, personThreat } from '../src/sim/progression/threat';
+import { creditExperience, earnedStanding, experienceSummary, recentAnnouncements } from '../src/sim/progression/experience';
+import { creatureThreat, itemGrade, observedThreat, personThreat } from '../src/sim/progression/threat';
+import { attributeProfile } from '../src/sim/core/human';
+import { changeEquipment } from '../src/sim/physical/equipment';
+import { carriedItemRows } from '../src/bridge/playerActions';
 import {
   defeatXp, EMBODIED_TRIALS, floorLevel, gapFactor, LEVELED_RANKS, levelForPower, peakXp, rankOfLevel, standing, VESSELS, xpToNext,
 } from '../src/sim/progression/levels';
@@ -282,5 +285,45 @@ describe('Tower floors and the player journal', () => {
   it('leaves people who did nothing without a ledger, and keeps ordinary NPC days unaffected by levels', () => {
     const tw = createTestWorld(4110), p = addPerson(tw, 'Idle', 'villager', v(10, 1, 10));
     step(tw, 2); expect(p.experience).toBeUndefined(); expect(experienceSummary(tw.world, p)).toMatchObject({ label: 'Normal 0', level: 1, lifetimeXp: 0 });
+  });
+});
+
+describe('player-facing leveling: observed threat, announcements and item grades', () => {
+  it('reads a stranger only by species and visible equipment, never hidden foundations, vessel or forms', () => {
+    const tw = createTestWorld(4111), p = addPerson(tw, 'Stranger', 'villager', v(10, 1, 10)), b = tw.world.primaryBody(p.id)!;
+    const plain = observedThreat(tw.world, b)!;
+    p.attributes = attributeProfile(20); b.maxHealth = b.health = 504;
+    p.vessel = { version: 1, stage: 'Gold', eventId: 'fixture', ...VESSELS.Gold, base: { [b.id]: 80 } };
+    p.arcana = { version: 1, learned: { 'book-ember': { eventId: 'fixture', itemId: 'fixture', applications: 0 } } };
+    expect(observedThreat(tw.world, b)).toEqual(plain);
+    expect(personThreat(tw.world, p, b).level).toBeGreaterThan(plain.level + 20);
+    const sword = makeItem(tw.world, 'sword', 'visible blade', { owner: p.id, holder: p.id });
+    expect(observedThreat(tw.world, b)!.level).toBe(plain.level);
+    expect(changeEquipment(tw.world, p, sword.id, true, b.id)).toBe('accepted');
+    expect(observedThreat(tw.world, b)!.level).toBeGreaterThan(plain.level);
+    const boar = createAnimal(tw.world, 'woodland_boar', v(14.5, 1, 14.5)), boarBody = tw.world.body(boar.bodies[0])!;
+    expect(observedThreat(tw.world, boarBody)!.level).toBe(creatureThreat(tw.world, boar, boarBody).level);
+  });
+  it('announces only the person\'s own level-ups, achievements and breakthroughs, oldest first', () => {
+    const tw = createTestWorld(4112), a = addPerson(tw, 'Announced', 'villager', v(10, 1, 10)), b = addPerson(tw, 'Quiet', 'villager', v(11, 1, 10));
+    opposedDefeat(tw, a, b, 'announce:1');
+    const own = recentAnnouncements(tw.world, a);
+    expect(own.map(x => x.kind)).toContain('achievement');
+    expect(own.find(x => x.text.startsWith('Achievement: First Blood'))!.text).toMatch(/\+\d+ experience\.$/);
+    expect(recentAnnouncements(tw.world, b)).toEqual([]);
+    const founder = addPerson(tw, 'Founder', 'villager', v(14, 1, 14)); initializeNearIronFixture(tw.world, founder);
+    const work = tw.world.emit('mechanism_worked', { actor: founder.id, data: { operation: 'replace', outcome: 'fitted', laborSeconds: 30 } });
+    recordCapabilityPractice(tw.world, founder, { skill: 'crafting', sourceEventId: work.id });
+    expect(advanceToIron(tw.world, founder)).toBe(true);
+    expect(recentAnnouncements(tw.world, founder).at(-1)).toMatchObject({ kind: 'breakthrough', text: expect.stringContaining('Iron rank') });
+    const ids = recentAnnouncements(tw.world, founder).map(x => tw.world.event(x.id)!.tick);
+    expect([...ids].sort((x, y) => x - y)).toEqual(ids);
+  });
+  it('grades a carried combat item for its holder and leaves ordinary goods ungraded', () => {
+    const tw = createTestWorld(4113), p = addPerson(tw, 'Holder', 'villager', v(10, 1, 10));
+    const sword = makeItem(tw.world, 'sword', 'old sword', { owner: p.id, holder: p.id }), bread = makeItem(tw.world, 'bread', 'loaf', { owner: p.id, holder: p.id });
+    const rows = carriedItemRows(tw.sim, p, []);
+    expect(rows.find(r => r.id === sword.id)!.description).toContain(`${itemGrade(sword)!.grade} weapon (item level ${itemGrade(sword)!.level})`);
+    expect(rows.find(r => r.id === bread.id)!.description.some(d => d.includes('grade'))).toBe(false);
   });
 });

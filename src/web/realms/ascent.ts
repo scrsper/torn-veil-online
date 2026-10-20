@@ -35,7 +35,8 @@ export async function startCanonicalAscent() {
   const vfx = new Vfx(ctx.scene), seenCasts = new Set<string>();
   let binding: any = null, frame: Frame | null = null, plan: InteriorPlan | null = null, token = '', sequence = 0, targetId = '', receivedAt = 0,
     last = performance.now(), inputAccum = 0, hudAccum = 0, ready = false, movingPage = false, resetView = true, inputWasActive = false;
-  const frames: number[] = [], serverTimes: number[] = [], receipts: any[] = [];
+  const frames: number[] = [], serverTimes: number[] = [], receipts: any[] = [], announced = new Set<string>();
+  let announcedReady = false;
   const material = (name: string, color: string, emissive = false) => {
     const m = new StandardMaterial(name, ctx.scene); m.diffuseColor = Color3.FromHexString(color); m.specularColor = Color3.FromHexString('#25272a');
     if (emissive) m.emissiveColor = m.diffuseColor.scale(.55); return m;
@@ -110,7 +111,8 @@ export async function startCanonicalAscent() {
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
-    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}`;
+    const seen = frame.observedThreat[targetId];
+    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}${seen && !tower.clear ? ` · target looks ${seen.grade} (≈level ${seen.level})` : ''}`;
     const xp = own.experience, level = xp.leveled ? ` · ${xp.label} (level ${xp.level}) · ${xp.peak ? 'peak' : `${xp.xpIntoLevel}/${xp.xpForLevel} XP`}` : '';
     el('as-status').textContent = `${own.name} · ${own.rank}${level}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
@@ -144,6 +146,9 @@ export async function startCanonicalAscent() {
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired','committed'].includes(m.result)) notice(String(m.result).replaceAll('_',' ')); }
     if (m.type !== 'tower_frame' || !binding) return;
     const observed = m as Frame; frame = observed; receivedAt = performance.now(); serverTimes.push(m.serverMs); if (serverTimes.length > 2400) serverTimes.shift();
+    // Announce only events new since this view opened; reconnecting never replays old ones.
+    for (const a of observed.own.announcements) { if (announced.has(a.id)) continue; if (announcedReady) notice(a.text); announced.add(a.id); }
+    announcedReady = true;
     // Draw only host-observed cast phases. Effects never choose targets, apply hits,
     // or persist gameplay; missed/cancelled casts cannot invent impact feedback.
     for (const cast of observed.casts) {

@@ -245,6 +245,23 @@ export function onBreakthrough(w: World, p: Person, event: WorldEvent): void {
   achieve(w, p, `breakthrough:${stage}`, [], event);
 }
 
+/** The person's own recent level-ups, achievements and breakthroughs, newest last, phrased as the
+ * Dungeon Crawler Carl "System" would announce them. Only events this person was the actor of. */
+export function recentAnnouncements(w: World, p: Person, limit = 6): { id: string; kind: 'level' | 'achievement' | 'breakthrough'; text: string }[] {
+  const out: { id: string; kind: 'level' | 'achievement' | 'breakthrough'; text: string }[] = [];
+  for (let i = w.events.length - 1, n = 0; i >= 0 && n < 600 && out.length < limit; i--, n++) {
+    const e = w.events[i]; if (e.actor !== p.id) continue;
+    if (e.type === 'level_attained') out.push({ id: e.id, kind: 'level', text: e.data.peak
+      ? `Peak ${e.data.stage}. Your track is full: only a breakthrough leads on.`
+      : `Level up: ${e.data.stage} ${e.data.to} (level ${e.data.level}).` });
+    else if (e.type === 'achievement_earned') { const info = achievementInfo(e.data.achievement);
+      out.push({ id: e.id, kind: 'achievement', text: `Achievement: ${e.data.title}. ${info?.text ?? ''}${e.data.xp > 0 ? ` +${e.data.xp} experience.` : ''}`.trim() }); }
+    else if (e.type === 'ontological_advancement' && e.data.vessel) out.push({ id: e.id, kind: 'breakthrough',
+      text: `Breakthrough: ${e.data.to} rank. Your body is remade: ×${e.data.vessel.resilience} resilience, ×${e.data.vessel.force} force, foundations to ${e.data.vessel.ceiling}.` });
+  }
+  return out.reverse();
+}
+
 /** The person's own view of their growth: journal, HUD and developer inspection. */
 export function experienceSummary(w: World, p: Person) {
   const s = earnedStanding(p), l = p.experience && p.experience.stage === p.ontology.stage ? p.experience : undefined;

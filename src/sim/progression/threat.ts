@@ -95,6 +95,19 @@ export function creatureThreat(w: World, c: Creature, b = c.bodies.map(id => w.b
   const offense = d ? d.impact * WINDOW / (d.windupSeconds + d.activeSeconds + d.recoverySeconds) * reachFactor(d.reachM) / referenceOffense() : 0;
   return assessment(offense, maxHealth / REF_HP, { weapon: d ? `${spec!.name} charge` : null, arcane: null, armor: [], maxHealth });
 }
+/** What anyone looking at a body can read from it: its species, and the weapons, armor and foci it
+ * visibly wears or wields (the same equipped items the renderer projects). A person is read as an
+ * ordinary adult body: their foundations, health, vessel and learned forms are not observable, so
+ * this is a lower bound on a stranger and never reveals hidden truth. Animals are read by species. */
+export function observedThreat(w: World, b: Body): ThreatAssessment | null {
+  const owner = w.get<Person | Creature>(b.ownerId);
+  if (owner?.kind === 'creature') return creatureThreat(w, owner as Creature, b);
+  if (owner?.kind !== 'person') return null;
+  const visible = equippedItems(w, owner as Person, b), item = visible.find(i => weaponProperties(i) && i.condition !== 0) ?? null;
+  const weapon = item ? weaponProperties(item)! : UNARMED, armor = visible.filter(i => i.physicalArmor);
+  const melee = strikeImpact(weapon, 8, 8) * WINDOW / MELEE_CYCLE * reachFactor(weapon.reach);
+  return assessment(melee / referenceOffense(), 1 / armorThrough(armor), { weapon: item?.name ?? null, arcane: null, armor: armor.map(i => i.name), maxHealth: REF_HP });
+}
 export function bodyThreat(w: World, b: Body, opts: { equipped?: boolean } = {}): ThreatAssessment | null {
   const owner = w.get<Person | Creature>(b.ownerId);
   if (owner?.kind === 'person') return personThreat(w, owner as Person, b, opts);

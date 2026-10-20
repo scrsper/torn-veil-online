@@ -60,6 +60,7 @@ export async function startRealms(): Promise<void> {
   const el = (id: string) => document.getElementById(id)!;
   const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
   let state: RealmSnapshot | null = null, avatar: BodyVisual | null = null, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
+  const announced = new Set<string>(); let announcedReady = false;
   let controllerToken = '', transitioning = false, binding: any = null, sequence = 0, mouseGuard = false, targetId = '', guideStarted = false;
   const receipts: any[] = [];
   const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/socket`);
@@ -78,6 +79,9 @@ export async function startRealms(): Promise<void> {
     if (m.type === 'notice') toast(m.message);
     if (m.type !== 'state') return;
     state = m.state; const s = state!; lastStateAt = performance.now();
+    // System announcements for this person's own new level-ups, achievements and breakthroughs.
+    for (const a of s.development.announcements) { if (announced.has(a.id)) continue; if (announcedReady) toast(a.text); announced.add(a.id); }
+    announcedReady = true;
     renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
@@ -103,7 +107,7 @@ export async function startRealms(): Promise<void> {
       ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? `peak ${xp.stage}, breakthrough required` : `${xp.xpIntoLevel} / ${xp.xpForLevel} experience`}`] : []),
       ...(xp.achievements.length ? [`Achievements: ${xp.achievements.map(a => a.title).join(' · ')}`] : []),
       ...(rankUp.next ? [`${rankUp.next} breakthrough: ${rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
-      ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
+      ...s.person.inventory.map(i => `${i.name} × ${i.quantity}${i.grade ? ` · ${i.grade}` : ''}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
       s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
       ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),

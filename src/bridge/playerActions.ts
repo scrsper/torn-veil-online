@@ -6,6 +6,7 @@ import { canReadRecord } from '../sim/mind/records';
 import { knowsVeil, veilStrain } from '../sim/physical/veil';
 import { availableForMartial } from '../sim/mind/martialPractice';
 import { assessBreakthrough } from '../sim/core/advancement';
+import { itemGrade } from '../sim/progression/threat';
 
 /**
  * What the player may do with what they carry, and which of their own capacities they can use
@@ -53,6 +54,8 @@ export function carriedItemRows(sim: Simulation, p: Person, interactions: HandIn
     }
     for(const kind of ['equip','unequip'] as const){const interactionId=`${kind}:${it.id}`;if(offered.has(interactionId))actions.push({id:interactionId,kind,label:`${kind==='equip'?'Equip':'Unequip'} ${it.name}`,available:!unable,reason:unable,request:{type:'interact',interactionId}});}
     if(it.equipped)description.push('Equipped: '+it.equipped.slot);
+    // A holder can judge what the thing in their hands does; grades are classification only.
+    const grade=itemGrade(it);if(grade)description.push(`${grade.grade} ${grade.role} (item level ${grade.level})`);
     if(it.type==='armor')description.push(it.physicalArmor ? `Physical protection: ${it.physicalArmor.coverage.join(', ')}; absorption up to ${it.physicalArmor.absorption} at full condition.` : 'No authored physical protection; catalog abilities are descriptive.');
     if (it.record) actions.push(readRow(sim, p, it, unable));
     rows.push({ id: it.id, name: it.name || it.type, type: it.type, quantity: it.quantity, description, actions });
