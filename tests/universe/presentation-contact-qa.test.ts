@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
 
@@ -11,7 +11,7 @@ describe('ordinary ground stop evidence',()=>{
     const response={url:()=> 'http://127.0.0.1:7533/realms/universe/command',ok:()=>accepted,status:()=>accepted?200:409,
       request:()=>({method:()=> 'POST',postDataJSON:()=>({seq:7,command:{type:'input',input:{throttle:0,yaw:0,pitch:0,strafe:0,lift:0,brake}}})}),
       json:async()=>({ok:accepted,snapshot:{lastSeq:7,revision:8}})};
-    const page={on:()=>{},keyboard:{up:async()=>{expect(clicked,'UI Brake must clear game input before keyboard-up round trips').toBe(true);}},locator:()=>({click:async()=>{clicked=true;}}),
+    const page={on:()=>{},keyboard:{down:async(key:string)=>{expect(key).toBe('Escape');clicked=true;},up:async()=>{expect(clicked,'Ordinary Escape must clear game input before keyboard-up round trips').toBe(true);}},
       waitForResponse:async(predicate:(r:typeof response)=>boolean)=>{expect(predicate(response)).toBe(true);return response;},
       waitForTimeout:async(ms:number)=>{now+=ms;}};
     const read=async()=>({lastSeq:clicked&&now>=400?7:6,revision:Math.floor(now/100),
@@ -61,6 +61,18 @@ it('recognizes the recorded180-to30degree turn progress without relaxing linear 
   expect(10000-progress.lastProgress).toBeGreaterThan(4500);
   expect(groundTurnPulse(30*Math.PI/180,180)).toBeLessThan(100);
   expect(groundTurnPulse(Math.PI,180)).toBe(260);
+});
+
+it('accounts for observed walking tail before the recorded3.86m approach rather than overshooting the waypoint',()=>{
+  let tail=0;
+  for(const metres of [5.57,4.87])tail=tail*.4+Math.min(300,Math.max(0,metres/7*1000-550))*.6;
+  const requested=groundWalkPulse(3.86,tail);
+  expect(requested).toBeLessThan(350);
+  // Replay the observed second pulse's latency using the new conservative
+  // duration. The target tolerance remains the same0.65m, not enlarged.
+  const observedTail=4.87/7*1000-550;
+  expect(Math.abs(3.86-(requested+observedTail)/1000*7)).toBeLessThan(.65);
+  expect(groundWalkPulse(1.02,tail)).toBe(20);
 });
 
 it('splits contact eligibility by actual stage even when a lock began during the prior stage',()=>{

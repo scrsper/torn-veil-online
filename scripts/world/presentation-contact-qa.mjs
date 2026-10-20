@@ -27,6 +27,7 @@ export function groundRouteProgress(previous,remaining,headingError,now){
  next.phase=turning?'turn':'move';return next;
 }
 export function groundTurnPulse(error,tailMs){return clamp((Math.abs(error)-.03)/1.8*1000-tailMs,20,260);}
+export function groundWalkPulse(remaining,tailMs){return clamp((remaining-.4)/7*1000-tailMs,20,550);}
 export function isNeutralGroundRequest(value,lastActiveSeq){
  const input=value?.command?.input;
  return Number.isSafeInteger(value?.seq)&&value.seq>lastActiveSeq&&value.command?.type==='input'
@@ -195,14 +196,14 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   }
   await save();return summary;
  };
- const release=async()=>{await Promise.all(['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].map(key=>page.keyboard.up(key)));};
+ const release=async()=>{await Promise.all(['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Escape'].map(key=>page.keyboard.up(key)));};
  // A keyup is local input, not a host acknowledgment. The host may still apply
  // its last movement sample for six ticks. Observe the ordinary Brake request,
  // then distinct authoritative snapshots, before judging a waypoint or posing.
  const stopGround=async(label,priorView)=>{
   const before=priorView??await read(),began=Date.now();
   const minimumSeq=Math.max(before.lastSeq??0,lastActiveSeq);
-  const record={label,before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},minimumSeq,observations:[]};report.contactQA.stops.push(record);
+  const record={label,control:'Escape',before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},minimumSeq,observations:[]};report.contactQA.stops.push(record);
   if(before.state.mode!=='surface')throw Error('Ground stop requested outside the surface');
   const responsePromise=page.waitForResponse(response=>{
    if(new URL(response.url()).pathname!=='/realms/universe/command'||response.request().method()!=='POST')return false;
@@ -211,9 +212,10 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   // Attach rejection handling immediately; a failed click must not leave an
   // unhandled pending observer. This never submits a direct command itself.
   const pending=responsePromise.then(response=>({response}),error=>({error}));
-  // The ordinary Brake handler synchronously clears all game keys. Do this
-  // before waiting for keyboard-up round trips or another snapshot read.
-  await page.locator('[data-brake]').click();await release();const observed=await pending;
+  // Documented Escape invokes the same Brake handler immediately, without a
+  // mouse actionability wait while W/turn remains held. It clears game keys;
+  // release Playwright's physical keys afterward, including Escape itself.
+  await page.keyboard.down('Escape');await release();const observed=await pending;
   if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
   const response=observed.response,body=await response.json(),request=response.request().postDataJSON(),seq=request.seq;
   record.ack={seq,brake:request.command.input.brake,lastActiveSeq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
@@ -233,13 +235,16 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
  };
  const drive=async(target,label)=>{
   await stage(label);const began=Date.now(),initial=await read(),start=contactChartPosition(initial),attempt={label,target,start,observations:[]};report.contactQA.route.push(attempt);
-  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:Date.now(),phase:null},settled=false,turnTailMs=0;
+  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:Date.now(),phase:null},settled=false,turnTailMs=0,walkTailMs=0;
   try{
    while(Date.now()-began<18000){
     const view=await read(),p=contactChartPosition(view),remaining=Math.hypot(p.x-target.x,p.z-target.z);
     const {up,desired}=targetDirection(view,target),forward=norm(sub(view.state.forward,mul(up,dot(view.state.forward,up))));
-    const turn=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
-    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,headingError:turn,mode:view.state.mode});
+    const headingError=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
+    // A small overshoot is corrected with ordinary S, not a full turnaround.
+    const reverse=remaining<2&&Math.abs(headingError)>Math.PI/2;
+    const turn=reverse?Math.atan2(Math.sin(headingError+Math.PI),Math.cos(headingError+Math.PI)):headingError;
+    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,headingError,steeringError:turn,reverse,mode:view.state.mode});
     if(view.state.mode!=='surface')throw Error('Ground route left the surface');
     if(remaining<.65){
      const stopped=settled?view:await stopGround(label+'-candidate'),final=contactChartPosition(stopped);
@@ -249,7 +254,7 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
     }
     progress=groundRouteProgress(progress,remaining,turn,Date.now());
     if(Date.now()-progress.lastProgress>4500)throw Error('Ground waypoint made no linear or angular progress for 4.5 seconds');
-    let requestedTurnMs=null;
+    let requestedTurnMs=null,requestedWalkMs=null;
     if(Math.abs(turn)>.14){
      await page.keyboard.up('w');const key=turn>0?'ArrowLeft':'ArrowRight';
      requestedTurnMs=groundTurnPulse(turn,turnTailMs);
@@ -261,7 +266,14 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
      if(observed.error)throw Error('Ordinary turn input was not sent to the host');
      await page.waitForTimeout(requestedTurnMs);
     }else{
-     await page.keyboard.down('w');await page.waitForTimeout(clamp((remaining-.5)/7*1000,100,550));
+     requestedWalkMs=groundWalkPulse(remaining,walkTailMs);const throttle=reverse?-1:1,key=reverse?'s':'w';
+     const requested=page.waitForRequest(request=>{
+      if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
+      try{const p=request.postDataJSON();return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&p.command.input.throttle===throttle;}catch{return false;}
+     },{timeout:3000}).then(request=>({request}),error=>({error}));
+     await page.keyboard.down(key);const observed=await requested;
+     if(observed.error)throw Error('Ordinary walking input was not sent to the host');
+     await page.waitForTimeout(requestedWalkMs);
     }
     const stopped=await stopGround(label+'-pulse',view);settled=true;
     if(requestedTurnMs!==null){
@@ -269,6 +281,11 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
      const measuredTail=clamp(actual/1.8*1000-requestedTurnMs,0,300);
      turnTailMs=turnTailMs*.4+measuredTail*.6;
      attempt.turns??=[];attempt.turns.push({requestedMs:requestedTurnMs,actualRadians:actual,estimatedTailMs:turnTailMs});
+    }
+    if(requestedWalkMs!==null){
+     const actual=len(sub(stopped.state.position,view.state.position)),measuredTail=clamp(actual/7*1000-requestedWalkMs,0,300);
+     walkTailMs=walkTailMs*.4+measuredTail*.6;
+     attempt.walks??=[];attempt.walks.push({requestedMs:requestedWalkMs,metres:actual,reverse,estimatedTailMs:walkTailMs});
     }
    }
    throw Error('Ground waypoint exceeded the 18-second bound');

@@ -1,0 +1,4791 @@
+{
+  "revision": "8dc9696",
+  "mode": "journey",
+  "started": "2026-10-20T20:09:23.071Z",
+  "note": "Ordinary UI quality/recovery acceptance against a parent-created isolated capability fixture. No client capability grant, observer teleport, save edit or direct movement injection. This is not a progression-earned character claim.",
+  "checks": [
+    "Controlled town character is rendered",
+    "Town and spherical preview share canonical identity and items",
+    "Inactive page projects actual town before entry",
+    "UAL motion pack is loaded and hash verified",
+    "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+    "Idle names its actual source clip and destination rig",
+    "Isolated fixture is admitted for interplanetary personal flight",
+    "Explore preserves the actual current preview position",
+    "Mapped settlement traversal retains canonical identity",
+    "Opening ground controls produces no rejected travel command",
+    "Help suppresses G/F/C travel commands",
+    "Actual wheel input zooms the rendered camera toward the character",
+    "Ground view hides the world marker over the character",
+    "Both projected foot landmarks and a boot-sized margin clear the viewport and HUD",
+    "Ordinary drag completes a measured 360-degree free orbit",
+    "Ground orbit and zoom: route state unchanged",
+    "Ground orbit and zoom: canonical heading unchanged",
+    "Recenter places the camera behind the transported character heading",
+    "Reversing wheel input restores the preferred distance",
+    "Contact route uses the documented 1600 m home chart",
+    "Home surface admits canonical return",
+    "Controlled town character is rendered",
+    "Fully rendered town retains original person, body and inventory"
+  ],
+  "failure": "Error: Ground waypoint exceeded the 18-second bound",
+  "errors": [],
+  "http": [],
+  "route": [
+    {
+      "label": "flat-forward",
+      "target": {
+        "x": 11312.5,
+        "z": 3128
+      },
+      "start": {
+        "x": 11312.5,
+        "y": 1.0624999999997726,
+        "z": 3113.6999999999002
+      },
+      "observations": [
+        {
+          "elapsed": 49,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0,
+            "y": -0.9468786772162775,
+            "z": 0.32159099899274696
+          },
+          "headingError": 3.141592653589793,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 1125,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.8360259786005205,
+            "y": -0.5195427293894772,
+            "z": 0.17645372040162374
+          },
+          "headingError": 2.1515926535897933,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 2122,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.9738476308781951,
+            "y": 0.2151328188837578,
+            "z": -0.0730661486055946
+          },
+          "headingError": 1.341592653589793,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 3088,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": 0.5069068522480531,
+            "y": 0.8162102123831632,
+            "z": -0.2772117103323776
+          },
+          "headingError": 0.531592653589793,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 3930,
+          "position": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "remaining": 14.300000000099772,
+          "heading": {
+            "x": -0.008407247367149066,
+            "y": 0.9468452130763707,
+            "z": -0.32157963347523977
+          },
+          "headingError": -0.008407346410207123,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 5272,
+          "position": {
+            "x": 11312.546817508546,
+            "y": 1.0625,
+            "z": 3119.268263002808
+          },
+          "remaining": 8.731862508493709,
+          "heading": {
+            "x": -0.008407196451227925,
+            "y": 0.9457202519624056,
+            "z": -0.3248730891840608
+          },
+          "headingError": -0.013768704260561062,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 6591,
+          "position": {
+            "x": 11312.587784009194,
+            "y": 1.0625000000002274,
+            "z": 3124.140493120417
+          },
+          "remaining": 3.860505068746694,
+          "heading": {
+            "x": -0.00840706836631833,
+            "y": 0.9447265138957507,
+            "z": -0.32775163637099636
+          },
+          "headingError": -0.031146597854213344,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 7888,
+          "position": {
+            "x": 11312.628751611852,
+            "y": 1.0625,
+            "z": 3129.012723228643
+          },
+          "remaining": 1.0208747794846633,
+          "heading": {
+            "x": -0.008406862318046025,
+            "y": 0.9437240148612481,
+            "z": -0.33062714413691496
+          },
+          "headingError": -3.0235548361584663,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 9170,
+          "position": {
+            "x": 11312.628751611852,
+            "y": 1.0625,
+            "z": 3129.012723228643
+          },
+          "remaining": 1.0208747794846633,
+          "heading": {
+            "x": 0.9494857326191567,
+            "y": 0.296186012153657,
+            "z": -0.10368553301776044
+          },
+          "headingError": -1.763554836158466,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 10467,
+          "position": {
+            "x": 11312.628751611852,
+            "y": 1.0625,
+            "z": 3129.012723228643
+          },
+          "remaining": 1.0208747794846633,
+          "heading": {
+            "x": 0.5891444449158167,
+            "y": -0.7625666337777967,
+            "z": 0.2672095658348219
+          },
+          "headingError": -0.5035548361584657,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 11399,
+          "position": {
+            "x": 11312.628751611852,
+            "y": 1.0625,
+            "z": 3129.012723228643
+          },
+          "remaining": 1.0208747794846633,
+          "heading": {
+            "x": -3.850354949597179E-07,
+            "y": -0.9437575893090708,
+            "z": 0.33063818990156457
+          },
+          "headingError": 0.12644516384153426,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 12272,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": -2.8002260670446504E-07,
+            "y": -0.9441883039010693,
+            "z": 0.32940620330580217
+          },
+          "headingError": 3.0224507285462034,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 13488,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": 0.8819576720472738,
+            "y": -0.4449995855722528,
+            "z": 0.15532557277369574
+          },
+          "headingError": 1.9424507285462036,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 14593,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": 0.9174380637269564,
+            "y": 0.3756966532025996,
+            "z": -0.13099398458440353
+          },
+          "headingError": 1.0424507285462035,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 15718,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": 0.2586196193199524,
+            "y": 0.9120731549255783,
+            "z": -0.31817990597601375
+          },
+          "headingError": 0.1424507285462034,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 16560,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": -0.1872943878693282,
+            "y": 0.9274748217560523,
+            "z": -0.32359120396146807
+          },
+          "headingError": -0.30754927145379657,
+          "mode": "surface"
+        },
+        {
+          "elapsed": 17526,
+          "position": {
+            "x": 11312.628751064589,
+            "y": 1.0625,
+            "z": 3126.924550798446
+          },
+          "remaining": 1.0831287189230228,
+          "heading": {
+            "x": 0.34439372903585536,
+            "y": 0.8864370032411101,
+            "z": -0.30922871581678496
+          },
+          "headingError": 0.23245072854620338,
+          "mode": "surface"
+        }
+      ],
+      "turns": [
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.99,
+          "estimatedTailMs": 173.99999999999991
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.8100000000000002,
+          "estimatedTailMs": 183.6
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.8100000000000002,
+          "estimatedTailMs": 187.44000000000003
+        },
+        {
+          "requestedMs": 91.2225853276627,
+          "actualRadians": 0.54,
+          "estimatedTailMs": 200.2424488034024
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 1.2600000000000002,
+          "estimatedTailMs": 260.09697952136094
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 1.2600000000000005,
+          "estimatedTailMs": 284.0387918085444
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.63,
+          "estimatedTailMs": 293.6155167234177
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 1.08,
+          "estimatedTailMs": 297.4462066893671
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.9,
+          "estimatedTailMs": 262.9784826757468
+        },
+        {
+          "requestedMs": 260,
+          "actualRadians": 0.9,
+          "estimatedTailMs": 249.19139307029872
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.44999999999999996,
+          "estimatedTailMs": 237.67655722811946
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.5399999999999999,
+          "estimatedTailMs": 263.07062289124775
+        },
+        {
+          "requestedMs": 20,
+          "actualRadians": 0.44999999999999996,
+          "estimatedTailMs": 243.2282491564991
+        }
+      ],
+      "elapsed": 18406
+    }
+  ],
+  "stops": [
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 901,
+        "lastSeq": 1
+      },
+      "minimumSeq": 4,
+      "observations": [
+        {
+          "elapsed": 370,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 915,
+          "lastSeq": 7,
+          "revision": 923
+        },
+        {
+          "elapsed": 496,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 917,
+          "lastSeq": 7,
+          "revision": 925
+        },
+        {
+          "elapsed": 625,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 919,
+          "lastSeq": 7,
+          "revision": 927
+        },
+        {
+          "elapsed": 742,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 921,
+          "lastSeq": 7,
+          "revision": 929
+        }
+      ],
+      "ack": {
+        "seq": 7,
+        "brake": false,
+        "lastActiveSeq": 6,
+        "status": 200,
+        "ok": true,
+        "revision": 923,
+        "lastSeq": 7
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 742,
+        "ticks": 4,
+        "lastSeq": 7
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 923,
+        "lastSeq": 7
+      },
+      "minimumSeq": 10,
+      "observations": [
+        {
+          "elapsed": 288,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 935,
+          "lastSeq": 13,
+          "revision": 949
+        },
+        {
+          "elapsed": 413,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 937,
+          "lastSeq": 14,
+          "revision": 952
+        },
+        {
+          "elapsed": 525,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 939,
+          "lastSeq": 14,
+          "revision": 954
+        },
+        {
+          "elapsed": 653,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 941,
+          "lastSeq": 14,
+          "revision": 956
+        }
+      ],
+      "ack": {
+        "seq": 13,
+        "brake": true,
+        "lastActiveSeq": 12,
+        "status": 200,
+        "ok": true,
+        "revision": 949,
+        "lastSeq": 13
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 653,
+        "ticks": 4,
+        "lastSeq": 14
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 943,
+        "lastSeq": 14
+      },
+      "minimumSeq": 17,
+      "observations": [
+        {
+          "elapsed": 279,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 954,
+          "lastSeq": 20,
+          "revision": 975
+        },
+        {
+          "elapsed": 396,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 957,
+          "lastSeq": 21,
+          "revision": 979
+        },
+        {
+          "elapsed": 508,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 959,
+          "lastSeq": 21,
+          "revision": 981
+        },
+        {
+          "elapsed": 632,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 961,
+          "lastSeq": 21,
+          "revision": 983
+        }
+      ],
+      "ack": {
+        "seq": 20,
+        "brake": true,
+        "lastActiveSeq": 19,
+        "status": 200,
+        "ok": true,
+        "revision": 975,
+        "lastSeq": 20
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 632,
+        "ticks": 4,
+        "lastSeq": 21
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 961,
+        "lastSeq": 21
+      },
+      "minimumSeq": 23,
+      "observations": [
+        {
+          "elapsed": 287,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 971,
+          "lastSeq": 25,
+          "revision": 997
+        },
+        {
+          "elapsed": 403,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 973,
+          "lastSeq": 26,
+          "revision": 1000
+        },
+        {
+          "elapsed": 528,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 975,
+          "lastSeq": 26,
+          "revision": 1002
+        },
+        {
+          "elapsed": 654,
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 979,
+          "lastSeq": 26,
+          "revision": 1006
+        }
+      ],
+      "ack": {
+        "seq": 25,
+        "brake": true,
+        "lastActiveSeq": 24,
+        "status": 200,
+        "ok": true,
+        "revision": 997,
+        "lastSeq": 25
+      },
+      "settled": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "chart": {
+          "x": 11312.5,
+          "y": 1.0624999999997726,
+          "z": 3113.6999999999002
+        },
+        "elapsed": 654,
+        "ticks": 4,
+        "lastSeq": 26
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "tick": 979,
+        "lastSeq": 26
+      },
+      "minimumSeq": 32,
+      "observations": [
+        {
+          "elapsed": 367,
+          "position": {
+            "x": -0.04708048946993497,
+            "y": 522.7592053838262,
+            "z": 1521.7769021364954
+          },
+          "tick": 997,
+          "lastSeq": 35,
+          "revision": 1033
+        },
+        {
+          "elapsed": 490,
+          "position": {
+            "x": -0.04708048946993497,
+            "y": 522.7592053838262,
+            "z": 1521.7769021364954
+          },
+          "tick": 997,
+          "lastSeq": 35,
+          "revision": 1033
+        },
+        {
+          "elapsed": 623,
+          "position": {
+            "x": -0.047080489469934976,
+            "y": 522.7592053837249,
+            "z": 1521.77690213653
+          },
+          "tick": 1003,
+          "lastSeq": 35,
+          "revision": 1039
+        },
+        {
+          "elapsed": 731,
+          "position": {
+            "x": -0.04708048946993498,
+            "y": 522.7592053836847,
+            "z": 1521.7769021365439
+          },
+          "tick": 1005,
+          "lastSeq": 35,
+          "revision": 1041
+        }
+      ],
+      "ack": {
+        "seq": 35,
+        "brake": false,
+        "lastActiveSeq": 34,
+        "status": 200,
+        "ok": true,
+        "revision": 1033,
+        "lastSeq": 35
+      },
+      "settled": {
+        "position": {
+          "x": -0.04708048946993498,
+          "y": 522.7592053836847,
+          "z": 1521.7769021365439
+        },
+        "chart": {
+          "x": 11312.546817508546,
+          "y": 1.0625,
+          "z": 3119.268263002808
+        },
+        "elapsed": 731,
+        "ticks": 3,
+        "lastSeq": 35
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.04708048946993498,
+          "y": 522.7592053836847,
+          "z": 1521.7769021365439
+        },
+        "tick": 1005,
+        "lastSeq": 35
+      },
+      "minimumSeq": 40,
+      "observations": [
+        {
+          "elapsed": 323,
+          "position": {
+            "x": -0.08827546945988585,
+            "y": 527.3908034659821,
+            "z": 1520.177970348603
+          },
+          "tick": 1023,
+          "lastSeq": 43,
+          "revision": 1067
+        },
+        {
+          "elapsed": 467,
+          "position": {
+            "x": -0.08827546945988583,
+            "y": 527.3908034659391,
+            "z": 1520.1779703486175
+          },
+          "tick": 1025,
+          "lastSeq": 44,
+          "revision": 1070
+        },
+        {
+          "elapsed": 600,
+          "position": {
+            "x": -0.08827546945988585,
+            "y": 527.3908034659052,
+            "z": 1520.1779703486295
+          },
+          "tick": 1027,
+          "lastSeq": 44,
+          "revision": 1072
+        },
+        {
+          "elapsed": 724,
+          "position": {
+            "x": -0.08827546945988586,
+            "y": 527.3908034658796,
+            "z": 1520.1779703486384
+          },
+          "tick": 1029,
+          "lastSeq": 44,
+          "revision": 1074
+        }
+      ],
+      "ack": {
+        "seq": 43,
+        "brake": true,
+        "lastActiveSeq": 42,
+        "status": 200,
+        "ok": true,
+        "revision": 1067,
+        "lastSeq": 43
+      },
+      "settled": {
+        "position": {
+          "x": -0.08827546945988586,
+          "y": 527.3908034658796,
+          "z": 1520.1779703486384
+        },
+        "chart": {
+          "x": 11312.587784009194,
+          "y": 1.0625000000002274,
+          "z": 3124.140493120417
+        },
+        "elapsed": 724,
+        "ticks": 4,
+        "lastSeq": 44
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.08827546945988586,
+          "y": 527.3908034658796,
+          "z": 1520.1779703486384
+        },
+        "tick": 1029,
+        "lastSeq": 44
+      },
+      "minimumSeq": 49,
+      "observations": [
+        {
+          "elapsed": 390,
+          "position": {
+            "x": -0.12946963082381815,
+            "y": 532.0175107634889,
+            "z": 1518.564941115422
+          },
+          "tick": 1049,
+          "lastSeq": 51,
+          "revision": 1101
+        },
+        {
+          "elapsed": 513,
+          "position": {
+            "x": -0.12946963082381815,
+            "y": 532.0175107634591,
+            "z": 1518.5649411154327
+          },
+          "tick": 1051,
+          "lastSeq": 52,
+          "revision": 1104
+        },
+        {
+          "elapsed": 636,
+          "position": {
+            "x": -0.12946963082381827,
+            "y": 532.0175107634,
+            "z": 1518.5649411154536
+          },
+          "tick": 1055,
+          "lastSeq": 52,
+          "revision": 1108
+        },
+        {
+          "elapsed": 760,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1057,
+          "lastSeq": 52,
+          "revision": 1110
+        }
+      ],
+      "ack": {
+        "seq": 51,
+        "brake": true,
+        "lastActiveSeq": 50,
+        "status": 200,
+        "ok": true,
+        "revision": 1101,
+        "lastSeq": 51
+      },
+      "settled": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "chart": {
+          "x": 11312.628751611852,
+          "y": 1.0625,
+          "z": 3129.012723228643
+        },
+        "elapsed": 760,
+        "ticks": 4,
+        "lastSeq": 52
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "tick": 1057,
+        "lastSeq": 52
+      },
+      "minimumSeq": 55,
+      "observations": [
+        {
+          "elapsed": 545,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1075,
+          "lastSeq": 58,
+          "revision": 1134
+        },
+        {
+          "elapsed": 680,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1077,
+          "lastSeq": 58,
+          "revision": 1136
+        },
+        {
+          "elapsed": 801,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1081,
+          "lastSeq": 58,
+          "revision": 1140
+        },
+        {
+          "elapsed": 919,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1083,
+          "lastSeq": 58,
+          "revision": 1142
+        }
+      ],
+      "ack": {
+        "seq": 58,
+        "brake": false,
+        "lastActiveSeq": 57,
+        "status": 200,
+        "ok": true,
+        "revision": 1134,
+        "lastSeq": 58
+      },
+      "settled": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "chart": {
+          "x": 11312.628751611852,
+          "y": 1.0625,
+          "z": 3129.012723228643
+        },
+        "elapsed": 919,
+        "ticks": 4,
+        "lastSeq": 58
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "tick": 1083,
+        "lastSeq": 58
+      },
+      "minimumSeq": 60,
+      "observations": [
+        {
+          "elapsed": 533,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1101,
+          "lastSeq": 64,
+          "revision": 1166
+        },
+        {
+          "elapsed": 676,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1103,
+          "lastSeq": 64,
+          "revision": 1168
+        },
+        {
+          "elapsed": 785,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1105,
+          "lastSeq": 64,
+          "revision": 1170
+        },
+        {
+          "elapsed": 906,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1109,
+          "lastSeq": 64,
+          "revision": 1174
+        }
+      ],
+      "ack": {
+        "seq": 64,
+        "brake": false,
+        "lastActiveSeq": 63,
+        "status": 200,
+        "ok": true,
+        "revision": 1166,
+        "lastSeq": 64
+      },
+      "settled": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "chart": {
+          "x": 11312.628751611852,
+          "y": 1.0625,
+          "z": 3129.012723228643
+        },
+        "elapsed": 906,
+        "ticks": 4,
+        "lastSeq": 64
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "tick": 1109,
+        "lastSeq": 64
+      },
+      "minimumSeq": 65,
+      "observations": [
+        {
+          "elapsed": 418,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1120,
+          "lastSeq": 68,
+          "revision": 1189
+        },
+        {
+          "elapsed": 540,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1120,
+          "lastSeq": 68,
+          "revision": 1189
+        },
+        {
+          "elapsed": 661,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1125,
+          "lastSeq": 68,
+          "revision": 1194
+        },
+        {
+          "elapsed": 791,
+          "position": {
+            "x": -0.12946963082381824,
+            "y": 532.0175107633631,
+            "z": 1518.5649411154661
+          },
+          "tick": 1127,
+          "lastSeq": 68,
+          "revision": 1196
+        }
+      ],
+      "ack": {
+        "seq": 68,
+        "brake": false,
+        "lastActiveSeq": 67,
+        "status": 200,
+        "ok": true,
+        "revision": 1189,
+        "lastSeq": 68
+      },
+      "settled": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "chart": {
+          "x": 11312.628751611852,
+          "y": 1.0625,
+          "z": 3129.012723228643
+        },
+        "elapsed": 791,
+        "ticks": 3,
+        "lastSeq": 68
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12946963082381824,
+          "y": 532.0175107633631,
+          "z": 1518.5649411154661
+        },
+        "tick": 1127,
+        "lastSeq": 68
+      },
+      "minimumSeq": 69,
+      "observations": [
+        {
+          "elapsed": 363,
+          "position": {
+            "x": -0.12947032913391346,
+            "y": 530.0351673252778,
+            "z": 1519.2579878158115
+          },
+          "tick": 1137,
+          "lastSeq": 72,
+          "revision": 1210
+        },
+        {
+          "elapsed": 484,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673252229,
+            "z": 1519.2579878158308
+          },
+          "tick": 1140,
+          "lastSeq": 73,
+          "revision": 1214
+        },
+        {
+          "elapsed": 593,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251915,
+            "z": 1519.2579878158417
+          },
+          "tick": 1143,
+          "lastSeq": 73,
+          "revision": 1217
+        },
+        {
+          "elapsed": 717,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1145,
+          "lastSeq": 73,
+          "revision": 1219
+        }
+      ],
+      "ack": {
+        "seq": 72,
+        "brake": true,
+        "lastActiveSeq": 71,
+        "status": 200,
+        "ok": true,
+        "revision": 1210,
+        "lastSeq": 72
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 717,
+        "ticks": 4,
+        "lastSeq": 73
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1145,
+        "lastSeq": 73
+      },
+      "minimumSeq": 76,
+      "observations": [
+        {
+          "elapsed": 437,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1161,
+          "lastSeq": 80,
+          "revision": 1242
+        },
+        {
+          "elapsed": 571,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1161,
+          "lastSeq": 80,
+          "revision": 1242
+        },
+        {
+          "elapsed": 679,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1165,
+          "lastSeq": 80,
+          "revision": 1246
+        },
+        {
+          "elapsed": 821,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1169,
+          "lastSeq": 80,
+          "revision": 1250
+        }
+      ],
+      "ack": {
+        "seq": 80,
+        "brake": false,
+        "lastActiveSeq": 79,
+        "status": 200,
+        "ok": true,
+        "revision": 1242,
+        "lastSeq": 80
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 822,
+        "ticks": 3,
+        "lastSeq": 80
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1169,
+        "lastSeq": 80
+      },
+      "minimumSeq": 83,
+      "observations": [
+        {
+          "elapsed": 357,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1183,
+          "lastSeq": 86,
+          "revision": 1270
+        },
+        {
+          "elapsed": 500,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1185,
+          "lastSeq": 87,
+          "revision": 1273
+        },
+        {
+          "elapsed": 622,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1189,
+          "lastSeq": 87,
+          "revision": 1277
+        },
+        {
+          "elapsed": 739,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1191,
+          "lastSeq": 87,
+          "revision": 1279
+        }
+      ],
+      "ack": {
+        "seq": 86,
+        "brake": true,
+        "lastActiveSeq": 85,
+        "status": 200,
+        "ok": true,
+        "revision": 1270,
+        "lastSeq": 86
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 739,
+        "ticks": 4,
+        "lastSeq": 87
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1191,
+        "lastSeq": 87
+      },
+      "minimumSeq": 90,
+      "observations": [
+        {
+          "elapsed": 377,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1205,
+          "lastSeq": 93,
+          "revision": 1299
+        },
+        {
+          "elapsed": 500,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1205,
+          "lastSeq": 93,
+          "revision": 1299
+        },
+        {
+          "elapsed": 637,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1211,
+          "lastSeq": 93,
+          "revision": 1305
+        },
+        {
+          "elapsed": 774,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1213,
+          "lastSeq": 93,
+          "revision": 1307
+        }
+      ],
+      "ack": {
+        "seq": 93,
+        "brake": false,
+        "lastActiveSeq": 92,
+        "status": 200,
+        "ok": true,
+        "revision": 1299,
+        "lastSeq": 93
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 774,
+        "ticks": 3,
+        "lastSeq": 93
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1213,
+        "lastSeq": 93
+      },
+      "minimumSeq": 94,
+      "observations": [
+        {
+          "elapsed": 365,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1223,
+          "lastSeq": 96,
+          "revision": 1320
+        },
+        {
+          "elapsed": 480,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1225,
+          "lastSeq": 96,
+          "revision": 1322
+        },
+        {
+          "elapsed": 609,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1225,
+          "lastSeq": 96,
+          "revision": 1322
+        },
+        {
+          "elapsed": 728,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1231,
+          "lastSeq": 96,
+          "revision": 1328
+        }
+      ],
+      "ack": {
+        "seq": 96,
+        "brake": false,
+        "lastActiveSeq": 95,
+        "status": 200,
+        "ok": true,
+        "revision": 1320,
+        "lastSeq": 96
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 728,
+        "ticks": 3,
+        "lastSeq": 96
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1231,
+        "lastSeq": 96
+      },
+      "minimumSeq": 97,
+      "observations": [
+        {
+          "elapsed": 410,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1241,
+          "lastSeq": 100,
+          "revision": 1342
+        },
+        {
+          "elapsed": 546,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1245,
+          "lastSeq": 100,
+          "revision": 1346
+        },
+        {
+          "elapsed": 678,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1248,
+          "lastSeq": 100,
+          "revision": 1349
+        },
+        {
+          "elapsed": 821,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1248,
+          "lastSeq": 100,
+          "revision": 1349
+        }
+      ],
+      "ack": {
+        "seq": 100,
+        "brake": false,
+        "lastActiveSeq": 99,
+        "status": 200,
+        "ok": true,
+        "revision": 1342,
+        "lastSeq": 100
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 821,
+        "ticks": 3,
+        "lastSeq": 100
+      }
+    },
+    {
+      "label": "flat-forward-pulse",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1248,
+        "lastSeq": 100
+      },
+      "minimumSeq": 101,
+      "observations": [
+        {
+          "elapsed": 361,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1259,
+          "lastSeq": 103,
+          "revision": 1363
+        },
+        {
+          "elapsed": 499,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1259,
+          "lastSeq": 103,
+          "revision": 1363
+        },
+        {
+          "elapsed": 640,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1265,
+          "lastSeq": 103,
+          "revision": 1369
+        },
+        {
+          "elapsed": 771,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1267,
+          "lastSeq": 103,
+          "revision": 1371
+        }
+      ],
+      "ack": {
+        "seq": 103,
+        "brake": false,
+        "lastActiveSeq": 102,
+        "status": 200,
+        "ok": true,
+        "revision": 1363,
+        "lastSeq": 103
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 771,
+        "ticks": 3,
+        "lastSeq": 103
+      }
+    },
+    {
+      "label": "route-failure",
+      "before": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "tick": 1267,
+        "lastSeq": 103
+      },
+      "minimumSeq": 103,
+      "observations": [
+        {
+          "elapsed": 361,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1276,
+          "lastSeq": 104,
+          "revision": 1381
+        },
+        {
+          "elapsed": 491,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1279,
+          "lastSeq": 104,
+          "revision": 1384
+        },
+        {
+          "elapsed": 628,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1281,
+          "lastSeq": 104,
+          "revision": 1386
+        },
+        {
+          "elapsed": 768,
+          "position": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "tick": 1281,
+          "lastSeq": 104,
+          "revision": 1386
+        }
+      ],
+      "ack": {
+        "seq": 104,
+        "brake": true,
+        "lastActiveSeq": 102,
+        "status": 200,
+        "ok": true,
+        "revision": 1381,
+        "lastSeq": 104
+      },
+      "settled": {
+        "position": {
+          "x": -0.12947032913391351,
+          "y": 530.0351673251836,
+          "z": 1519.2579878158442
+        },
+        "chart": {
+          "x": 11312.628751064589,
+          "y": 1.0625,
+          "z": 3126.924550798446
+        },
+        "elapsed": 768,
+        "ticks": 3,
+        "lastSeq": 104
+      }
+    }
+  ],
+  "inputRequests": [
+    {
+      "seq": 1,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 2,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 3,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 4,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 5,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 6,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 7,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 8,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 9,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 10,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 11,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 12,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 13,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 14,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 15,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 16,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 17,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 18,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 19,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 20,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 21,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 22,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 23,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 24,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 25,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 26,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 27,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 28,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 29,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 30,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 31,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 32,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 33,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 34,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 35,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 36,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 37,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 38,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 39,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 40,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 41,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 42,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 43,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 44,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 45,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 46,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 47,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 48,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 49,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 50,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 51,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 52,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 53,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 54,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 55,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 56,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 57,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 58,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 59,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 60,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 61,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 62,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 63,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 64,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 65,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 66,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 67,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 68,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 69,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 70,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 71,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 72,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 73,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 74,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 75,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 76,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 77,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 78,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 79,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 80,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 81,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 82,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 83,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 84,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 85,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 86,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    },
+    {
+      "seq": 87,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 88,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 89,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 90,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 91,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 92,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 93,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 94,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 95,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 96,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 97,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 98,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 99,
+      "input": {
+        "throttle": 0,
+        "yaw": -1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 100,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 101,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 102,
+      "input": {
+        "throttle": 0,
+        "yaw": 1,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 103,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      }
+    },
+    {
+      "seq": 104,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      }
+    }
+  ],
+  "findings": [],
+  "limits": [],
+  "contactSummaries": [
+    {
+      "name": "ground-route",
+      "file": "contact-ground-route.json",
+      "summary": {
+        "frames": 1748,
+        "duration": 35984.199999994045,
+        "activeFrames": 1748,
+        "airborneActiveFrames": 0,
+        "patchReasons": {
+          "ready": 17
+        },
+        "patchCount": 17,
+        "maximumPatchTriangles": 272,
+        "airborneActiveMs": 0,
+        "missingFrames": 0,
+        "bounded": false,
+        "feet": {
+          "l": {
+            "eligibleFrames": 1215,
+            "stationaryFrames": 855,
+            "stationaryP95AbsMinGap": 1.3978705565966835E-05,
+            "minimumGap": -0.00039566067659967433,
+            "maximumGap": 0.0008207502271569911,
+            "longestPenetrationMs": 20.79999999998836,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "l:1",
+                "reference": "u1:20261017:s0:p0",
+                "start": -2.8000000059619197,
+                "end": 17073.99999999404,
+                "stage": "ground-route",
+                "maxDrift": 4.951468231471071E-07,
+                "frames": 915,
+                "duration": 17076.800000000003
+              },
+              {
+                "key": "l:4",
+                "reference": "u1:20261017:s0:p0",
+                "start": 17601.699999994038,
+                "end": 18185.199999994038,
+                "stage": "flat-forward",
+                "maxDrift": 3.518475002048227E-06,
+                "frames": 32,
+                "duration": 583.5
+              },
+              {
+                "key": "l:6",
+                "reference": "u1:20261017:s0:p0",
+                "start": 18796.299999994037,
+                "end": 19157.399999994042,
+                "stage": "flat-forward",
+                "maxDrift": 1.8982795463120755E-06,
+                "frames": 20,
+                "duration": 361.1000000000058
+              },
+              {
+                "key": "l:7",
+                "reference": "u1:20261017:s0:p0",
+                "start": 20344.99999999404,
+                "end": 20581.09999999404,
+                "stage": "flat-forward",
+                "maxDrift": 2.9975452063793454E-06,
+                "frames": 13,
+                "duration": 236.09999999999854
+              },
+              {
+                "key": "l:17",
+                "reference": "u1:20261017:s0:p0",
+                "start": 24407.59999999404,
+                "end": 24935.399999994042,
+                "stage": "flat-forward",
+                "maxDrift": 2.844556987633136E-06,
+                "frames": 23,
+                "duration": 527.8000000000029
+              },
+              {
+                "key": "l:18",
+                "reference": "u1:20261017:s0:p0",
+                "start": 25240.899999994042,
+                "end": 25379.799999994037,
+                "stage": "flat-forward",
+                "maxDrift": 0.00010797704284641611,
+                "frames": 7,
+                "duration": 138.89999999999418
+              },
+              {
+                "key": "l:21",
+                "reference": "u1:20261017:s0:p0",
+                "start": 26657.59999999404,
+                "end": 26803.399999994042,
+                "stage": "flat-forward",
+                "maxDrift": 2.233873452073906E-06,
+                "frames": 7,
+                "duration": 145.8000000000029
+              },
+              {
+                "key": "l:23",
+                "reference": "u1:20261017:s0:p0",
+                "start": 27053.49999999404,
+                "end": 27657.699999994038,
+                "stage": "flat-forward",
+                "maxDrift": 2.6810288064259004E-06,
+                "frames": 26,
+                "duration": 604.1999999999971
+              },
+              {
+                "key": "l:25",
+                "reference": "u1:20261017:s0:p0",
+                "start": 27921.49999999404,
+                "end": 28025.699999994038,
+                "stage": "flat-forward",
+                "maxDrift": 7.126627258767277E-07,
+                "frames": 5,
+                "duration": 104.19999999999709
+              },
+              {
+                "key": "l:28",
+                "reference": "u1:20261017:s0:p0",
+                "start": 29470.199999994045,
+                "end": 29574.299999994037,
+                "stage": "flat-forward",
+                "maxDrift": 3.3541407479782514E-06,
+                "frames": 5,
+                "duration": 104.09999999999127
+              },
+              {
+                "key": "l:30",
+                "reference": "u1:20261017:s0:p0",
+                "start": 29831.299999994037,
+                "end": 29942.399999994042,
+                "stage": "flat-forward",
+                "maxDrift": 2.8658969693353207E-06,
+                "frames": 6,
+                "duration": 111.10000000000582
+              },
+              {
+                "key": "l:32",
+                "reference": "u1:20261017:s0:p0",
+                "start": 30185.59999999404,
+                "end": 30699.59999999404,
+                "stage": "flat-forward",
+                "maxDrift": 4.740701999474701E-06,
+                "frames": 22,
+                "duration": 514
+              },
+              {
+                "key": "l:35",
+                "reference": "u1:20261017:s0:p0",
+                "start": 32046.699999994045,
+                "end": 32171.59999999404,
+                "stage": "flat-forward",
+                "maxDrift": 2.9668958828388227E-06,
+                "frames": 6,
+                "duration": 124.89999999999418
+              },
+              {
+                "key": "l:36",
+                "reference": "u1:20261017:s0:p0",
+                "start": 32421.699999994045,
+                "end": 32991.09999999404,
+                "stage": "flat-forward",
+                "maxDrift": 5.0918491502103995E-06,
+                "frames": 24,
+                "duration": 569.3999999999942
+              },
+              {
+                "key": "l:38",
+                "reference": "u1:20261017:s0:p0",
+                "start": 33227.199999994045,
+                "end": 33845.29999999404,
+                "stage": "flat-forward",
+                "maxDrift": 0.00024241750748444846,
+                "frames": 27,
+                "duration": 618.0999999999913
+              },
+              {
+                "key": "l:39",
+                "reference": "u1:20261017:s0:p0",
+                "start": 34116.09999999404,
+                "end": 34817.499999994034,
+                "stage": "flat-forward",
+                "maxDrift": 4.894491695118214E-06,
+                "frames": 31,
+                "duration": 701.3999999999942
+              },
+              {
+                "key": "l:40",
+                "reference": "u1:20261017:s0:p0",
+                "start": 35067.499999994034,
+                "end": 35984.199999994045,
+                "stage": "flat-forward",
+                "maxDrift": 3.753945488917389E-05,
+                "frames": 37,
+                "duration": 916.7000000000116
+              }
+            ],
+            "maximumSettledDrift": 0.00024241750748444846,
+            "measuredVertexCounts": [
+              12
+            ]
+          },
+          "r": {
+            "eligibleFrames": 1145,
+            "stationaryFrames": 855,
+            "stationaryP95AbsMinGap": 2.59384619074911E-05,
+            "minimumGap": -0.0006061559295365577,
+            "maximumGap": 0.00038601403572624695,
+            "longestPenetrationMs": 0,
+            "longestUnsupportedGapMs": 0,
+            "eligibleWindows": [
+              {
+                "key": "r:2",
+                "reference": "u1:20261017:s0:p0",
+                "start": -2.8000000059619197,
+                "end": 17261.49999999404,
+                "stage": "ground-route",
+                "maxDrift": 0.00018562141797565226,
+                "frames": 925,
+                "duration": 17264.300000000003
+              },
+              {
+                "key": "r:12",
+                "reference": "u1:20261017:s0:p0",
+                "start": 21886.59999999404,
+                "end": 22275.59999999404,
+                "stage": "flat-forward",
+                "maxDrift": 3.39420791915169E-05,
+                "frames": 19,
+                "duration": 389
+              },
+              {
+                "key": "r:15",
+                "reference": "u1:20261017:s0:p0",
+                "start": 23171.399999994042,
+                "end": 23574.199999994038,
+                "stage": "flat-forward",
+                "maxDrift": 0.0002816562434768116,
+                "frames": 17,
+                "duration": 402.79999999999563
+              },
+              {
+                "key": "r:19",
+                "reference": "u1:20261017:s0:p0",
+                "start": 25657.59999999404,
+                "end": 26296.49999999404,
+                "stage": "flat-forward",
+                "maxDrift": 2.5968330494959016E-06,
+                "frames": 27,
+                "duration": 638.9000000000015
+              },
+              {
+                "key": "r:22",
+                "reference": "u1:20261017:s0:p0",
+                "start": 26893.699999994038,
+                "end": 27025.699999994038,
+                "stage": "flat-forward",
+                "maxDrift": 3.541929506404425E-06,
+                "frames": 6,
+                "duration": 132
+              },
+              {
+                "key": "r:24",
+                "reference": "u1:20261017:s0:p0",
+                "start": 27289.59999999404,
+                "end": 27733.99999999404,
+                "stage": "flat-forward",
+                "maxDrift": 3.6563837755106223E-06,
+                "frames": 19,
+                "duration": 444.40000000000146
+              },
+              {
+                "key": "r:26",
+                "reference": "u1:20261017:s0:p0",
+                "start": 27970.09999999404,
+                "end": 28379.799999994037,
+                "stage": "flat-forward",
+                "maxDrift": 6.509784225871055E-07,
+                "frames": 17,
+                "duration": 409.6999999999971
+              },
+              {
+                "key": "r:27",
+                "reference": "u1:20261017:s0:p0",
+                "start": 28789.59999999404,
+                "end": 29511.899999994042,
+                "stage": "flat-forward",
+                "maxDrift": 6.788180602794586E-06,
+                "frames": 31,
+                "duration": 722.3000000000029
+              },
+              {
+                "key": "r:31",
+                "reference": "u1:20261017:s0:p0",
+                "start": 30122.899999994042,
+                "end": 30678.59999999404,
+                "stage": "flat-forward",
+                "maxDrift": 1.1006518207430165E-06,
+                "frames": 24,
+                "duration": 555.6999999999971
+              },
+              {
+                "key": "r:33",
+                "reference": "u1:20261017:s0:p0",
+                "start": 30942.499999994034,
+                "end": 31109.09999999404,
+                "stage": "flat-forward",
+                "maxDrift": 7.891731724324106E-07,
+                "frames": 7,
+                "duration": 166.60000000000582
+              },
+              {
+                "key": "r:34",
+                "reference": "u1:20261017:s0:p0",
+                "start": 31345.199999994045,
+                "end": 31754.999999994034,
+                "stage": "flat-forward",
+                "maxDrift": 1.2664895392373544E-06,
+                "frames": 18,
+                "duration": 409.79999999998836
+              },
+              {
+                "key": "r:37",
+                "reference": "u1:20261017:s0:p0",
+                "start": 33199.39999999404,
+                "end": 33657.79999999404,
+                "stage": "flat-forward",
+                "maxDrift": 1.075289362849717E-06,
+                "frames": 20,
+                "duration": 458.3999999999942
+              }
+            ],
+            "maximumSettledDrift": 0.0002816562434768116,
+            "measuredVertexCounts": [
+              12
+            ]
+          }
+        },
+        "stages": {
+          "ground-route": {
+            "l": {
+              "frames": 43,
+              "eligibleFrames": 43,
+              "maximumWindowMs": 784.7000000000044,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 43,
+              "eligibleFrames": 43,
+              "maximumWindowMs": 784.7000000000044,
+              "reasons": {}
+            }
+          },
+          "flat-idle": {
+            "l": {
+              "frames": 855,
+              "eligibleFrames": 855,
+              "maximumWindowMs": 15944.799999999996,
+              "reasons": {}
+            },
+            "r": {
+              "frames": 855,
+              "eligibleFrames": 855,
+              "maximumWindowMs": 15944.799999999996,
+              "reasons": {}
+            }
+          },
+          "flat-forward": {
+            "l": {
+              "frames": 850,
+              "eligibleFrames": 317,
+              "maximumWindowMs": 916.7000000000116,
+              "reasons": {
+                "no-stable-support": 352,
+                "unlocked": 56,
+                "weight-below-.98": 69,
+                "releasing": 56
+              }
+            },
+            "r": {
+              "frames": 850,
+              "eligibleFrames": 247,
+              "maximumWindowMs": 722.3000000000029,
+              "reasons": {
+                "releasing": 34,
+                "unlocked": 33,
+                "weight-below-.98": 42,
+                "no-stable-support": 494
+              }
+            }
+          }
+        },
+        "independent": {
+          "samples": 4101,
+          "maximumError": 1.251698397708445E-13,
+          "mismatches": []
+        }
+      }
+    }
+  ],
+  "endUniverse": {
+    "state": {
+      "atlasRevision": 1,
+      "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+      "tick": 1346,
+      "explorerId": "p_5",
+      "vesselId": "universe_1:vessel",
+      "systemIndex": 0,
+      "mode": "surface",
+      "position": {
+        "x": -0.12947032913391351,
+        "y": 530.0351673251836,
+        "z": 1519.2579878158442
+      },
+      "forward": {
+        "x": -0.09824831475922757,
+        "y": 0.9396176514958402,
+        "z": -0.3278199774943769
+      },
+      "up": {
+        "x": -8.046320707487342E-05,
+        "y": 0.32940620226074724,
+        "z": 0.9441883008371921
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "landedPlanetId": "u1:20261017:s0:p0",
+      "landedVesselPosition": {
+        "x": -3.0784811375173877,
+        "y": 524.4641801324371,
+        "z": 1521.0980550469717
+      },
+      "targetPlanetId": "u1:20261017:s0:p0",
+      "cruise": false,
+      "landing": false,
+      "discoveries": [
+        {
+          "planetId": "u1:20261017:s0:p0",
+          "systemIndex": 0,
+          "tick": 0,
+          "explorerId": "p_5",
+          "method": "landed"
+        }
+      ],
+      "events": [],
+      "settlementRevision": 1
+    },
+    "status": {
+      "speed": 0,
+      "altitude": 2.9999999999997726,
+      "nearestPlanetId": "u1:20261017:s0:p0",
+      "canLand": false,
+      "canLaunch": true,
+      "message": "Surface exploration · vessel ready"
+    },
+    "system": {
+      "id": "u1:20261017:s0",
+      "index": 0,
+      "seed": 4060649947,
+      "name": "Cinderveil Expanse",
+      "planets": [
+        {
+          "id": "u1:20261017:s0:p0",
+          "index": 0,
+          "seed": 20261017,
+          "radius": 1600,
+          "center": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "kind": "temperate",
+          "name": "Cinderveil",
+          "atmosphere": 185,
+          "gravity": 9.81,
+          "palette": {
+            "land": "#5b7650",
+            "rock": "#777369",
+            "water": "#184e68",
+            "sky": "#84bad8"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p1",
+          "index": 1,
+          "seed": 3417329974,
+          "radius": 2374,
+          "center": {
+            "x": 16618.641806198448,
+            "y": 1595.3260650858283,
+            "z": -19174.616375932215
+          },
+          "kind": "glacial",
+          "name": "Thalehollow 2",
+          "atmosphere": 187,
+          "gravity": 5.54,
+          "palette": {
+            "land": "#d7e5e9",
+            "rock": "#7195a4",
+            "water": "#244c76",
+            "sky": "#a4c8e5"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p2",
+          "index": 2,
+          "seed": 1314885531,
+          "radius": 1571,
+          "center": {
+            "x": 778.6715281622598,
+            "y": -251.4495262876153,
+            "z": 28287.980624825654
+          },
+          "kind": "volcanic",
+          "name": "Vesperspire 3",
+          "atmosphere": 200,
+          "gravity": 6.55,
+          "palette": {
+            "land": "#4d4141",
+            "rock": "#7c4a3e",
+            "water": "#452e42",
+            "sky": "#bd715f"
+          }
+        },
+        {
+          "id": "u1:20261017:s0:p3",
+          "index": 3,
+          "seed": 2074974299,
+          "radius": 2220,
+          "center": {
+            "x": -21935.049110092543,
+            "y": -376.23503245413303,
+            "z": -22659.738179816293
+          },
+          "kind": "oceanic",
+          "name": "Vesperrest 4",
+          "atmosphere": 284,
+          "gravity": 7.84,
+          "palette": {
+            "land": "#6e9e78",
+            "rock": "#7e9290",
+            "water": "#136782",
+            "sky": "#92d4dc"
+          }
+        }
+      ]
+    },
+    "preview": null,
+    "revision": 1451,
+    "lastSeq": 104,
+    "campaign": {
+      "active": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "name": "Veil traveler",
+      "health": 80,
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canExplore": false,
+      "canReturn": true,
+      "flight": {
+        "canHover": true,
+        "canFly": true,
+        "canCrossSpace": true,
+        "spaceEnvelope": true,
+        "speed": 865.229705649791,
+        "acceleration": 342.42520799007684,
+        "maxAltitude": 107282.80382300226,
+        "estimatedEndurance": 135.99343564196337,
+        "manaPerSecond": 2.3530547521608307,
+        "effortPerSecond": 0.0005238104491766719,
+        "protectionStrength": 15.142633953752064,
+        "liftAcceleration": 248.40764331210192,
+        "manaAvailable": 320,
+        "routeManaRequired": 28.23665702592997,
+        "routeEffortRequired": 0.006285725390120062,
+        "routeSeconds": 12,
+        "capacity": {
+          "amplitude": 20,
+          "aperture": 12,
+          "reserve": 320
+        },
+        "estimatedBodyMassKg": 75,
+        "knownLoadKg": 3.5,
+        "unweighedStacks": 0,
+        "safeCarryMassKg": 35.25,
+        "gravityAbilityId": "book-well",
+        "wardAbilityId": "book-ward",
+        "reasons": [],
+        "causes": [
+          "e_1",
+          "e_3",
+          "e_5"
+        ]
+      },
+      "message": "Cinderveil docking link ready.",
+      "footSupport": {
+        "id": "u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815",
+        "available": true,
+        "reason": "ready",
+        "origin": {
+          "x": 0,
+          "y": 528.6239847459567,
+          "z": 1516.5067367972047
+        },
+        "radius": 2.45,
+        "triangles": 232
+      }
+    },
+    "atlas": {
+      "context": "u1:20261017:s0:p0",
+      "queriedPlacements": 10,
+      "queries": 143,
+      "requested": 10,
+      "loaded": 10,
+      "instanced": 10,
+      "pending": 0,
+      "peakPending": 2,
+      "cachedModels": 10,
+      "cacheBytes": 2349492,
+      "cacheTriangles": 38598,
+      "renderedTriangles": 38598,
+      "instances": 10,
+      "budgetRejected": 0,
+      "requestedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "loadedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "instancedIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "residentIds": [
+        "atlas:nature:tvn_biome_005",
+        "atlas:nature:tvn_biome_081",
+        "atlas:nature:tvn_biome_200",
+        "atlas:nature:tvn_flora_007",
+        "atlas:nature:tvn_flora_064",
+        "atlas:nature:tvn_flora_092",
+        "atlas:nature:tvn_flora_097",
+        "atlas:nature:tvn_flora_157",
+        "atlas:nature:tvn_flora_177",
+        "atlas:nature:tvn_flora_179"
+      ],
+      "visibilityBasis": "camera frustum; occlusion is not measured",
+      "visibleIds": [],
+      "failures": [],
+      "placements": [
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:30",
+          "assetId": "atlas:nature:tvn_flora_157",
+          "position": {
+            "x": -196.83184971873402,
+            "y": 539.6310284827531,
+            "z": 1499.78657389832
+          },
+          "up": {
+            "x": -0.1225586848056386,
+            "y": 0.3360049160014859,
+            "z": 0.9338522716155626
+          },
+          "yaw": 2.012929954406598,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:29",
+          "assetId": "atlas:nature:tvn_flora_092",
+          "position": {
+            "x": -196.86432761685603,
+            "y": 468.3886183784928,
+            "z": 1523.5256612294686
+          },
+          "up": {
+            "x": -0.12257962713403228,
+            "y": 0.29164705911780525,
+            "z": 0.9486391452599966
+          },
+          "yaw": 4.304748573599802,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:30",
+          "assetId": "atlas:nature:tvn_biome_081",
+          "position": {
+            "x": 204.93748941330466,
+            "y": 535.0667382752919,
+            "z": 1500.3133709410217
+          },
+          "up": {
+            "x": 0.12760740312160937,
+            "y": 0.333167333919858,
+            "z": 0.9341926344589176
+          },
+          "yaw": 6.265790370039204,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:31",
+          "assetId": "atlas:nature:tvn_biome_005",
+          "position": {
+            "x": 193.51295550241093,
+            "y": 590.4623584410405,
+            "z": 1480.926378763295
+          },
+          "up": {
+            "x": 0.12049374564284616,
+            "y": 0.36766024809529296,
+            "z": 0.9221210328538574
+          },
+          "yaw": 0.18250835941716964,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:31",
+          "assetId": "atlas:nature:tvn_flora_177",
+          "position": {
+            "x": -194.07612781537227,
+            "y": 592.8430749574334,
+            "z": 1479.9011943664368
+          },
+          "up": {
+            "x": -0.12084441333460291,
+            "y": 0.3691426369597966,
+            "z": 0.9214826864050042
+          },
+          "yaw": 4.790481541413313,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:29",
+          "assetId": "atlas:nature:tvn_biome_200",
+          "position": {
+            "x": 207.26126539368252,
+            "y": 468.78291859787413,
+            "z": 1522.012267722658
+          },
+          "up": {
+            "x": 0.1290543371069007,
+            "y": 0.2918947189276925,
+            "z": 0.9477037781585665
+          },
+          "yaw": 3.192784937999634,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:28",
+          "assetId": "atlas:nature:tvn_flora_097",
+          "position": {
+            "x": -207.33329940216007,
+            "y": 407.9109541505371,
+            "z": 1539.444944293144
+          },
+          "up": {
+            "x": -0.12909835978586767,
+            "y": 0.2539902431079239,
+            "z": 0.9585523302911408
+          },
+          "yaw": 4.081464635030378,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:28",
+          "assetId": "atlas:nature:tvn_flora_179",
+          "position": {
+            "x": 206.77716862470308,
+            "y": 404.3012035480144,
+            "z": 1540.4608853668365
+          },
+          "up": {
+            "x": 0.1287529069892298,
+            "y": 0.2517442114246665,
+            "z": 0.9591910867788521
+          },
+          "yaw": 5.567494119403184,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:19:32",
+          "assetId": "atlas:nature:tvn_flora_064",
+          "position": {
+            "x": -196.73027030485622,
+            "y": 643.9062274565256,
+            "z": 1458.0528011661593
+          },
+          "up": {
+            "x": -0.12249705498434385,
+            "y": 0.40093787512859624,
+            "z": 0.9078784565169111
+          },
+          "yaw": 5.435829371037925,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        },
+        {
+          "id": "atlas:1:sphere:20261017:1600:scatter:4:25:32",
+          "assetId": "atlas:nature:tvn_flora_007",
+          "position": {
+            "x": 198.56158082283463,
+            "y": 649.00429562981,
+            "z": 1455.659679085953
+          },
+          "up": {
+            "x": 0.12362914271015762,
+            "y": 0.40408544468384877,
+            "z": 0.906328190264105
+          },
+          "yaw": 5.040495570952604,
+          "scale": 1,
+          "visible": false,
+          "fade": 1
+        }
+      ],
+      "budgets": {
+        "models": 28,
+        "bytes": 67108864,
+        "triangles": 1200000,
+        "instances": 80,
+        "instanceTriangles": 1800000,
+        "meshInstances": 640,
+        "range": 256
+      }
+    },
+    "avatar": {
+      "ready": true,
+      "loading": false,
+      "error": "",
+      "bodyId": "b_5",
+      "phase": "ground",
+      "visible": true,
+      "position": {
+        "x": -0.1292289395126889,
+        "y": 529.0469487184014,
+        "z": 1516.4254229133326
+      },
+      "cameraOccluded": false,
+      "cameraClearance": 2.9999999999999996,
+      "assetPath": "people/wren.glb",
+      "presentationRevision": "authored-motion-2026-10-20.1",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 140.49,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          true,
+          false
+        ],
+        "canonicalFacing": 0,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            -0.22672368586063385,
+            -0.8245411515235901,
+            -2.7977640628814697
+          ],
+          [
+            0.18775609135627747,
+            -1.1704421043395996,
+            -2.6905837059020996
+          ]
+        ],
+        "contacts": [
+          true,
+          false
+        ],
+        "radialContacts": {
+          "active": true,
+          "reference": "u1:20261017:s0:p0",
+          "origin": {
+            "x": -0.12947032913391351,
+            "y": 530.0351673251836,
+            "z": 1519.2579878158442
+          },
+          "up": {
+            "x": -8.046320707487343E-05,
+            "y": 0.3294062022607473,
+            "z": 0.9441883008371922
+          },
+          "resetReason": null,
+          "feet": [
+            {
+              "side": "l",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 103
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 100
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 110
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 109
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 99
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 96
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 120
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 113
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 112
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 111
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 119
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 10
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": true,
+              "lockId": 40,
+              "weight": 1,
+              "releasing": false,
+              "contact": true,
+              "support": {
+                "point": {
+                  "x": -0.36351713570758515,
+                  "y": 529.2516965727988,
+                  "z": 1516.3538047449454
+                },
+                "normal": {
+                  "x": -0.00031247643752533064,
+                  "y": 0.32945071078435517,
+                  "z": 0.9441727233521202
+                },
+                "source": "settlement:u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815"
+              },
+              "anchor": {
+                "x": -0.36351713570758515,
+                "y": 529.2516965727988,
+                "z": 1516.3538047449454
+              },
+              "solePoints": [
+                {
+                  "x": -0.4060700261093003,
+                  "y": 529.273346287767,
+                  "z": 1516.3472285841108
+                },
+                {
+                  "x": -0.39191121416142904,
+                  "y": 529.3255336585719,
+                  "z": 1516.3302260312764
+                },
+                {
+                  "x": -0.36539459155219556,
+                  "y": 529.3547835430329,
+                  "z": 1516.3221806352087
+                },
+                {
+                  "x": -0.34186753985374835,
+                  "y": 529.3670472691502,
+                  "z": 1516.3190385492696
+                },
+                {
+                  "x": -0.321653376825565,
+                  "y": 529.355762538281,
+                  "z": 1516.3212923447682
+                },
+                {
+                  "x": -0.30768602608358575,
+                  "y": 529.2981727054427,
+                  "z": 1516.3398170524508
+                },
+                {
+                  "x": -0.33832197476452885,
+                  "y": 529.1620129635711,
+                  "z": 1516.3951174887936
+                },
+                {
+                  "x": -0.34893690943799704,
+                  "y": 529.1484814887989,
+                  "z": 1516.4001329636278
+                },
+                {
+                  "x": -0.3650694991972147,
+                  "y": 529.1406886446008,
+                  "z": 1516.402799801061
+                },
+                {
+                  "x": -0.38270121478065033,
+                  "y": 529.1476022975581,
+                  "z": 1516.399484192267
+                },
+                {
+                  "x": -0.39596114217191203,
+                  "y": 529.1652227646814,
+                  "z": 1516.3920343238574
+                },
+                {
+                  "x": -0.396652559676545,
+                  "y": 529.3025321429325,
+                  "z": 1516.3360339104916
+                }
+              ],
+              "signedGaps": [
+                0.0009367790757576264,
+                0.0020721745726812388,
+                0.004104040463155896,
+                0.005170310262019364,
+                0.0035742034401450374,
+                0.002087351311831628,
+                0.00945216416856422,
+                0.009733001636975649,
+                0.009688639793104243,
+                0.008841349784858865,
+                0.007616606072975511,
+                -2.0568409776479964E-05
+              ],
+              "reason": null
+            },
+            {
+              "side": "r",
+              "measurement": "skinned-distal-sole-hull-v1",
+              "soleVertices": [
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2146
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2149
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2159
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2160
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2150
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2153
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2169
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2161
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2162
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2163
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2170
+                },
+                {
+                  "mesh": "h3.Human.punkduck_medieval_boots",
+                  "vertex": 2060
+                }
+              ],
+              "measuredVertices": 12,
+              "lock": false,
+              "lockId": null,
+              "weight": 0,
+              "releasing": false,
+              "contact": false,
+              "support": null,
+              "anchor": null,
+              "solePoints": [
+                {
+                  "x": 0.09554442375787492,
+                  "y": 528.9559309865106,
+                  "z": 1516.4457140526997
+                },
+                {
+                  "x": 0.14382860917879967,
+                  "y": 528.9932485037417,
+                  "z": 1516.4342736619146
+                },
+                {
+                  "x": 0.16676995614063653,
+                  "y": 528.9904799033565,
+                  "z": 1516.4369319753587
+                },
+                {
+                  "x": 0.1775159652422665,
+                  "y": 528.9670555213971,
+                  "z": 1516.4439758435526
+                },
+                {
+                  "x": 0.17973170691839332,
+                  "y": 528.9284494399686,
+                  "z": 1516.455292869635
+                },
+                {
+                  "x": 0.15704563849812916,
+                  "y": 528.8790395083056,
+                  "z": 1516.4713264196769
+                },
+                {
+                  "x": 0.07704058328132324,
+                  "y": 528.8002623218104,
+                  "z": 1516.5058779527008
+                },
+                {
+                  "x": 0.05482973618873804,
+                  "y": 528.7941928787076,
+                  "z": 1516.5092906921677
+                },
+                {
+                  "x": 0.03624966334917476,
+                  "y": 528.7990714216486,
+                  "z": 1516.508484463563
+                },
+                {
+                  "x": 0.028626536658818563,
+                  "y": 528.8146000345172,
+                  "z": 1516.5031132040185
+                },
+                {
+                  "x": 0.029165331116265014,
+                  "y": 528.83141256258,
+                  "z": 1516.49695028978
+                },
+                {
+                  "x": 0.16890447979440162,
+                  "y": 528.9073392722935,
+                  "z": 1516.4604122382384
+                }
+              ],
+              "signedGaps": [
+                -0.010745656465882821,
+                -0.009237991206219758,
+                -0.007633032926988086,
+                -0.008696226137015498,
+                -0.01072910740354521,
+                -0.011875892733736217,
+                -0.005231477376417289,
+                -0.004015784541097061,
+                -0.003175569969532116,
+                0.0002457562149104496,
+                -0.0003328469157986617,
+                -0.012853682191862694
+              ],
+              "reason": "no-stable-support"
+            }
+          ]
+        },
+        "spineTiltDeg": 3.1162882762521766
+      },
+      "motionAvailability": {
+        "ual": {
+          "loaded": true,
+          "verified": true,
+          "reason": "Audited CC0 bytes; own rig retarget"
+        }
+      },
+      "joints": [
+        {
+          "name": "pelvis",
+          "rotation": [
+            0.416729252332448,
+            -0.04867529837424486,
+            -0.10530939623409374,
+            0.9015971170867647
+          ]
+        },
+        {
+          "name": "spine_03",
+          "rotation": [
+            -0.006423590358764528,
+            0.00033089787446099713,
+            0.00023528754169655424,
+            0.9999792723700764
+          ]
+        },
+        {
+          "name": "upperarm_l",
+          "rotation": [
+            0.20208629108298867,
+            0.16910181352643608,
+            -0.5105386487493555,
+            0.8184839618169523
+          ]
+        },
+        {
+          "name": "upperarm_r",
+          "rotation": [
+            0.17707578110479283,
+            -0.16439532374970683,
+            0.4999771976920723,
+            0.8316496540390906
+          ]
+        },
+        {
+          "name": "calf_l",
+          "rotation": [
+            -0.2538910867121678,
+            -0.10506987554170898,
+            0.02605217429374104,
+            -0.9611560339280676
+          ]
+        },
+        {
+          "name": "calf_r",
+          "rotation": [
+            0.13630415539511861,
+            0.14295651036920354,
+            -0.018248729333670288,
+            0.9801283575342515
+          ]
+        }
+      ],
+      "landmarks": {
+        "pelvis": {
+          "x": -0.0037487486843019724,
+          "y": -0.7136226892471313,
+          "z": -2.0074198246002197
+        },
+        "hand_l": {
+          "x": -0.2502605617046356,
+          "y": -0.6914048194885254,
+          "z": -2.226466178894043
+        },
+        "hand_r": {
+          "x": 0.20356737077236176,
+          "y": -0.7662374973297119,
+          "z": -1.9973868131637573
+        },
+        "head": {
+          "x": 0.012996348552405834,
+          "y": -0.38753247261047363,
+          "z": -1.442431926727295
+        },
+        "foot_l": {
+          "x": -0.22672368586063385,
+          "y": -0.8245411515235901,
+          "z": -2.7977640628814697
+        },
+        "foot_r": {
+          "x": 0.18775609135627747,
+          "y": -1.1704421043395996,
+          "z": -2.6905837059020996
+        }
+      }
+    },
+    "camera": {
+      "mode": "ground",
+      "yaw": 0,
+      "renderedYaw": -9.576382480866187E-296,
+      "pitch": 0.4886921905584123,
+      "renderedPitch": 0.4886921905584123,
+      "preferredDistance": 3,
+      "renderedDistance": 2.9999999999999996,
+      "desiredDistance": 3,
+      "obstructionDistance": 2.9999999999999996,
+      "inputRevision": 277,
+      "fov": 0.9075712110370514,
+      "maxHorizonSpeed": 1.5707963267948966,
+      "input": {
+        "yawPerPixel": 0.004,
+        "pitchPerPixel": 0.0035,
+        "minPitch": -0.2617993877991494,
+        "maxPitch": 1.3089969389957472,
+        "minDistance": 3,
+        "maxDistance": 18
+      },
+      "position": {
+        "x": 4.431942864293139E-05,
+        "y": 2.3226047995121477,
+        "z": -1.3839037750956527
+      },
+      "target": {
+        "x": 0.00015690325379135752,
+        "y": -0.6423421079581493,
+        "z": -1.8411671819053397
+      },
+      "up": {
+        "x": -8.046320707249105E-05,
+        "y": 0.32940620920930735,
+        "z": 0.9441882984129948
+      },
+      "tangentHeading": {
+        "x": -0.09824831475922753,
+        "y": 0.93961765149584,
+        "z": -0.32781997749437686
+      },
+      "worldPosition": {
+        "x": -0.12942600970527057,
+        "y": 532.3577721246958,
+        "z": 1517.8740840407486
+      },
+      "worldTarget": {
+        "x": -0.12931342588012215,
+        "y": 529.3928252172254,
+        "z": 1517.4168206339389
+      },
+      "renderedBodyPosition": {
+        "x": -0.12947032913391351,
+        "y": 530.0351673251836,
+        "z": 1519.2579878158442
+      },
+      "nearestPlanetId": "u1:20261017:s0:p0"
+    },
+    "lighting": {
+      "air": 0.9992196316111583,
+      "day": 1,
+      "elevation": 0.6958748852388245,
+      "stars": 0.0007803683888416568,
+      "shadows": true,
+      "altitudeFill": 0,
+      "fillIntensity": 0.5498049079027896,
+      "environmentIntensity": 0.4997658894833475,
+      "casters": 112,
+      "triangles": 49859,
+      "registered": 2079,
+      "shadowMap": 2048,
+      "environment": "kloppenheim_06_puresky_1k.hdr"
+    },
+    "settlements": {
+      "revision": 1,
+      "enabled": true,
+      "chunks": 12,
+      "focused": 56,
+      "pending": 0,
+      "terrain": true,
+      "errors": []
+    },
+    "terrain": {
+      "planets": 4,
+      "tiles": 168,
+      "vertices": 59304,
+      "triangles": 107520,
+      "pendingTiles": 0,
+      "rebuilds": 220,
+      "decorations": 0
+    },
+    "vessel": {
+      "visible": true,
+      "position": {
+        "x": -2.9490108083834743,
+        "y": -5.570987192746429,
+        "z": 1.8400672311274775
+      }
+    },
+    "footSupport": {
+      "id": "u1:20261017:s0:p0:brass:11310:3124:1:f91b1c5117936815",
+      "available": true,
+      "reason": "ready",
+      "triangles": 232
+    },
+    "phase": "Surface exploration · vessel ready"
+  },
+  "endTown": {
+    "ready": true,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3,
+        "grade": null
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1,
+        "grade": "Bronze-grade"
+      }
+    ],
+    "position": {
+      "x": 11312.628751064589,
+      "y": 1.0625,
+      "z": 3126.924550798438
+    },
+    "loaded": 81,
+    "focused": {
+      "instances": 56,
+      "pending": 0,
+      "error": "",
+      "forests": [
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-cross",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 45,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 90,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2205,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 720,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 410,
+              "sourceTrees": 45
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-turn",
+          "assetId": "tv_48_01_broadleaf_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-turn",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 46,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 46,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2254,
+              "sourceTrees": 46
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 736,
+              "sourceTrees": 46
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 432,
+              "sourceTrees": 46
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-branches",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 53,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 106,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2597,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 848,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 498,
+              "sourceTrees": 53
+            }
+          ]
+        }
+      ]
+    },
+    "meshes": 3135,
+    "camera": {
+      "mode": "third-person",
+      "yaw": 3.141592653589793,
+      "renderedYaw": 3.141592653589793,
+      "movementYaw": 3.141592653589793,
+      "pitch": 0.3839724354387525,
+      "preferred": 4,
+      "blocked": false,
+      "position": {
+        "x": 48.62875106458887,
+        "y": 4.509832722979137,
+        "z": 51.215815380170696
+      },
+      "want": 4,
+      "dist": 0,
+      "limit": 4.2,
+      "pitchDeg": 22,
+      "fovDeg": 52,
+      "reason": "explore",
+      "framing": "orbit",
+      "rawDistance": 0,
+      "elevatedBy": 0,
+      "nearPlaneBlocked": false,
+      "actualFovDeg": 60.753721951804785
+    },
+    "controlledBody": {
+      "id": "b_5",
+      "enabled": true,
+      "position": {
+        "x": 48.62875106458887,
+        "y": 1.0625,
+        "z": 54.92455079843785
+      },
+      "yaw": -3.0431774605959476,
+      "screen": {
+        "x": 719.9996777494215,
+        "y": 556.0649152942239,
+        "z": 0.9777529973995209
+      }
+    },
+    "controlledLook": {
+      "assetPath": "people/wren.glb",
+      "motion": {
+        "policy": "authored-in-place",
+        "clip": "unarmed/idle_neutral",
+        "dominantClip": "unarmed/idle_neutral",
+        "frame": 135.19200000107287,
+        "source": {
+          "source": "quaternius-ual-standard",
+          "file": "motion/ual-standard.glb",
+          "sourceClip": "Idle_Loop",
+          "retargetLook": "wren",
+          "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+          "license": "CC0-1.0"
+        },
+        "flight": {
+          "phase": "ground",
+          "weight": 0,
+          "pitch": 0,
+          "bank": 0,
+          "reach": 0,
+          "speed": 0,
+          "totalSpeed": 0
+        },
+        "stance": "travel",
+        "armed": false,
+        "action": null,
+        "age": null,
+        "hit": false,
+        "planted": true,
+        "locks": [
+          true,
+          true
+        ],
+        "canonicalFacing": -3.0431774605959476,
+        "canonicalCrouch": 0,
+        "gait": null,
+        "feet": [
+          [
+            48.85975646972656,
+            1.1377614736557007,
+            55.062721252441406
+          ],
+          [
+            48.44084167480469,
+            1.136772871017456,
+            54.705814361572266
+          ]
+        ],
+        "contacts": [
+          true,
+          true
+        ],
+        "radialContacts": null,
+        "spineTiltDeg": 2.5955858824820064
+      }
+    }
+  },
+  "checkpoint": {
+    "format": 1,
+    "sequence": 5497,
+    "engine": "d42707b0293c8af93821f24eba35c2bfaad185643fd59cb982c67f25a161ed53",
+    "worldFile": "world-5497-b2ca7a76-e073-471d-9778-f823e808f864.json.gz",
+    "sha256": "8c98101d482e5ce319dcbdb897aa5fa7d343567f7a5a45344c0bac21448c985a",
+    "bytes": 48177,
+    "control": {
+      "citySteps": 0,
+      "realm": {
+        "input": {
+          "x": 0,
+          "z": 0,
+          "sprint": false
+        },
+        "inputUntil": 0,
+        "pending": null,
+        "transitionId": 0,
+        "lastRegion": "brass:117,32"
+      },
+      "tower": null,
+      "controller": {
+        "slowAccum": 0.03333333333333333,
+        "interactionTick": 359,
+        "move": {
+          "x": 0,
+          "z": 0,
+          "sprint": false,
+          "expires": 0
+        },
+        "sequence": -1,
+        "appliedSequence": -1,
+        "control": null
+      }
+    }
+  },
+  "rawEvidence": ".debug/release-journey-oct20-v3 retained locally"
+}
