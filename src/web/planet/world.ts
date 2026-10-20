@@ -389,6 +389,8 @@ export async function startPlanetWorld() {
     teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; hudT = 1; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
     /** Stand 30 m south of landmark settlement i (seeded region centre on land), facing it. */
     teleportSite(i: number) { inTower = false; hudT = 1; const sites = landmarkSites(spec), site = sites[((i % sites.length) + sites.length) % sites.length], f = tangentFrame(site.dir); body = spawnBody(spec, normalize(add(site.dir, scale(f.north, -30 / spec.radius))), site.dir); return sites.length; },
+    /** Capture hook: stand on the road 10 m outside settlement gateway i, facing through it. */
+    teleportGate(i: number) { inTower = false; hudT = 1; const g = settlementGateways(spec), gate = g[((i % g.length) + g.length) % g.length]; body = spawnBody(spec, normalize(add(gate.dir, scale(gate.facing, 10 / spec.radius))), gate.dir); return g.length; },
     teleportLatLon(lat: number, lon: number) { inTower = false; hudT = 1; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
     walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
     tower(floor: number, kit?: boolean) { inTower = true; if (kit !== undefined) survey.kit = kit; return survey.enter(floor); }, leaveTower() { inTower = false; },
