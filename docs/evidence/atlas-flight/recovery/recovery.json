@@ -1,0 +1,447 @@
+{
+  "note": "Exact previously failed checkpoint, restored through the normal host after the validation fix. Ordinary UI only; no save edit, ability grant or direct state mutation.",
+  "checks": [
+    "Restored town retains the original person, body and carried items",
+    "Actual town terrain, assets and shared character are rendered after restart",
+    "Normal town travel control opens the same inactive universe preview",
+    "Restored binding remains inactive until explicit exploration",
+    "Reentry retains original person, body and carried items"
+  ],
+  "samples": [
+    {
+      "name": "00-restored-town",
+      "ready": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "position": {
+        "x": 11313.488024842576,
+        "y": 1.0625,
+        "z": 3093.1147530743033
+      },
+      "realm": "brass",
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          }
+        ]
+      },
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 2951,
+      "controlledBody": {
+        "id": "b_5",
+        "enabled": true,
+        "position": {
+          "x": 49.488024842576124,
+          "y": 1.0625,
+          "z": 21.11475307430328
+        },
+        "yaw": -0.019477158189366937,
+        "screen": {
+          "x": 719.9997444405129,
+          "y": 561.3667766195847,
+          "z": 0.9768222358259844
+        }
+      },
+      "controlledLook": {
+        "assetPath": "people/wren.glb",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 21.850000000000023,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": true,
+          "locks": [
+            true,
+            true
+          ],
+          "canonicalFacing": -0.019477158189366937,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              49.24468231201172,
+              1.162284016609192,
+              21.265216827392578
+            ],
+            [
+              49.63286590576172,
+              1.1617228984832764,
+              21.23638343811035
+            ]
+          ],
+          "contacts": [
+            true,
+            true
+          ],
+          "spineTiltDeg": 0.5587028472249809
+        }
+      },
+      "camera": {
+        "mode": "third-person",
+        "yaw": 3.141592653589793,
+        "renderedYaw": 3.141592653589793,
+        "movementYaw": 3.141592653589793,
+        "pitch": 0.3839724354387525,
+        "preferred": 4,
+        "blocked": false,
+        "position": {
+          "x": 49.488024842576124,
+          "y": 4.174161531545875,
+          "z": 17.40601765603613
+        },
+        "want": 4,
+        "dist": 0,
+        "limit": 4.2,
+        "pitchDeg": 22,
+        "fovDeg": 52,
+        "reason": "explore",
+        "framing": "orbit",
+        "rawDistance": 0,
+        "elevatedBy": 0,
+        "nearPlaneBlocked": false,
+        "actualFovDeg": 56.90721343715401
+      }
+    },
+    {
+      "name": "01-restored-preview",
+      "active": false,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canReturn": false,
+      "canExplore": true,
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 2163,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": 0.012042985171209875,
+          "y": 497.8155972771549,
+          "z": 1530.118217612223
+        },
+        "forward": {
+          "x": -0.019475925650757304,
+          "y": -0.9507573022864136,
+          "z": 0.3093238440035095
+        },
+        "up": {
+          "x": 0.000007484473207976617,
+          "y": 0.30938238712116833,
+          "z": 0.9509377153542656
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p0",
+        "landedVesselPosition": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        },
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1101,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 89,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1101,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 1181,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 2111,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": -0.9917684430233821,
+          "y": 496.88735546638424,
+          "z": 1527.2651132921321
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 8.882000001072882,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24799349904060364,
+              -0.6938108801841736,
+              -2.732252597808838
+            ],
+            [
+              -0.13975831866264343,
+              -0.6904957890510559,
+              -2.7330851554870605
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 69.26071540471479
+        },
+        "joints": [
+          {
+            "name": "pelvis",
+            "rotation": [
+              0.7064846694503135,
+              -0.029658152917822884,
+              -0.029658138779289692,
+              0.7064843951576938
+            ]
+          },
+          {
+            "name": "spine_03",
+            "rotation": [
+              -0.03558918758846623,
+              0.00006753957488608851,
+              0.0025182193882329197,
+              0.9993633291932978
+            ]
+          },
+          {
+            "name": "upperarm_l",
+            "rotation": [
+              -0.3371808328691437,
+              0.13949154560057755,
+              -0.14405881517349642,
+              0.9198359406732913
+            ]
+          },
+          {
+            "name": "upperarm_r",
+            "rotation": [
+              -0.18651702944235882,
+              -0.1993947482951671,
+              0.18859333976585668,
+              0.9433374788553874
+            ]
+          },
+          {
+            "name": "calf_l",
+            "rotation": [
+              0.25206168326947653,
+              0.23555384812503974,
+              -0.06754007806346977,
+              0.9361717953004268
+            ]
+          },
+          {
+            "name": "calf_r",
+            "rotation": [
+              0.31318121389237746,
+              -0.22089535338962046,
+              0.08270019983383262,
+              0.9199366538317818
+            ]
+          }
+        ]
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 38,
+        "pending": 2,
+        "terrain": true,
+        "errors": []
+      }
+    }
+  ],
+  "errors": [],
+  "http": [],
+  "failure": "AssertionError [ERR_ASSERTION]: Reentry preserves the mapped preview position"
+}

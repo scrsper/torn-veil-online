@@ -32,16 +32,19 @@ export function spendExertion(w: World, p: Person, b: Body, effort: number) {
 /** Once per elapsed physical interval. The saved timestamp prevents duplicate recovery
  * on reload or multiple scheduler visits. Committed actions do not recover breath. */
 export function advanceExertion(w: World): void {
-  for (const b of detailedBodies(w)) {
-    const e = b.exertion, p = w.person(b.ownerId); if (!e || !p || b.dead || !p.alive) continue;
+  for (const b of detailedBodies(w)) advanceBodyExertion(w, b);
+}
+/** Astral residency uses the same recovery law without inserting its body into
+ * planar movement, perception or collision lists. */
+export function advanceBodyExertion(w: World, b: Body, moving = Math.hypot(b.vel.x, b.vel.z) > .15): void {
+    const e = b.exertion, p = w.person(b.ownerId); if (!e || !p || b.dead || !p.alive) return;
     const after = Math.max(e.updatedAt, e.lastSpentAt + EXERTION_POLICY.recoveryDelaySeconds,
       b.combatAction?.completeAt ?? 0, b.arcana?.cast?.completeAt ?? 0);
     const elapsed = Math.max(0, w.physicalTime - after); e.updatedAt = w.physicalTime;
     const rate = b.guard && b.guard.until > w.physicalTime ? EXERTION_POLICY.guardedRecoveryPerSecond
-      : Math.hypot(b.vel.x, b.vel.z) > .15 ? EXERTION_POLICY.movingRecoveryPerSecond : EXERTION_POLICY.standingRecoveryPerSecond;
+      : moving ? EXERTION_POLICY.movingRecoveryPerSecond : EXERTION_POLICY.standingRecoveryPerSecond;
     const reserves = Math.max(.2, Math.min(1, p.physiology.energy / .5, p.physiology.hydration / .5)) * (1 - p.physiology.fatigue * .5);
     e.load = Math.max(0, e.load - elapsed * rate * reserves);
-  }
 }
 export function validSavedExertion(value: unknown, at: number, version: number): boolean {
   if (value === undefined) return true;

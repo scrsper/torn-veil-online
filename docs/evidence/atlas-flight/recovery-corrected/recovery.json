@@ -1,0 +1,884 @@
+{
+  "note": "Exact previously failed checkpoint, restored through the normal host after the validation fix. Ordinary UI only; no save edit, ability grant or direct state mutation.",
+  "checks": [
+    "Restored town retains the original person, body and carried items",
+    "Actual town terrain, assets and shared character are rendered after restart",
+    "Normal town travel control opens the same inactive universe preview",
+    "Restored binding remains inactive until explicit exploration",
+    "Rendered preview feet match the current mapped body position",
+    "Reentry retains original person, body and carried items",
+    "Reentry preserves the mapped preview position",
+    "Reentered body is admitted for ordinary town return",
+    "Second town arrival retains original person, body and carried items",
+    "No browser or shader errors during exact-checkpoint recovery",
+    "No failed HTTP responses during exact-checkpoint recovery"
+  ],
+  "samples": [
+    {
+      "name": "00-restored-town",
+      "ready": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "position": {
+        "x": 11313.4880248413,
+        "y": 1.0625,
+        "z": 3093.1147530735084
+      },
+      "realm": "brass",
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          }
+        ]
+      },
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 2951,
+      "controlledBody": {
+        "id": "b_5",
+        "enabled": true,
+        "position": {
+          "x": 49.48802484129919,
+          "y": 1.0625,
+          "z": 21.114753073508382
+        },
+        "yaw": -0.019477155279267556,
+        "screen": {
+          "x": 720.0003988083369,
+          "y": 560.4193121124574,
+          "z": 0.9770017035395384
+        }
+      },
+      "controlledLook": {
+        "assetPath": "people/wren.glb",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 14.20400000035761,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": true,
+          "locks": [
+            true,
+            true
+          ],
+          "canonicalFacing": -0.019477155279267556,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              49.24468231201172,
+              1.1595265865325928,
+              21.265151977539062
+            ],
+            [
+              49.632869720458984,
+              1.159469485282898,
+              21.236339569091797
+            ]
+          ],
+          "contacts": [
+            true,
+            true
+          ],
+          "spineTiltDeg": 0.5587028472249809
+        }
+      },
+      "camera": {
+        "mode": "third-person",
+        "yaw": 3.141592653589793,
+        "renderedYaw": 3.141592653589793,
+        "movementYaw": 3.141592653589793,
+        "pitch": 0.3839724354387525,
+        "preferred": 4,
+        "blocked": false,
+        "position": {
+          "x": 49.48802484129919,
+          "y": 4.2395058246840565,
+          "z": 17.406017655241232
+        },
+        "want": 4,
+        "dist": 0,
+        "limit": 4.2,
+        "pitchDeg": 22,
+        "fovDeg": 52,
+        "reason": "explore",
+        "framing": "orbit",
+        "rawDistance": 0,
+        "elevatedBy": 0,
+        "nearPlaneBlocked": false,
+        "actualFovDeg": 57.6560038795707
+      }
+    },
+    {
+      "name": "01-restored-preview",
+      "active": false,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canReturn": false,
+      "canExplore": true,
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 2233,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": -0.9936209881557314,
+          "y": 497.81550245018997,
+          "z": 1530.1179258945524
+        },
+        "forward": {
+          "x": -0.019475999333342275,
+          "y": -0.9507610667949788,
+          "z": 0.3093122682934533
+        },
+        "up": {
+          "x": -0.0006175154713727597,
+          "y": 0.3093823281881157,
+          "z": 0.9509375340575971
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p0",
+        "landedVesselPosition": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        },
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1101,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 89,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1101,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 1181,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 2111,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": -0.9917684417416132,
+          "y": 496.8873554656256,
+          "z": 1527.2651132923795
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 0.03800000071525744,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24842961132526398,
+              -0.6252057552337646,
+              -2.6562857627868652
+            ],
+            [
+              -0.13568685948848724,
+              -0.598831832408905,
+              -2.6639244556427
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 66.44489364242762
+        },
+        "joints": [
+          {
+            "name": "pelvis",
+            "rotation": [
+              0.7038555201493364,
+              -0.06773202562506118,
+              -0.06773199239220717,
+              0.7038552100159626
+            ]
+          },
+          {
+            "name": "spine_03",
+            "rotation": [
+              0.029606803217170935,
+              0.0022094358917135043,
+              -0.0018413063708709095,
+              0.9995574846836719
+            ]
+          },
+          {
+            "name": "upperarm_l",
+            "rotation": [
+              -0.41112941592706215,
+              0.15065388826941542,
+              -0.10194528276342515,
+              0.8932430606759962
+            ]
+          },
+          {
+            "name": "upperarm_r",
+            "rotation": [
+              -0.14862673758999484,
+              -0.39029116855309154,
+              0.1871849311904663,
+              0.8891258039904059
+            ]
+          },
+          {
+            "name": "calf_l",
+            "rotation": [
+              0.19092878070420588,
+              0.24563581988712863,
+              -0.04914636615807821,
+              0.9491016169940075
+            ]
+          },
+          {
+            "name": "calf_r",
+            "rotation": [
+              0.2664714385674726,
+              -0.22820494881710873,
+              0.06843914796996314,
+              0.9339332568996156
+            ]
+          }
+        ]
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 38,
+        "pending": 2,
+        "terrain": true,
+        "errors": []
+      }
+    },
+    {
+      "name": "02-reentered-universe",
+      "active": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "canReturn": true,
+      "canExplore": false,
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 2249,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": -0.9936209881557314,
+          "y": 497.81550245018997,
+          "z": 1530.1179258945524
+        },
+        "forward": {
+          "x": -0.019475999333342275,
+          "y": -0.9507610667949788,
+          "z": 0.3093122682934533
+        },
+        "up": {
+          "x": -0.0006175154713727597,
+          "y": 0.3093823281881157,
+          "z": 0.9509375340575971
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p0",
+        "landedVesselPosition": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        },
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1101,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 89,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1101,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 1181,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 2111,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": -0.9917684417416132,
+          "y": 496.8873554656256,
+          "z": 1527.2651132923795
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 15.262000001072892,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24893267452716827,
+              -0.6071767807006836,
+              -2.663337230682373
+            ],
+            [
+              -0.1354133039712906,
+              -0.5848413705825806,
+              -2.6709132194519043
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 66.44489364242762
+        },
+        "joints": [
+          {
+            "name": "pelvis",
+            "rotation": [
+              0.7038555201493364,
+              -0.06773202562506118,
+              -0.06773199239220717,
+              0.7038552100159626
+            ]
+          },
+          {
+            "name": "spine_03",
+            "rotation": [
+              0.029606803217170935,
+              0.0022094358917135043,
+              -0.0018413063708709095,
+              0.9995574846836719
+            ]
+          },
+          {
+            "name": "upperarm_l",
+            "rotation": [
+              -0.41497835349878553,
+              0.15755713563217075,
+              -0.09192326809058632,
+              0.8913578025372849
+            ]
+          },
+          {
+            "name": "upperarm_r",
+            "rotation": [
+              -0.1534522271323001,
+              -0.3949934311372541,
+              0.17696023142253622,
+              0.8883229097679598
+            ]
+          },
+          {
+            "name": "calf_l",
+            "rotation": [
+              0.3086491395670203,
+              0.23748767719544436,
+              -0.07944840186035915,
+              0.9176182557396544
+            ]
+          },
+          {
+            "name": "calf_r",
+            "rotation": [
+              0.360323209972861,
+              -0.22032818432615253,
+              0.09254361446661083,
+              0.9016974852841999
+            ]
+          }
+        ]
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 56,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      }
+    },
+    {
+      "name": "03-returned-town-ready",
+      "ready": true,
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3
+        },
+        {
+          "id": "i_3",
+          "name": "book-well",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "book-ward",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Isolated flight acceptance focus",
+          "quantity": 1
+        }
+      ],
+      "position": {
+        "x": 11313.4880248413,
+        "y": 1.0625,
+        "z": 3093.1147530735084
+      },
+      "realm": "brass",
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          }
+        ]
+      },
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 2951,
+      "controlledBody": {
+        "id": "b_5",
+        "enabled": true,
+        "position": {
+          "x": 49.48802484129919,
+          "y": 1.0625,
+          "z": 21.114753073508382
+        },
+        "yaw": -0.019477154395968723,
+        "screen": {
+          "x": 719.9998064567835,
+          "y": 560.6171385007866,
+          "z": 0.9769648346260571
+        }
+      },
+      "controlledLook": {
+        "assetPath": "people/wren.glb",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "frame": 56.78999999999999,
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": true,
+          "locks": [
+            true,
+            true
+          ],
+          "canonicalFacing": -0.019477154395968723,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              49.244686126708984,
+              1.1555776596069336,
+              21.26502227783203
+            ],
+            [
+              49.63286590576172,
+              1.155920147895813,
+              21.235063552856445
+            ]
+          ],
+          "contacts": [
+            true,
+            true
+          ],
+          "spineTiltDeg": 0.5587025754166856
+        }
+      },
+      "camera": {
+        "mode": "third-person",
+        "yaw": 3.141592653589793,
+        "renderedYaw": 3.141592653589793,
+        "movementYaw": 3.141592653589793,
+        "pitch": 0.3839724354387525,
+        "preferred": 4,
+        "blocked": false,
+        "position": {
+          "x": 49.48802484129919,
+          "y": 4.226124077745281,
+          "z": 17.406017655241232
+        },
+        "want": 4,
+        "dist": 0,
+        "limit": 4.2,
+        "pitchDeg": 22,
+        "fovDeg": 52,
+        "reason": "explore",
+        "framing": "orbit",
+        "rawDistance": 0,
+        "elevatedBy": 0,
+        "nearPlaneBlocked": false,
+        "actualFovDeg": 57.50266035514992
+      }
+    }
+  ],
+  "errors": [],
+  "http": []
+}

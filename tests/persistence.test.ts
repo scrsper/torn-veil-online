@@ -93,7 +93,7 @@ describe('save round trips', () => {
     // Pinned to the literal on purpose: a bump has to be a deliberate edit here as well as in
     // save.ts, so nobody changes what a saved field means without noticing that old saves stop
     // being resumable.
-    expect(JSON.parse(save).version).toBe(32);
+    expect(JSON.parse(save).version).toBe(33);
     const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;

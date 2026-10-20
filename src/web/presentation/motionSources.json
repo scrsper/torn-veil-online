@@ -1,0 +1,10 @@
+{
+  "ual": {
+    "id": "quaternius-ual-standard",
+    "file": "motion/ual-standard.glb",
+    "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+    "bytes": 7618436,
+    "license": "CC0-1.0",
+    "url": "https://quaternius.com/packs/universalanimationlibrary.html"
+  }
+}

@@ -1,4 +1,13 @@
-# Current candidate: Levels and the Normal→Diamond ladder (2026-10-19)
+# Current candidate: integrated universe traversal release (2026-10-20)
+
+Combines traversal with public main `8a9fa58`, earned progression and the current
+John Smith authority. Writer schema 33 preserves both independent schema-32
+histories; legacy Tower silver stops after the current authority is initialized.
+Public snapshot preparation is authorized; CI and the integrated ordinary-input
+travel/restart gates remain pending. See `docs/UNIVERSE_RELEASE.md` for current
+evidence and remaining limits. Historical private ancestry remains local.
+
+# Previous candidate: Levels and the Normal→Diamond ladder (2026-10-19)
 
 Branch `claude/vigilant-dirac-3f6zc3`. Adds `src/sim/progression/{levels,experience,threat,persistence}.ts`:
 exponential levels (ten per rank, Normal–Diamond) fed only by canonical receipts for players and

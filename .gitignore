@@ -52,9 +52,11 @@ art/source/kaykit/
 web/public/arena/mixamo_clips.glb
 web/public/arena/mixamo_clips.json
 web/public/arena/unarmed_clips.glb
+web/public/arena/motion/
 web/public/arena/runtime-dependencies.json
 # Ontology creator bodies, staged byte-for-byte from tools/ontology with hash checks: npm run web:creator
 web/public/arena/creator/
 
 # Reproducible canonical static geometry cooked from the verified focused GLBs.
 web/public/focused/collision.json
+web/public/world-assets/

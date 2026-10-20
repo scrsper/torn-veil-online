@@ -1,6 +1,7 @@
 import '@babylonjs/loaders/glTF';
-import { Animation, AssetContainer, Color3, Matrix, Mesh, MultiMaterial, PBRMaterial, type Material, type MorphTargetManager, Quaternion, SceneLoader, TransformNode, Vector3, type AbstractMesh, type AnimationGroup, type Scene } from '@babylonjs/core';
-import { MIXAMO, UE, Retargeter, instantiateClips, type ClipTemplate, type Grip } from './retarget';
+import { Animation, AssetContainer, Color3, Matrix, Mesh, MultiMaterial, PBRMaterial, type Material, type MorphTargetManager, Quaternion, SceneLoader, TransformNode, Vector3, type AbstractMesh, type AnimationGroup, type InstantiatedEntries, type Scene } from '@babylonjs/core';
+import { MIXAMO, UE, UAL, Retargeter, instantiateClips, type ClipTemplate, type Grip } from './retarget';
+import { UAL_CLIPS, UAL_SOURCE, verifyHumanMotion } from './humanMotion';
 import type { LookId } from './looks';
 import { SpringBones } from './springs';
 import { READY_CLIPS } from './combat';
@@ -98,12 +99,20 @@ export class ArenaAssets {
   used: Set<string> | null = null;
   /** False when the local Mixamo clip file is absent and KayKit stand-ins are playing. */
   mocap = true;
+  readonly motionStatus = { ual: { loaded: false, verified: false, reason: 'Not loaded' } };
 
   /** Per creator look: loaded, or why not (explicit; never replaced by another look). */
   readonly creatorStatus = new Map<CreatorLook, { loaded: boolean; reason: string; ownBake?: boolean; maxRestDeltaRad?: number }>();
   /** Clip sets baked on a creator rig whose rest pose differs from the reference rig. */
   private lookClips = new Map<LookId, Map<string, ClipTemplate>>();
   private lookGrips = new Map<LookId, { r: Grip; l: Grip; shield: Grip | null }>();
+  private async optionalMotion(file: string): Promise<AssetContainer | null> {
+    const response = await fetch(this.base + file);
+    if (!response.ok || response.headers.get('content-type')?.includes('text/html')) return null;
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.length < 12 || new DataView(bytes.buffer).getUint32(0, true) !== 0x46546c67) return null;
+    return SceneLoader.LoadAssetContainerAsync(this.base, bytes, this.scene, undefined, '.glb');
+  }
 
   async loadHumans(looks: LookId[], progress: (t: string) => void): Promise<void> {
     let n = 0;
@@ -125,14 +134,13 @@ export class ArenaAssets {
     progress('Teaching the fighters to fight');
     const ref = this.person('ranger');
     this.refPelvis = ref.nodes.get('pelvis')!.position.length();
-    // Bake targets: the reference rig, plus each loaded creator rig, always with its own bake and grips from the same
-    // existing clips. Equal local rest rotations would not prove equal bone directions, lengths or hip height, so the
-    // reference templates are never reused for them. The rest delta is kept only as a diagnostic.
+    // Each distinct loaded rig owns its bake and grips. Equal names do not imply
+    // equal rest orientations, limb directions or lengths (notably Wren vs Ranger).
     type Target = { look: LookId | null; rig: ReturnType<ArenaAssets['person']>; clips: Map<string, ClipTemplate> };
     const targets: Target[] = [{ look: null, rig: ref, clips: this.clips }];
-    for (const l of looks) if (isCreatorLook(l) && this.people.has(l)) {
-      const rig = this.person(l), st = this.creatorStatus.get(l)!;
-      st.maxRestDeltaRad = +restDelta(ref.nodes, rig.nodes).toFixed(4); st.ownBake = true;
+    for (const l of new Set(looks)) if (l !== 'ranger' && this.people.has(l)) {
+      const rig = this.person(l), st = isCreatorLook(l) ? this.creatorStatus.get(l) : undefined;
+      if (st) { st.maxRestDeltaRad = +restDelta(ref.nodes, rig.nodes).toFixed(4); st.ownBake = true; }
       const clips = new Map<string, ClipTemplate>(); targets.push({ look: l, rig, clips }); this.lookClips.set(l, clips);
     }
     const fallbacks = new Set(this.used ? [...this.used].map(kaykitFallback) : []);
@@ -140,43 +148,88 @@ export class ArenaAssets {
     const srcNodes = new Map(src.root.getChildTransformNodes(false).map(x => [x.name.slice(x.name.indexOf('.') + 1), x] as const));
     for (const t of targets) {
       const rt = new Retargeter({ space: src.root, nodes: srcNodes }, { space: t.rig.holder, nodes: t.rig.nodes });
-      for (const [name, g] of src.anims) if (!this.used || this.used.has(name) || fallbacks.has(name)) t.clips.set(name, rt.bake(name, g));
+      for (const [name, g] of src.anims) if (!this.used || this.used.has(name) || fallbacks.has(name)) {
+        const clip = rt.bake(name, g);
+        clip.provenance = { source: 'kaykit', file: 'skeleton_warrior.glb', sourceClip: name, retargetLook: t.look ?? 'ranger', license: 'CC0-1.0' };
+        t.clips.set(name, clip);
+      }
       // KayKit shields keep their grip at the origin of the rig's hand slot; map that slot onto the human hand.
       const shield = srcNodes.has('handslot.l') && srcNodes.has('hand.l') ? shieldGrip(rt.grip('wrist.l', 'handslot.l', 'hand_l', 'middle_01_l')) : null;
       const grips = { r: handGrip(t.rig.holder, t.rig.nodes, 'r'), l: handGrip(t.rig.holder, t.rig.nodes, 'l'), shield };
       if (t.look) this.lookGrips.set(t.look, grips); else { this.gripR = grips.r; this.gripL = grips.l; this.gripShield = grips.shield; }
     }
     src.dispose();
+    // Shared CC0 locomotion is a verified fallback beneath optional licensed packs.
+    // Loading bytes ourselves prevents Vite's HTML fallback masquerading as a GLB.
+    progress('Learning shared locomotion');
+    let cc: AssetContainer | null = null;
+    try {
+      const response = await fetch(this.base + UAL_SOURCE.file);
+      if (!response.ok) throw Error(`HTTP ${response.status}`);
+      const bytes = new Uint8Array(await response.arrayBuffer()); await verifyHumanMotion(bytes);
+      cc = await SceneLoader.LoadAssetContainerAsync(this.base, bytes, this.scene, undefined, '.glb');
+      const ce = cc.instantiateModelsToScene(n => `cc.${n}`, false, { doNotInstantiate: true });
+      const ch = new TransformNode('cc', this.scene); for (const r of ce.rootNodes) r.parent = ch;
+      try {
+        for (const g of ce.animationGroups) g.stop();
+        const nodes = new Map(ch.getChildTransformNodes(false).map(n => [n.name.slice(3), n] as const));
+        for (const t of targets) {
+          const rt = new Retargeter({ space: ch, nodes }, { space: t.rig.holder, nodes: t.rig.nodes }, UAL);
+          for (const [alias, source] of Object.entries(UAL_CLIPS)) {
+            if (this.used && !this.used.has(alias)) continue;
+            const group = ce.animationGroups.find(g => g.name.slice(3) === source);
+            if (!group) throw Error(`UAL source clip ${source} is missing`);
+            const clip = rt.bake(alias, group);
+            clip.provenance = { source: UAL_SOURCE.id, file: UAL_SOURCE.file, sourceClip: source,
+              retargetLook: t.look ?? 'ranger', sha256: UAL_SOURCE.sha256, license: UAL_SOURCE.license };
+            t.clips.set(alias, clip);
+          }
+        }
+        this.motionStatus.ual = { loaded: true, verified: true, reason: 'Audited CC0 bytes; own rig retarget' };
+      } finally { disposeRetargetSource(ce, ch); }
+    } catch (error) {
+      this.motionStatus.ual = { loaded: false, verified: false, reason: String(error).slice(0, 240) };
+      console.warn('[arena] shared CC0 motion unavailable; explicit KayKit fallback', error);
+    } finally { cc?.dispose(); }
     // Real motion capture: the user's Mixamo packs (art/tools/arena/build_mixamo_clips.py -> mixamo_clips.glb).
     progress('Learning motion capture');
     let mc: AssetContainer | null = null;
-    try { mc = await SceneLoader.LoadAssetContainerAsync(this.base, 'mixamo_clips.glb', this.scene); }
-    catch { console.warn('[arena] mixamo_clips.glb missing: using KayKit stand-in motion (see docs/COMBAT_ARENA.md)'); this.mocap = false; }
+    try { mc = await this.optionalMotion('mixamo_clips.glb'); } catch {}
+    if (!mc) { console.info('[arena] optional Mixamo pack unavailable; shared CC0 locomotion and explicit KayKit combat fallbacks remain'); this.mocap = false; }
     if (mc) {
       const me = mc.instantiateModelsToScene(n => `mx.${n}`, false, { doNotInstantiate: true });
       const mh = new TransformNode('mx', this.scene); for (const r of me.rootNodes) r.parent = mh;
-      for (const g of me.animationGroups) g.stop();
-      const mNodes = new Map(mh.getChildTransformNodes(false).map(x => [x.name.slice(3), x] as const));
-      for (const t of targets) {
-        const mrt = new Retargeter({ space: mh, nodes: mNodes }, { space: t.rig.holder, nodes: t.rig.nodes }, MIXAMO);
-        for (const g of me.animationGroups) { const name = g.name.slice(3); if (!this.used || this.used.has(name)) t.clips.set(name, mrt.bake(name, g)); }
-      }
-      for (const g of me.animationGroups) g.dispose(); mh.dispose(); mc.dispose();
+      try {
+        for (const g of me.animationGroups) g.stop();
+        const mNodes = new Map(mh.getChildTransformNodes(false).map(x => [x.name.slice(3), x] as const));
+        for (const t of targets) {
+          const mrt = new Retargeter({ space: mh, nodes: mNodes }, { space: t.rig.holder, nodes: t.rig.nodes }, MIXAMO);
+          for (const g of me.animationGroups) { const name = g.name.slice(3); if (!this.used || this.used.has(name)) {
+            const clip = mrt.bake(name, g); clip.provenance = { source: 'local-mixamo', file: 'mixamo_clips.glb', sourceClip: name, retargetLook: t.look ?? 'ranger' };
+            t.clips.set(name, clip);
+          } }
+        }
+      } finally { disposeRetargetSource(me, mh); mc.dispose(); }
     }
     // Unarmed brawling set (Motifect via the TRELLIS review rig): build_unarmed_clips.py -> unarmed_clips.glb.
     progress('Learning to brawl');
     let uc: AssetContainer | null = null;
-    try { uc = await SceneLoader.LoadAssetContainerAsync(this.base, 'unarmed_clips.glb', this.scene); } catch { console.warn('[arena] unarmed_clips.glb missing: unarmed moves use stand-ins'); }
+    try { uc = await this.optionalMotion('unarmed_clips.glb'); } catch {}
+    if (!uc) console.info('[arena] optional Motifect pack unavailable; see each clip source in motion diagnostics');
     if (uc) {
       const ue = uc.instantiateModelsToScene(n => `ua.${n}`, false, { doNotInstantiate: true });
       const uh = new TransformNode('ua', this.scene); for (const r of ue.rootNodes) r.parent = uh;
-      for (const g of ue.animationGroups) g.stop();
-      const uNodes = new Map(uh.getChildTransformNodes(false).map(x => [x.name.slice(3), x] as const));
-      for (const t of targets) {
-        const urt = new Retargeter({ space: uh, nodes: uNodes }, { space: t.rig.holder, nodes: t.rig.nodes }, UE);
-        for (const g of ue.animationGroups) { const name = 'unarmed/' + g.name.slice(3); if (!this.used || this.used.has(name)) t.clips.set(name, urt.bake(name, g)); }
-      }
-      for (const g of ue.animationGroups) g.dispose(); uh.dispose(); uc.dispose();
+      try {
+        for (const g of ue.animationGroups) g.stop();
+        const uNodes = new Map(uh.getChildTransformNodes(false).map(x => [x.name.slice(3), x] as const));
+        for (const t of targets) {
+          const urt = new Retargeter({ space: uh, nodes: uNodes }, { space: t.rig.holder, nodes: t.rig.nodes }, UE);
+          for (const g of ue.animationGroups) { const name = 'unarmed/' + g.name.slice(3); if (!this.used || this.used.has(name)) {
+            const clip = urt.bake(name, g); clip.provenance = { source: 'local-motifect', file: 'unarmed_clips.glb', sourceClip: g.name.slice(3), retargetLook: t.look ?? 'ranger' };
+            t.clips.set(name, clip);
+          } }
+        }
+      } finally { disposeRetargetSource(ue, uh); uc.dispose(); }
     }
     // Any mocap clip that is unavailable plays its nearest KayKit equivalent.
     for (const t of targets) if (this.used) for (const n of this.used) if (!t.clips.has(n)) { const fb = t.clips.get(kaykitFallback(n)); if (fb) t.clips.set(n, fb); }
@@ -292,7 +345,7 @@ export class ArenaAssets {
     }
     return m;
   }
-  /** The clip templates a look actually plays: a creator rig's own bake, otherwise the reference bake. */
+  /** The clip templates baked on the look's own rig. Ranger is the reference. */
   clipsFor(look: string | undefined): Map<string, ClipTemplate> { return (look && this.lookClips.get(look as LookId)) || this.clips; }
   private legCache = new Map<Map<string, ClipTemplate>, Map<string, ClipTemplate>>();
   /** Lower-body-only versions of the directional walk clips (pelvis and legs), per baked clip set. */
@@ -312,8 +365,8 @@ export class ArenaAssets {
       foot?.computeWorldMatrix(true);
       return foot ? Vector3.TransformCoordinates(foot.getAbsolutePosition(), Matrix.Invert(p.holder.computeWorldMatrix(true))).y : .06;
     }) as [number, number];
-    // Clips are baked on the reference rig; a body with other leg lengths (goblins, orcs, skeletons) gets its pelvis
-    // track rescaled. A creator rig with its own rest pose has its own bake, so it needs no rescale.
+    // All loaded distinct rigs own a bake. The rescale remains for legacy callers
+    // that explicitly reuse reference templates.
     const own = this.lookClips.get(look), clips = own ?? this.clips;
     const ratio = own ? 1 : (p.nodes.get('pelvis')?.position.length() ?? this.refPelvis) / this.refPelvis;
     const anims = instantiateClips(p.tag, this.fitted(look, ratio, clips, ''), p.nodes, this.scene);
@@ -384,9 +437,17 @@ export class ArenaAssets {
     return {
       root: holder, anims, meshes, gear,
       slotR: find('handslot.r')!, slotL: find('handslot.l')!, chest: find('chest'),
-      dispose: () => { for (const g of e.animationGroups) g.dispose(); holder.dispose(false, false); },
+      dispose: () => { disposeRetargetSource(e, holder); },
     };
   }
+}
+
+/** A cloned mesh does not own/dispose its cloned skeleton in Babylon.
+ * Dispose the complete instantiated entry set, retaining the source container
+ * and its shared materials/textures for other actors. Then remove our wrapper. */
+export function disposeRetargetSource(entries: InstantiatedEntries, holder: TransformNode): void {
+  entries.dispose();
+  holder.dispose(false, false);
 }
 
 /**

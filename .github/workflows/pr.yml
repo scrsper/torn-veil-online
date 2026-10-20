@@ -48,8 +48,12 @@ jobs:
       - run: npm run typecheck
       - name: Cook verified focused collision geometry
         run: node scripts/web/cook-focused-assets.mjs
+      - name: Stage tracked CC0 character motion for actual-rig regression
+        run: node scripts/web/stage-human-motion.mjs
       - run: npm test
       - run: npm run build:bundle
+      - name: Build the current Babylon client
+        run: npm run web:build
       - run: npm run world:smoke
 
   ontology:

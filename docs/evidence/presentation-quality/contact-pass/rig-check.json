@@ -1,0 +1,209 @@
+{
+  "method": "NullEngine actual imported GLBs and own UAL bake; absolute radial plane; post-IK selected skin vertices",
+  "frameUp": [
+    0,
+    0.3216,
+    0.9469
+  ],
+  "targetReferenceHeightMetres": 1.75,
+  "assets": [
+    {
+      "Path": "C:\\Users\\green\\Documents\\projects\\torn-veil-universe\\web\\public\\arena\\people\\hero.glb",
+      "Hash": "8A5D232EEF51765DCE2EE18B7CE908FC53B871AA125B2FBBE50AE4E12DAE2D4D"
+    },
+    {
+      "Path": "C:\\Users\\green\\Documents\\projects\\torn-veil-universe\\web\\public\\arena\\people\\wren.glb",
+      "Hash": "CB3A148DCCAC32E005A638F5D66173A2F4A877F195A4AD78E710B9AC62ABA03C"
+    },
+    {
+      "Path": "C:\\Users\\green\\Documents\\projects\\torn-veil-universe\\web\\public\\arena\\motion\\ual-standard.glb",
+      "Hash": "69591853D817488EDAA8FD9BF8FC1D821EAEAF789F8627B3CD23B41C4ED67997"
+    }
+  ],
+  "records": [
+    {
+      "name": "hero",
+      "sourceHeight": 1.8262873739004135,
+      "targetHeight": 1.75,
+      "importScale": 0.9582281655172997,
+      "importFootOffset": 0.010867685039118492,
+      "clip": "Idle_Loop",
+      "frames": 120,
+      "elapsedMs": 47.535899999999856,
+      "first": [
+        {
+          "n": 13,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": -0.01689391037218648
+        },
+        {
+          "n": 13,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": -0.01818227890478173
+        }
+      ],
+      "last": [
+        {
+          "n": 13,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": -1.675197525358924E-05
+        },
+        {
+          "n": 13,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": -1.502154261789867E-05
+        }
+      ],
+      "settledSamples": 228,
+      "minGapMetres": -1.9185265926231705E-05,
+      "maxGapMetres": -1.2543011462616E-05,
+      "maxAbsoluteGapMetres": 1.9185265926231705E-05
+    },
+    {
+      "name": "hero",
+      "sourceHeight": 1.8262873739004135,
+      "targetHeight": 1.75,
+      "importScale": 0.9582281655172997,
+      "importFootOffset": 0.010867685039118492,
+      "clip": "Walk_Loop",
+      "frames": 120,
+      "elapsedMs": 40.35500000000002,
+      "first": [
+        {
+          "n": 13,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": 1.0455274900699257E-08
+        },
+        {
+          "n": 13,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": 2.306976097759023E-08
+        }
+      ],
+      "last": [
+        {
+          "n": 13,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": 0.10475428269088391
+        },
+        {
+          "n": 13,
+          "lock": true,
+          "w": 0.6000000000000001,
+          "release": false,
+          "gap": -0.0029749726827636635
+        }
+      ],
+      "settledSamples": 135,
+      "minGapMetres": -0.0006197354700383556,
+      "maxGapMetres": 0.0007191686232649023,
+      "maxAbsoluteGapMetres": 0.0007191686232649023
+    },
+    {
+      "name": "wren",
+      "sourceHeight": 1.5324032986536622,
+      "targetHeight": 1.75,
+      "importScale": 1.1419970196732896,
+      "importFootOffset": 0.008696078648668051,
+      "clip": "Idle_Loop",
+      "frames": 120,
+      "elapsedMs": 53.78659999999991,
+      "first": [
+        {
+          "n": 12,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": -0.01248022595326364
+        },
+        {
+          "n": 12,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": -0.013310015800576513
+        }
+      ],
+      "last": [
+        {
+          "n": 12,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": -1.9767947158871234E-05
+        },
+        {
+          "n": 12,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": -2.1299624312053898E-05
+        }
+      ],
+      "settledSamples": 228,
+      "minGapMetres": -2.6515519163622414E-05,
+      "maxGapMetres": -1.674369504458344E-05,
+      "maxAbsoluteGapMetres": 2.6515519163622414E-05
+    },
+    {
+      "name": "wren",
+      "sourceHeight": 1.5324032986536622,
+      "targetHeight": 1.75,
+      "importScale": 1.1419970196732896,
+      "importFootOffset": 0.008696078648668051,
+      "clip": "Walk_Loop",
+      "frames": 120,
+      "elapsedMs": 43.390100000000075,
+      "first": [
+        {
+          "n": 12,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": -2.353900052609489E-08
+        },
+        {
+          "n": 12,
+          "lock": true,
+          "w": 1,
+          "release": false,
+          "gap": 9.830688432525913E-05
+        }
+      ],
+      "last": [
+        {
+          "n": 12,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": 0.10565901073890792
+        },
+        {
+          "n": 12,
+          "lock": false,
+          "w": 0,
+          "release": false,
+          "gap": -0.004438197275112045
+        }
+      ],
+      "settledSamples": 147,
+      "minGapMetres": -0.0003299709689868328,
+      "maxGapMetres": 0.0006966711238097929,
+      "maxAbsoluteGapMetres": 0.0006966711238097929
+    }
+  ]
+}

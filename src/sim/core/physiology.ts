@@ -121,9 +121,9 @@ const WETNESS_FATIGUE_PER_HOUR = 0.02;
  * (v0.8 §D, 0..1) adds a real drying bonus — standing by a lit fire is a genuine reason to dry
  * off faster, not just waiting it out indoors.
  */
-function stepWetness(world: World, phys: Physiology, hours: number, indoor: boolean, nearFire = 0): void {
-  const wk = world.weather.kind;
-  const raining = (wk === 'rain' || wk === 'storm') ? world.weather.intensity : 0;
+function stepWetness(weather: World['weather'], phys: Physiology, hours: number, indoor: boolean, nearFire = 0): void {
+  const wk = weather.kind;
+  const raining = (wk === 'rain' || wk === 'storm') ? weather.intensity : 0;
   if (!indoor && raining > 0) {
     phys.wetness = clamp01(phys.wetness + WETNESS_RAIN_GAIN_PER_HOUR * raining * hours);
   } else {
@@ -137,7 +137,7 @@ function stepWetness(world: World, phys: Physiology, hours: number, indoor: bool
  * no RNG. `indoor`/`daylight` shape the environmental heat term; both are cheap to compute at
  * the call site (see mind/agent.ts's activity classification).
  */
-export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number; nearFire?: number } = { indoor: false, daylight: 0.7 }): void {
+export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number; nearFire?: number; weather?: World['weather'] } = { indoor: false, daylight: 0.7 }): void {
   if (hours <= 0) return;
   stepEmbodiedPhysiology(world, p.physiology, hours, activity, {
     ...o, profile: physiologyProfileFor(p.species), traits: p.physiologyTraits ?? AVERAGE_HUMAN_ADULT,
@@ -150,12 +150,13 @@ export type BodyPhysiologyProfile = Pick<SpeciesPhysiologyProfile, 'energyDrainM
 /** Shared physical reserve integration, without human attributes, beliefs or need mirrors.
  * Humans supply their existing capability modifiers; animals supply biological rates. */
 export function stepEmbodiedPhysiology(world: World, phys: Physiology, hours: number, activity: ActivityLevel, o: {
-  indoor: boolean; daylight: number; nearFire?: number; profile: BodyPhysiologyProfile;
+  indoor: boolean; daylight: number; nearFire?: number; weather?: World['weather']; profile: BodyPhysiologyProfile;
   traits?: IndividualPhysiologyTraits; endurance?: number; restoration?: number;
 }): void {
   if (hours <= 0) return;
   const nearFire = o.nearFire ?? 0;
-  stepWetness(world, phys, hours, o.indoor, nearFire);
+  const weather = o.weather ?? world.weather;
+  stepWetness(weather, phys, hours, o.indoor, nearFire);
   const asleep = activity === 'sleep';
   // v0.5 §I: species profile + individual variation scale the human-baseline rates below — see
   // core/species.ts. Both default to the identity (1) for the reference AverageHumanAdult, so
@@ -192,7 +193,7 @@ export function stepEmbodiedPhysiology(world: World, phys: Physiology, hours: nu
   else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * sleepNeedMult * hours);
 
   // body heat: exertion + environment - passive/rest/hydration-supported cooling
-  const envKind = world.weather.kind;
+  const envKind = weather.kind;
   const envStrength = o.indoor ? 0.4 : 1;
   const environmentalHeat = ENVIRONMENTAL_HEAT_PER_HOUR[envKind] * envStrength * (0.4 + o.daylight * 0.6);
   // v0.8 §D: a real, lit fire genuinely warms whoever is at that Place, scaled by its own

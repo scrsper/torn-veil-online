@@ -1,4 +1,13 @@
-# Torn Veil current build - October 11, 2026
+# Torn Veil current release candidate - October 20, 2026
+
+Universe traversal is being integrated with public main `8a9fa58`, including
+earned progression and John Smith. Publication is authorized, but merge still
+requires CI and integrated ordinary travel/landing/return/restart acceptance.
+See [release status](UNIVERSE_RELEASE.md), [asset setup](UNIVERSE_ASSETS.md) and
+[actual destinations](UNIVERSE_DESTINATIONS.md). Older build records below retain
+their original scope; they do not establish this candidate's acceptance.
+
+## Previous build record - October 11, 2026
 
 The current local repair is described in [the October 11 repair checkpoint](TORN_VEIL_REPAIR_OCT11.md). It adds one persistent launch/inspection home, shared city/Tower control, relaxed equipped travel and attainable source-backed Gold. Remote main remains the previously published baseline until separately authorized publication.
 

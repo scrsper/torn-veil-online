@@ -1,4 +1,4 @@
-import { equipTrialKit } from './trialKit';
+import { equipTrialKit, trialKit, WARDEN_TRAITS } from './trialKit';
 import { ONTOLOGICAL_STAGES } from '../../core/stages';
 import type { Body, Item, Person, Vec3 } from '../../core/types';
 import type { World } from '../../core/world';
@@ -90,9 +90,10 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
   if(plan.assetScene&&count!==towerEncounter(floor).enemies)throw Error('Focused floor cannot support its canonical encounter budget');
   if (!count) throw Error('Trial has no physical guardian stations');
   for (let n = 0; n < count; n++) {
+    const archetype = trialKit(floor, n).archetype;
     const p = makePerson(w, { name: `Trial ${floor} warden ${n + 1}`, slug: `${id}:warden:${n}`, gender: n % 2 ? 'f' : 'm', age: 28 + n,
-      occupation: 'traveler', traits: { courage: .8, aggression: .35, sociability: .2 }, appearance: {}, home: place.id,
-      bio: 'A resident warden who agreed to the Tower trial. Ordinary perception, needs and combat apply.', tags: ['tower-warden'] });
+      occupation: 'traveler', traits: { ...WARDEN_TRAITS[archetype] }, appearance: {}, home: place.id,
+      bio: 'A resident warden who agreed to the Tower trial. Ordinary perception, needs and combat apply.', tags: ['tower-warden', `warden:${archetype}`] });
     const b = makeBody(w, p.id, cells[Math.floor(n * cells.length / count)]);
     p.bodies.push(b.id); p.towerUpkeepAt = w.now; equipTrialKit(w, p, b, floor, n, opened.id); f.enemyBodyIds.push(b.id); rivals.push(p);
   }

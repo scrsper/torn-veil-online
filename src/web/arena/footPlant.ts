@@ -3,6 +3,18 @@ import type {CharacterInstance} from './assets';
 import {reach} from './ik';
 
 export type FootGround = (x:number,z:number)=>number|null;
+export type FootPoint = Readonly<{x:number;y:number;z:number}>;
+/** Stable absolute universe metres, never camera-relative coordinates. */
+export interface FootSupport {point:FootPoint;normal:FootPoint;source?:string}
+export interface FootContactFrame {
+ reference:string;
+ /** Current render origin: absolute = scene point + origin. */
+ origin:FootPoint;
+ up:FootPoint;
+ /** Return only a nearby supporting floor along up, or null when unavailable.
+  * radius/maxDistance are render metres. The solver also checks its footprint. */
+ sample(point:FootPoint,up:FootPoint,radius:number,maxDistance:number):FootSupport|null;
+}
 type Surface = {height:number;normal:Vector3};
 type Contact = {lock:Vector3|null;surface:Surface|null;w:number;yaw:number;previousHeight:number|null;dwell:number;releasing:boolean;cooldown:number};
 /** Presentation contact correction. Animation supplies each fresh pose before this pass. */

@@ -1,3 +1,4 @@
+import { questJournal } from '../sim/quests';
 import { BridgeSession, LOCAL_CHANNEL } from '../bridge/session';
 import type { RealmSession } from '../sim/world/realms/session';
 import { currentTowerFloor, observeCanonicalTower } from '../sim/world/interiors/tower';
@@ -35,6 +36,7 @@ export class TowerController {
         return body && cast && cast.completeAt + .3 >= w.physicalTime ? [{ ...cast, origin: { ...body.pos } }] : [];
       }),
       residency: towerResidency(w),
+      objectives: this.session.objectives(), questJournal: questJournal(w, p.id).slice(-40), combatEvents: this.session.combatEvents(),
       // Only what the climber can see: species and visibly worn or wielded equipment.
       observedThreat: Object.fromEntries(snapshot.bodies.filter(v => v.bodyId !== b.id).flatMap(v => {
         const body = w.body(v.bodyId), t = body && observedThreat(w, body); return t ? [[v.bodyId, { level: t.level, grade: t.grade }]] : []; })),
