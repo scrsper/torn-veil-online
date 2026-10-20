@@ -1,6 +1,6 @@
 import { tryCombatArcana } from './combatArcana';
 import { recordArcaneEncounter } from '../physical/arcana/growth';
-import { recordDefeatExperience } from '../progression/experience';
+import { noteBlow, recordDefeatExperience } from '../progression/experience';
 import { trialGoal } from '../social/combatTrial';
 import { detailedPeople, detailedBodies, coarseTowerPeople } from '../world/interiors/residency';
 import { advanceExertion } from '../physical/exertion';
@@ -3041,11 +3041,15 @@ export class Simulation {
       if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
     }
     if (!Number.isFinite(dmg) || dmg < 0) return null;
+    // Someone already down, yielded or held is out of the fight: blows on them overcome no one.
+    const healthBefore = tb.health, out = tb.pose === 'downed' || tb.subduedUntil > w.physicalTime
+      || victim.kind === 'person' && (!!(victim as Person).surrender || !!(victim as Person).custody?.active);
     const protection = absorbImpact(w, tb, dmg, combat?.injury?.region ?? 'torso');
     const incoming = dmg; dmg = protection.damage;
     if (combat?.injury && dmg > 0) applyInjury(tb, { ...combat.injury, severity: combat.injury.severity * (incoming ? dmg / incoming : 0) });
     else if (arcaneEventId && dmg > 0) applyInjury(tb, { region: 'torso', severity: Math.min(1, dmg / tb.maxHealth) });
     tb.health -= dmg; tb.lastHitAt = w.physicalTime; tb.hitSeq++;
+    noteBlow(w, attacker, ab, tb, dmg, healthBefore, out, !!arcaneEventId);
     if (victim.kind === 'creature') provokeAnimal(w, victim as Creature, tb, ab.id);
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
@@ -3101,7 +3105,7 @@ export class Simulation {
       const vp = victim as Person; if (!ev.perceivedBy.some(x => x.who === vp.id)) { ev.perceivedBy.push({ who: vp.id, how: 'saw', tick: w.now }); const perc = w.emit('perceived', { actor: vp.id, target: attacker.id, causes: [ev.id], significance: 0.4, data: { how: 'saw', eventType: 'attack', eventId: ev.id }, summary: `${vp.name} was attacked by ${attacker.name}` }); learn(w, vp, { key: `ev:${ev.id}`, kind: 'event', claim: eventClaim(w, ev, true), confidence: 1, source: { type: 'witnessed', viaEvent: perc.id }, cause: perc.id, summary: ev.summary }); remember(w, vp, { type: 'attack', summary: `${attacker.name} attacked me${place ? ' at ' + place.name : ''}`, eventId: ev.id, entities: [attacker.id], significance: 0.9, valence: -0.9, source: { type: 'witnessed', viaEvent: perc.id }, placeId: place?.id }); this.reactTo(vp, tb, ev, perc.id, true, true, false, null); }
     }
     recordArcaneEncounter(w, attacker, ab, tb, ev);
-    recordDefeatExperience(w, attacker, ab, tb, ev);
+    recordDefeatExperience(w, attacker, ab, tb, ev, out);
     return ev;
   }
   weaponName(p: Person): string { let best: string = 'fists'; let bd = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > bd) { bd = it.damage; best = it.name; } } return best; }

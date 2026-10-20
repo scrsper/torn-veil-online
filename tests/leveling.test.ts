@@ -98,13 +98,15 @@ describe('earned experience from canonical deeds (shared by players and NPCs)', 
     tw.sim.applyHit(a, tw.world.primaryBody(a.id)!, tw.world.primaryBody(victim.id)!, 100, 'injure');
     expect(a.experience!.defeated).not.toContain(victim.id);
   });
-  it('shares a defeat by contribution, credits a victim who struck back, and ignores a last tap', () => {
+  it('shares a defeat by effective contribution, credits a victim who struck back, and ignores a last tap', () => {
     const tw = createTestWorld(4103), a = addPerson(tw, 'First', 'villager', v(10, 1, 10)), c = addPerson(tw, 'Second', 'villager', v(10, 1, 11));
     const b = addPerson(tw, 'Brawler', 'villager', v(11, 1, 10)), [ab, cb, bb] = [a, c, b].map(p => tw.world.primaryBody(p.id)!);
     tw.sim.applyHit(b, bb, ab, 5, 'injure'); tw.sim.applyHit(b, bb, cb, 5, 'injure');
+    // Overkill is not contribution: c's 50 removes only the 40 health b had left.
     tw.sim.applyHit(a, ab, bb, 40, 'injure'); const e = tw.sim.applyHit(c, cb, bb, 50, 'injure')!;
-    expect(e.data.experienceCredits[a.id]).toBeCloseTo(defeatXp(1, 1) * 40 / 90);
-    expect(e.data.experienceCredits[c.id]).toBeCloseTo(defeatXp(1, 1) * 50 / 90);
+    expect(e.data.experienceCredits[a.id]).toBeCloseTo(defeatXp(1, 1) * 40 / 80);
+    expect(e.data.experienceCredits[c.id]).toBeCloseTo(defeatXp(1, 1) * 40 / 80);
+    expect(bb.encounter).toBeUndefined();
     const d = addPerson(tw, 'Other', 'villager', v(12, 1, 12)), db = tw.world.primaryBody(d.id)!;
     tw.sim.applyHit(d, db, ab, 5, 'injure'); tw.sim.applyHit(d, db, cb, 5, 'injure');
     tw.sim.applyHit(a, ab, db, 70, 'injure'); const tap = tw.sim.applyHit(c, cb, db, 15, 'injure')!;
@@ -325,5 +327,99 @@ describe('player-facing leveling: observed threat, announcements and item grades
     const rows = carriedItemRows(tw.sim, p, []);
     expect(rows.find(r => r.id === sword.id)!.description).toContain(`${itemGrade(sword)!.grade} weapon (item level ${itemGrade(sword)!.level})`);
     expect(rows.find(r => r.id === bread.id)!.description.some(d => d.includes('grade'))).toBe(false);
+  });
+});
+
+describe('review regressions: encounters, pricing and saves', () => {
+  it('pays a long fight in a busy world, and nothing for blows on someone already down or yielded', () => {
+    const tw = createTestWorld(4114), p = addPerson(tw, 'Patient', 'villager', v(10, 1, 10)), q = addPerson(tw, 'Rival', 'villager', v(11, 1, 10));
+    const [pb, qb] = [p, q].map(x => tw.world.primaryBody(x.id)!);
+    tw.sim.applyHit(q, qb, pb, 5, 'injure'); tw.sim.applyHit(p, pb, qb, 30, 'injure');
+    for (let n = 0; n < 2500; n++) tw.world.emit('perceived', { actor: q.id, significance: 0 });
+    tw.world.physicalTime += 40;
+    const e = tw.sim.applyHit(p, pb, qb, 60, 'injure')!;
+    expect(e.data.experienceCredits[p.id]).toBeCloseTo(defeatXp(1, 1));
+    // A third party beating the downed rival gains nothing; killing them is no defeat either.
+    const r = addPerson(tw, 'Late', 'villager', v(12, 1, 10)), rb = tw.world.primaryBody(r.id)!;
+    tw.sim.applyHit(q, qb, rb, 1, 'injure'); qb.health = 80;
+    const late = tw.sim.applyHit(r, rb, qb, 100, 'kill')!;
+    expect(late.data.experienceCredits?.[r.id]).toBeUndefined(); expect(r.experience?.defeated ?? []).not.toContain(q.id);
+  });
+  it('credits an opponent\'s surrender as their defeat, and nothing for executing the yielded', async () => {
+    const { beginSurrender } = await import('../src/sim/social/custody');
+    const tw = createTestWorld(4115), v1 = addPerson(tw, 'Yielder', 'villager', v(10, 1, 10)), q = addPerson(tw, 'Victor', 'villager', v(11, 1, 10));
+    const [vb, qb] = [v1, q].map(x => tw.world.primaryBody(x.id)!);
+    tw.sim.applyHit(v1, vb, qb, 5, 'injure'); tw.sim.applyHit(q, qb, vb, 40, 'injure');
+    beginSurrender(tw.world, v1, q.id, 'outmatched');
+    const yielded = tw.world.events.at(-1)!.type === 'entity_surrendered' ? tw.world.events.at(-1)! : tw.world.events.findLast(e => e.type === 'entity_surrendered')!;
+    expect(yielded.data.experienceCredits[q.id]).toBeCloseTo(defeatXp(1, 1));
+    expect(q.experience!.defeated).toContain(v1.id);
+    const before = q.experience!.rankXp, kill = tw.sim.applyHit(q, qb, vb, 100, 'kill')!;
+    expect(kill.data.experienceCredits?.[q.id]).toBeUndefined(); expect(q.experience!.rankXp).toBe(before);
+  });
+  it('values a victim by the threat it actually presented, prices firsts by the deed, and keeps Untouched for real fights', () => {
+    const tw = createTestWorld(4116), hero = addPerson(tw, 'Hero', 'villager', v(10, 1, 10)), friend = addPerson(tw, 'Friend', 'villager', v(11, 1, 10));
+    const [hb, fb] = [hero, friend].map(x => tw.world.primaryBody(x.id)!);
+    tw.sim.applyHit(friend, fb, hb, 0.6, 'injure');
+    const sword = makeItem(tw.world, 'sword', 'handed blade', { owner: friend.id, holder: friend.id });
+    expect(personThreat(tw.world, friend, fb).level).toBeGreaterThan(5); void sword;
+    const e = tw.sim.applyHit(hero, hb, fb, 200, 'injure')!;
+    expect(e.data.experienceCredits[hero.id]).toBeCloseTo(defeatXp(1, 1));
+    const gold = addPerson(tw, 'Gold hunter', 'hunter', v(14, 1, 14)); gold.ontology = { stage: 'Gold' };
+    const hare = createAnimal(tw.world, 'field_hare', v(15.5, 1, 14.5)), hareBody = tw.world.body(hare.bodies[0])!;
+    tw.sim.applyHit(gold, tw.world.primaryBody(gold.id)!, hareBody, 200, 'kill');
+    expect(gold.experience!.achievements['quarry:field_hare'].xp).toBe(Math.round(0.25 * xpToNext(1)));
+    expect(gold.experience!.achievements.untouched).toBeUndefined();
+  });
+  it('loads a save after a damaged victory and a later vessel, and after source Iron then embodied Bronze', () => {
+    const tw = createTestWorld(4117); tw.world.clock.timeScale = 1;
+    const p = addPerson(tw, 'Scarred', 'traveler', v(10, 1, 10), { controlled: true }), b = tw.world.primaryBody(p.id)!;
+    const essence = makeItem(tw.world, 'book', 'bone essence', { owner: p.id, holder: p.id });
+    essence.arcaneSource = { version: 1, abilityId: 'ess-bone', kind: 'essence' };
+    expect(learnArcaneSource(tw.world, p, b.id, essence.id)).toBe('accepted');
+    const spare = makeItem(tw.world, 'book', 'spare bone essence', { owner: p.id, holder: p.id }); spare.arcaneSource = { version: 1, abilityId: 'ess-bone', kind: 'essence' };
+    for (let n = 0; n < TRANSFORMATIONS[0].victories; n++) {
+      const t = addPerson(tw, `Foe ${n}`, 'traveler', v(14, 1, 10), { controlled: true }), tb = tw.world.primaryBody(t.id)!;
+      const origin = tw.world.emit('tower_entered', { actor: p.id }), trial = `scar:${n}`;
+      agreeCombatTrial(tw.world, trial, [[p], [t]], 'injure', origin.id);
+      if (n === 0) tw.sim.applyHit(t, tb, b, 4, 'injure');
+      if (n < 3) { tw.world.physicalTime += 30; tw.world.clock.advance(30); advanceExertion(tw.world);
+        expect(requestArcaneCast(tw.world, p, { bodyId: b.id, abilityId: 'ess-bone', target: { ...tb.pos } })).toBe('accepted');
+        tw.world.physicalTime += 2; tw.world.clock.advance(2);
+        stepArcana(tw.world, (q, qb, target, damage, intent, event) => tw.sim.applyHit(q, qb, target, damage, intent, undefined, event)); }
+      const e = tw.sim.applyHit(p, b, tb, 1000, 'injure')!; endCombatTrial(tw.world, trial, [e.id]); tb.pos = v(35, 1, 35);
+    }
+    b.health = b.maxHealth; p.physiology.energy = p.physiology.hydration = 0.95; p.physiology.fatigue = 0;
+    expect(Math.min(...Object.values(p.arcana!.growth!.victories).map(x => x.quality))).toBeLessThan(1);
+    expect(integrateArcaneSources(tw.world, p, b)).toBe('accepted'); expect(p.ontology.stage).toBe('Iron');
+    expect(deserialize(serialize(tw.world))).not.toBeNull();
+    // Then the embodied Bronze trial (fixture foundations, track and practice, as in the Bronze test).
+    initializeNearIronFixture(tw.world, p); p.ontology = { stage: 'Iron', breakthroughEventId: p.vessel!.eventId };
+    for (let n = 0; n < EMBODIED_TRIALS.Bronze.feats; n++) {
+      const o = addPerson(tw, `Iron foe ${n}`, 'villager', v(14, 1, 12)); o.ontology = { stage: 'Iron' };
+      opposedDefeat(tw, p, o, `scar-feat:${n}`); tw.world.primaryBody(o.id)!.pos = v(30, 1, 30);
+    }
+    const l = p.experience!; l.lifetimeXp += peakXp('Iron') - l.rankXp; l.rankXp = peakXp('Iron');
+    for (const id of Object.keys(p.attributes) as (keyof typeof p.attributes)[]) p.attributes[id] = 18;
+    p.attributes.dexterity = p.attributes.perception = 24; p.capability!.bySkill.crafting.effectiveSeconds = 8 * 3600;
+    b.health = b.maxHealth; p.physiology.energy = p.physiology.hydration = 0.95; p.physiology.fatigue = 0;
+    expect(advanceRank(tw.world, p)).toBe(true); expect(p.ontology.stage).toBe('Bronze');
+    expect(arcaneCapacity(p)).toEqual({ amplitude: 1.6, aperture: 1.2, reserve: 120 });
+    expect(deserialize(serialize(tw.world))).not.toBeNull();
+  }, 60000);
+  it('rejects duplicate feats, foundations beyond the ceiling and a forged embodied receipt', () => {
+    const tw = createTestWorld(4118), a = addPerson(tw, 'Owner', 'villager', v(10, 1, 10));
+    for (let n = 0; n < 2; n++) { const o = addPerson(tw, `Iron ${n}`, 'villager', v(12, 1, 10)); o.ontology = { stage: 'Iron' }; opposedDefeat(tw, a, o, `dup:${n}`); }
+    const raw = serialize(tw.world); expect(deserialize(raw)).not.toBeNull();
+    const tamper = (f: (data: any) => void) => { const d = JSON.parse(raw); f(d); return deserialize(JSON.stringify(d)); };
+    expect(tamper(d => { const q = d.persons.find((x: any) => x.id === a.id); q.experience.feats.push({ ...q.experience.feats[0] }); })).toBeNull();
+    expect(tamper(d => { d.persons.find((x: any) => x.id === a.id).attributes.strength = 400; })).toBeNull();
+    const forged = tamper(d => {
+      const q = d.persons.find((x: any) => x.id === a.id), e = { ...d.events.at(-1), id: 'forged-advancement', type: 'ontological_advancement', actor: a.id, causes: [],
+        data: { from: 'Normal', to: 'Diamond', adaptation: 'embodied capability', feats: [], peak: true, vessel: { ...VESSELS.Diamond } } };
+      d.events.push(e); q.ontology = { stage: 'Diamond', breakthroughEventId: e.id };
+      q.vessel = { version: 1, stage: 'Diamond', eventId: e.id, ...VESSELS.Diamond, base: { [q.bodies[0]]: 80 } };
+    });
+    expect(forged).toBeNull();
   });
 });

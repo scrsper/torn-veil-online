@@ -66,6 +66,8 @@ export interface Body extends Entity {
   kind: 'body';
   exertion?: import('../physical/exertion').PhysicalExertion;
   arcana?: import('../physical/arcana/types').ArcaneBody;
+  /** The current encounter (progression/experience.ts): who hurt this body, whom it struck. */
+  encounter?: import('../progression/experience').EncounterTally;
   recoil?: import('../physical/recoil').Recoil;
   /** Explicit hand selection after an equipment action; legacy saves retain carried-weapon selection. */
   equipmentMode?: 'explicit';

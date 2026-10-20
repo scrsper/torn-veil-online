@@ -7,7 +7,7 @@ import {
   defeatXp, floorLevel, foundationDemand, foundationXp, gapFactor, isLeveledRank, MAX_LEVEL, peakXp, PRACTICE_XP_PER_HOUR,
   rankIndex, rankOfLevel, standing, VESSELS, xpToNext, type LeveledRank, type LevelStanding,
 } from './levels';
-import { creatureThreat, personThreat } from './threat';
+import { abilityLevel, creatureThreat, personThreat } from './threat';
 
 /**
  * Earned experience: one shared ledger for players and NPCs, fed only by canonical receipts.
@@ -49,7 +49,13 @@ export interface RankVessel {
 }
 
 export const MAX_DEFEATED = 4096, MAX_FEATS = 64, MAX_RECEIPTS = 48, MAX_ACHIEVEMENTS = 96;
-const SCAN_EVENTS = 1500, MIN_CONTRIBUTION = 0.25, TOWER_SHARE = 0.25, LEARNING_SHARE = 0.3;
+/** The events a feat may name: the defeating blow, or the opponent's own surrender. */
+export const FEAT_EVENTS: readonly string[] = ['attack', 'entity_surrendered'];
+/** Credited feats at or above a level, still backed by their canonical event. */
+export function featsAtLeast(w: World, p: Person, level: number): ExperienceFeat[] {
+  return (p.experience?.feats ?? []).filter(f => f.level >= level && FEAT_EVENTS.includes(w.event(f.eventId)?.type ?? ''));
+}
+const MIN_CONTRIBUTION = 0.25, TOWER_SHARE = 0.25, LEARNING_SHARE = 0.3;
 
 const ACHIEVEMENTS: Record<string, { title: string; text: string; levels: number }> = {
   'first-blood': { title: 'First Blood', text: 'Overcame a resisting opponent for the first time.', levels: 0.5 },
@@ -122,55 +128,100 @@ export function creditExperience(w: World, p: Person, c: ExperienceCredit): numb
   }
   return c.xp;
 }
-/** Recognise an achievement once. Its reward scales with the current level so that it stays
- * meaningful at any rank. `onEvent` credits an existing event instead of emitting a new one. */
-export function achieve(w: World, p: Person, id: string, causes: string[], onEvent?: WorldEvent): boolean {
+/** Recognise an achievement once. Its reward is priced by the deed: a share of the level cost of
+ * the smaller of the person's own level and `deedLevel`, so a trivial first saved for a high rank
+ * (a hare at Gold, a first form) stays small. `onEvent` credits an existing event instead of
+ * emitting a new one. */
+export function achieve(w: World, p: Person, id: string, causes: string[], opts: { onEvent?: WorldEvent; deedLevel?: number } = {}): boolean {
   const info = achievementInfo(id), l = experienceLedger(p);
   if (!info || !l || !p.alive || l.achievements[id] || Object.keys(l.achievements).length >= MAX_ACHIEVEMENTS) return false;
   syncTrack(p, l);
-  const xp = Math.round(info.levels * xpToNext(standing(l.stage, l.rankXp).level));
-  const ev = onEvent ?? w.emit('achievement_earned', { actor: p.id, causes: [...new Set(causes)].filter(id => w.event(id)), category: 'world', significance: 0.45,
+  const own = standing(l.stage, l.rankXp).level, xp = Math.round(info.levels * xpToNext(Math.min(own, opts.deedLevel ?? own)));
+  const ev = opts.onEvent ?? w.emit('achievement_earned', { actor: p.id, causes: [...new Set(causes)].filter(id => w.event(id)), category: 'world', significance: 0.45,
     data: { achievement: id, title: info.title, xp }, summary: `${p.name} earned ${info.title}` });
   l.achievements[id] = { eventId: ev.id, xp, tick: w.now };
   if (xp > 0) creditExperience(w, p, { kind: 'achievement', xp, eventId: ev.id, key: id });
   return true;
 }
 
+/** The current encounter of one body, kept by the shared hit resolver (players, NPCs and animals):
+ * effective damage each attacker dealt it, whom it struck, and the strongest threat it presented
+ * while actually striking. Entries lapse after ENCOUNTER_SECONDS without a blow; a defeat or a
+ * surrender closes the encounter. It replaces scanning the global event log, which missed long
+ * fights in a busy world and could not tell overkill from real damage. */
+export interface EncounterTally {
+  version: 1;
+  dealt: Record<string, { damage: number; arcane: number; at: number }>;
+  struck: Record<string, number>;
+  /** Highest threat level this body presented while delivering a blow (0 = has not struck). */
+  presented: number;
+}
+export const ENCOUNTER_SECONDS = 600, MAX_TALLY = 16;
+function tally(w: World, b: Body): EncounterTally {
+  const t = b.encounter ??= { version: 1, dealt: {}, struck: {}, presented: 0 }, cutoff = w.physicalTime - ENCOUNTER_SECONDS;
+  for (const [id, d] of Object.entries(t.dealt)) if (d.at < cutoff) delete t.dealt[id];
+  for (const [id, at] of Object.entries(t.struck)) if (at < cutoff) delete t.struck[id];
+  if (!Object.keys(t.struck).length) t.presented = 0;
+  return t;
+}
+function bound<T>(record: Record<string, T>, at: (v: T) => number): void {
+  const keys = Object.keys(record); if (keys.length <= MAX_TALLY) return;
+  for (const id of keys.sort((a, b) => at(record[a]) - at(record[b]) || a.localeCompare(b)).slice(0, keys.length - MAX_TALLY)) delete record[id];
+}
+/** Called by Simulation.applyHit for every applied blow. A body already down, surrendered, subdued
+ * or held (`out`) gains no contribution: finishing someone who is out of the fight is not
+ * overcoming them. Damage beyond the health the victim had left is not counted. */
+export function noteBlow(w: World, attacker: Person, ab: Body, tb: Body, damage: number, healthBefore: number, out: boolean, arcane: boolean): void {
+  const strike = tally(w, ab);
+  strike.struck[tb.ownerId] = w.physicalTime; bound(strike.struck, at => at);
+  strike.presented = Math.max(strike.presented, personThreat(w, attacker, ab).level);
+  if (out || !(damage > 0)) return;
+  const effective = Math.min(damage, Math.max(0, healthBefore)); if (effective <= 0) return;
+  const t = tally(w, tb), d = t.dealt[attacker.id] ??= { damage: 0, arcane: 0, at: w.physicalTime };
+  d.damage += effective; if (arcane) d.arcane += effective; d.at = w.physicalTime; bound(t.dealt, x => x.at);
+}
+/** A wild animal's defensive strike (ecology/defense.ts), so fighting back is resistance. */
+export function noteCreatureStrike(w: World, animal: Creature, ab: Body, tb: Body): void {
+  const t = tally(w, ab);
+  t.struck[tb.ownerId] = w.physicalTime; bound(t.struck, at => at);
+  t.presented = Math.max(t.presented, creatureThreat(w, animal, ab).level);
+}
+
 const MELEE_WEIGHTS = { strength: 0.6, dexterity: 0.8, endurance: 0.7, vitality: 0.2, will: 0.3, perception: 0.3 };
 const ARCANE_WEIGHTS = { will: 0.9, perception: 0.6, intellect: 0.5, endurance: 0.2 };
 /** Called by the shared hit resolver after every applied blow, for players and NPCs alike. Only a
- * defeating blow pays. A person must really have resisted each credited contributor (an agreed
- * trial, or they struck that contributor during the encounter); an animal must be wild and
- * killed. Conflicts are pairwise, so the encounter spans every unresolved conflict involving the
- * victim. Everyone who dealt a quarter of the victim's health shares by damage; a last tap on
- * someone else's fight pays nothing. */
-export function recordDefeatExperience(w: World, attacker: Person, ab: Body, tb: Body, ev: WorldEvent): void {
-  if (ev.type !== 'attack' || ev.actor !== attacker.id || !(ev.data.damage > 0) || !(ev.data.health <= 0)) return;
+ * defeating blow on someone still in the fight pays. A person must really have resisted each
+ * credited contributor (an agreed trial, or they struck that contributor this encounter); an
+ * animal must be wild and killed. Everyone who dealt a quarter of the victim's health shares by
+ * effective damage; a last tap on someone else's fight pays nothing. */
+export function recordDefeatExperience(w: World, attacker: Person, ab: Body, tb: Body, ev: WorldEvent, out = false): void {
+  if (out || ev.type !== 'attack' || ev.actor !== attacker.id || !(ev.data.damage > 0) || !(ev.data.health <= 0)) return;
   const owner = w.get<Person | Creature>(tb.ownerId); if (!owner || owner.id !== ev.target) return;
+  if (owner.kind === 'person' ? !(tb.dead || tb.pose === 'downed') : !((owner as Creature).wildlife && tb.dead)) return;
+  creditDefeat(w, owner as Person | Creature, tb, ev, { attacker, ab });
+}
+/** Yielding to an opponent is being overcome: the contributors share it as a defeat, once. */
+export function recordSurrenderExperience(w: World, who: Person, ev: WorldEvent): void {
+  const b = w.primaryBody(who.id); if (b && ev.type === 'entity_surrendered' && ev.actor === who.id) creditDefeat(w, who, b, ev);
+}
+function creditDefeat(w: World, owner: Person | Creature, tb: Body, ev: WorldEvent, finisher?: { attacker: Person; ab: Body }): void {
+  const t = tb.encounter; if (!t) return;
+  tally(w, tb);
   const person = owner.kind === 'person' ? owner as Person : null, animal = owner.kind === 'creature' ? owner as Creature : null;
-  if (person ? !(tb.dead || tb.pose === 'downed') : !(animal?.wildlife && tb.dead)) return;
-  const conflict = person ? w.conflicts.find(c => c.id === ev.data.conflictId) : undefined;
-  if (person && !conflict) return;
-  const open = person ? w.conflicts.filter(c => c.participants.includes(owner.id) && (c.status !== 'resolved' || c.id === conflict!.id)) : [];
-  // Bounded recent scan of this encounter's blows: who hurt the victim, and who it hurt.
-  const dealt = new Map<string, { damage: number; arcane: number }>(), struck = new Set<string>();
-  const since = person ? Math.min(...open.map(c => c.startedAt)) : ev.tick - 3600;
-  for (let i = w.events.length - 1, n = 0; i >= 0 && n < SCAN_EVENTS; i--, n++) {
-    const e = w.events[i]; if (e.tick < since) break;
-    if (e.type !== 'attack') continue;
-    if (e.target === owner.id && e.data.targetBodyId === tb.id && e.actor && e.data.damage > 0) {
-      const d = dealt.get(e.actor) ?? { damage: 0, arcane: 0 }; d.damage += e.data.damage; if (e.data.arcaneEventId) d.arcane += e.data.damage; dealt.set(e.actor, d);
-    }
-    if (e.actor === owner.id && e.target) struck.add(e.target);
-  }
-  const total = [...dealt.values()].reduce((n, d) => n + d.damage, 0); if (total <= 0) return;
-  const victimLevel = person ? Math.max(earnedLevel(person), personThreat(w, person, tb).level) : creatureThreat(w, animal!, tb).level;
-  for (const [id, d] of [...dealt].sort((a, b) => a[0].localeCompare(b[0]))) {
+  const dealt = Object.entries(t.dealt).sort((a, b) => a[0].localeCompare(b[0])), total = dealt.reduce((n, [, d]) => n + d.damage, 0);
+  // The encounter is over either way; a recovered body starts a new one.
+  const struck = { ...t.struck }; delete tb.encounter;
+  if (total <= 0) return;
+  // What the victim actually presented while striking, else what it stood ready with.
+  const threat = person ? (t.presented || personThreat(w, person, tb).level) : creatureThreat(w, animal!, tb).level;
+  const victimLevel = person ? Math.max(earnedLevel(person), threat) : threat;
+  const fights = !!person || creatureThreat(w, animal!, tb).offense > 0;
+  for (const [id, d] of dealt) {
     const q = w.person(id);
     if (!q?.alive || q.id === owner.id || d.damage < tb.maxHealth * MIN_CONTRIBUTION) continue;
     if (person) {
       const agreed = !!q.combatTrial?.id && q.combatTrial.id === person.combatTrial?.id && q.combatTrial.opponents.includes(person.id) && !q.combatTrial.endedEventId;
-      if (!agreed && !struck.has(q.id)) continue;
+      if (!agreed && struck[q.id] === undefined) continue;
     }
     const l = experienceLedger(q); if (!l || l.defeated.includes(owner.id) || l.defeated.length >= MAX_DEFEATED) continue;
     syncTrack(q, l);
@@ -181,13 +232,13 @@ export function recordDefeatExperience(w: World, attacker: Person, ab: Body, tb:
         .sort((a, b) => b.level - a.level || b.tick - a.tick || a.eventId.localeCompare(b.eventId)).slice(0, MAX_FEATS);
     }
     creditExperience(w, q, { kind: 'defeat', xp: defeatXp(victimLevel, own) * share, eventId: ev.id });
-    const causes = [ev.id];
-    if (person) achieve(w, q, 'first-blood', causes);
-    if (animal) achieve(w, q, `quarry:${animal.species}`, causes);
-    if (victimLevel >= own + 5) achieve(w, q, 'giant-slayer', causes);
-    if (rankIndex(rankOfLevel(victimLevel)) > rankIndex(q.ontology.stage)) achieve(w, q, 'rank-breaker', causes);
-    if (victimLevel >= own && share >= 0.5 && !struck.has(q.id)) achieve(w, q, 'untouched', causes);
-    if (q.id === attacker.id && ab.health > 0 && ab.health <= ab.maxHealth / 6) achieve(w, q, 'last-stand', causes);
+    const causes = [ev.id], deed = { deedLevel: victimLevel };
+    if (person) achieve(w, q, 'first-blood', causes, deed);
+    if (animal) achieve(w, q, `quarry:${animal.species}`, causes, deed);
+    if (victimLevel >= own + 5) achieve(w, q, 'giant-slayer', causes, deed);
+    if (rankIndex(rankOfLevel(victimLevel)) > rankIndex(q.ontology.stage)) achieve(w, q, 'rank-breaker', causes, deed);
+    if (fights && victimLevel >= own && share >= 0.5 && struck[q.id] === undefined) achieve(w, q, 'untouched', causes, deed);
+    if (finisher?.attacker.id === q.id && finisher.ab.health > 0 && finisher.ab.health <= finisher.ab.maxHealth / 6) achieve(w, q, 'last-stand', causes, deed);
     // A real fight against a stronger opponent is the only stimulus that demands foundations
     // beyond ordinary work (levels.foundationDemand); the shared develop() limits still apply.
     if (person) develop(w, q, { weights: d.arcane * 2 > d.damage ? ARCANE_WEIGHTS : MELEE_WEIGHTS, seconds: 600 * share, intensity: 0.8,
@@ -208,7 +259,8 @@ export function recordFoundationExperience(w: World, p: Person, id: AttributeId,
   if (value <= (l.foundations[id] ?? value)) return;
   l.foundations[id] = value;
   creditExperience(w, p, { kind: 'foundation', xp: foundationXp(value), key: `foundation:${id}:${value}` });
-  if (value === 15) achieve(w, p, 'exceptional', cause ? [cause] : []);
+  // An exceptional mortal foundation is a Normal-band deed at any rank.
+  if (value === 15) achieve(w, p, 'exceptional', cause ? [cause] : [], { deedLevel: floorLevel('Iron') - 1 });
 }
 /** A cleared canonical Tower floor: a share of its wardens' level, plus milestone trials. */
 export function recordTowerExperience(w: World, p: Person, cleared: WorldEvent, wardenBodyIds: string[]): void {
@@ -216,13 +268,15 @@ export function recordTowerExperience(w: World, p: Person, cleared: WorldEvent, 
   const level = Math.round(bodies.reduce((n, b) => n + effectiveLevel(w, b), 0) / bodies.length);
   creditExperience(w, p, { kind: 'tower', xp: TOWER_SHARE * xpToNext(level) * gapFactor(level, earnedLevel(p)), eventId: cleared.id });
   const floor = cleared.data.floor;
-  if ([1, 10, 25, 50, 75, 100].includes(floor)) achieve(w, p, `tower:${floor}`, [cleared.id]);
+  if ([1, 10, 25, 50, 75, 100].includes(floor)) achieve(w, p, `tower:${floor}`, [cleared.id], { deedLevel: level });
 }
-/** A newly learned arcane form (HWFWM: absorbing an essence is the start of power). */
+/** A newly learned arcane form (HWFWM: absorbing an essence is the start of power), priced by the
+ * form's own grade so a basic form learned late is worth what it is. */
 export function recordLearningExperience(w: World, p: Person, learned: WorldEvent): void {
   const l = experienceLedger(p); if (!l) return;
-  creditExperience(w, p, { kind: 'learning', xp: LEARNING_SHARE * xpToNext(earnedLevel(p)), eventId: learned.id });
-  achieve(w, p, 'awakened', [learned.id]);
+  const form = abilityLevel(learned.data.abilityId);
+  creditExperience(w, p, { kind: 'learning', xp: LEARNING_SHARE * xpToNext(Math.min(earnedLevel(p), form)), eventId: learned.id });
+  achieve(w, p, 'awakened', [learned.id], { deedLevel: form });
 }
 
 /** Called by every breakthrough path after `p.ontology` names the new stage. Remakes the body
@@ -242,7 +296,7 @@ export function onBreakthrough(w: World, p: Person, event: WorldEvent): void {
   event.data.vessel = { resilience: v.resilience, force: v.force, ceiling: v.ceiling };
   const l = experienceLedger(p)!;
   l.stage = stage; l.rankXp = 0; l.trackEventId = event.id;
-  achieve(w, p, `breakthrough:${stage}`, [], event);
+  achieve(w, p, `breakthrough:${stage}`, [], { onEvent: event });
 }
 
 /** The person's own recent level-ups, achievements and breakthroughs, newest last, phrased as the

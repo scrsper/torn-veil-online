@@ -2,8 +2,23 @@ import type { World } from '../../core/world';
 import { ARCANE_DEFINITIONS, KERNEL_GEOMETRY } from './definitions';
 import { TRANSFORMATIONS, LEGACY_TRANSFORMATIONS, SOURCE_GROWTH_POLICY, CONTROL_STAGES } from './growth';
 import { ONTOLOGICAL_STAGES } from '../../core/stages';
-import { SOURCE_DIAMOND } from '../../progression/levels';
+import { LEVELED_RANKS, SOURCE_DIAMOND, VESSELS } from '../../progression/levels';
+import { FEAT_EVENTS } from '../../progression/experience';
 const bounded = (n: unknown, low: number, high: number) => typeof n === 'number' && Number.isFinite(n) && n >= low && n <= high;
+/** A victory's control was measured against the body's maximum health at that moment. A rank
+ * vessel rescales maximum health later, so accept the original body or any rank's remade one. */
+function qualityMatches(quality: number, received: number, body: { maxHealth: number }, base = body.maxHealth): boolean {
+  return [body.maxHealth, ...LEVELED_RANKS.map(r => Math.round(base * VESSELS[r].resilience))]
+    .some(max => Math.abs(quality - Math.max(0, 1 - received / max)) <= 1e-8);
+}
+/** The person holds the transformation's stage, or a later breakthrough by another path (an
+ * embodied rank trial) has since advanced them; that later advancement must be their own, later. */
+function laterStage(w: World, p: { id: string; ontology: { stage: string; breakthroughEventId?: string } }, stage: string, e: { id: string; tick: number }): boolean {
+  const now = ONTOLOGICAL_STAGES.indexOf(p.ontology.stage as never), then = ONTOLOGICAL_STAGES.indexOf(stage as never);
+  if (now === then) return p.ontology.breakthroughEventId === e.id;
+  const later = w.event(p.ontology.breakthroughEventId);
+  return now > then && later?.type === 'ontological_advancement' && later.actor === p.id && later.id !== e.id && later.tick >= e.tick;
+}
 const record = (o: unknown): o is Record<string, any> => !!o && typeof o === 'object' && !Array.isArray(o);
 
 /** Fail closed on malformed new mechanics. Legacy worlds simply have no components. */
@@ -42,7 +57,7 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
         const costs = v.receivedEventIds.map(id => w.event(id)), body = w.body(e.data.attackerBodyId);
         if (!body || costs.some(c => c?.type !== 'attack' || c.actor !== id || c.target !== p.id || c.data.conflictId !== e.data.conflictId
           || !(c.data.damage > 0) || c.tick > e.tick)
-          || Math.abs(v.quality - Math.max(0, 1 - costs.reduce((n,c) => n + c!.data.damage, 0) / body.maxHealth)) > 1e-8) return false;
+          || !qualityMatches(v.quality, costs.reduce((n,c) => n + c!.data.damage, 0), body, p.vessel?.base[body.id])) return false;
       }
       for (const [id, demonstrations] of Object.entries(g.demonstrations)) {
         if (!p.arcana.learned[id] || !record(demonstrations) || Object.keys(demonstrations).length > 64) return false;
@@ -58,7 +73,7 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
         if(policy!==undefined&&policy!==SOURCE_GROWTH_POLICY)return false;
         const rule = (policy===SOURCE_GROWTH_POLICY?TRANSFORMATIONS:LEGACY_TRANSFORMATIONS).find(r => r.stage === e?.data.to);
         if (!rule || e?.type !== 'ontological_advancement' || e.actor !== p.id || e.data.adaptation !== 'source-integrated arcane capacity'
-          || p.ontology.stage !== rule.stage || p.ontology.breakthroughEventId !== e.id
+          || !laterStage(w, p, rule.stage, e)
           || t.amplitude !== rule.amplitude || t.aperture !== rule.aperture || t.reserve !== rule.reserve
           || e.data.amplitude !== t.amplitude || e.data.aperture !== t.aperture || e.data.reserve !== t.reserve
           || e.data.from !== ONTOLOGICAL_STAGES[ONTOLOGICAL_STAGES.indexOf(rule.stage) - 1]
@@ -76,7 +91,7 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
         if (rule.stage === 'Diamond') {
           const feats = e.data.experience?.feats;
           if (saveVersion < 32 || e.data.experience?.peak !== true || !Array.isArray(feats) || feats.length < SOURCE_DIAMOND.feats
-            || new Set(feats).size !== feats.length || feats.some((id: string) => !e.causes.includes(id) || w.event(id)?.type !== 'attack')) return false;
+            || new Set(feats).size !== feats.length || feats.some((id: string) => !e.causes.includes(id) || !FEAT_EVENTS.includes(w.event(id)?.type ?? ''))) return false;
         }
       }
     }

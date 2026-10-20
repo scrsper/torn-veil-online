@@ -133,9 +133,13 @@ export function itemGrade(item: Item): ItemGrade | null {
     const without = arcaneOffense(reference, base, ['book-ember']).damage, focus = item.arcaneFocus;
     return grade(arcaneOffense(reference, { amplitude: focus.amplitude, aperture: focus.aperture, reserve: focus.reserve }, ['book-ember']).damage / without, 'focus');
   }
-  if (item.arcaneSource) {
-    const learned = arcaneOffense({ arcana: { version: 1, learned: {} }, skills: {} }, { amplitude: 1, aperture: 1, reserve: 100 }, [item.arcaneSource.abilityId]).damage;
-    return grade(Math.max(1, learned / referenceOffense()), 'source');
-  }
+  if (item.arcaneSource) return grade(abilityPower(item.arcaneSource.abilityId), 'source');
   return null;
 }
+/** How much a learned form multiplies the reference adult's power at ordinary capacity. */
+function abilityPower(abilityId: string): number {
+  const learned = arcaneOffense({ arcana: { version: 1, learned: {} }, skills: {} }, { amplitude: 1, aperture: 1, reserve: 100 }, [abilityId]).damage;
+  return Math.max(1, learned / referenceOffense());
+}
+/** The level a form is worth on its own (utility forms are level 1). */
+export function abilityLevel(abilityId: string): number { return levelForPower(abilityPower(abilityId)); }

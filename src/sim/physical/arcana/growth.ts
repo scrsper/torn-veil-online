@@ -4,7 +4,7 @@ import { ONTOLOGICAL_STAGES } from '../../core/stages';
 import { syncNeeds } from '../../core/physiology';
 import { ARCANE_DEFINITIONS } from './definitions';
 import { equippedItems } from '../equipment';
-import { earnedStanding, onBreakthrough } from '../../progression/experience';
+import { earnedStanding, featsAtLeast, onBreakthrough } from '../../progression/experience';
 import { SOURCE_DIAMOND } from '../../progression/levels';
 
 export interface ArcaneGrowth {
@@ -30,7 +30,7 @@ export const SOURCE_GROWTH_POLICY = 2;
 export const CONTROL_STAGES: readonly string[] = ['Gold', 'Diamond'];
 /** The experience half of source Diamond: peak Gold, and credited feats at Gold-band level. */
 export function diamondExperience(w: World, p: Person) {
-  const s = earnedStanding(p), feats = (p.experience?.feats ?? []).filter(f => f.level >= SOURCE_DIAMOND.featLevel && w.event(f.eventId)?.type === 'attack');
+  const s = earnedStanding(p), feats = featsAtLeast(w, p, SOURCE_DIAMOND.featLevel);
   return { peak: p.ontology.stage === 'Gold' && !!s?.peak, label: s?.label ?? p.ontology.stage, rankXp: Math.floor(s?.rankXp ?? 0), peakXp: s?.peakXp ?? 0, feats };
 }
 /** Historical receipts remain valid. This table is only for save validation;

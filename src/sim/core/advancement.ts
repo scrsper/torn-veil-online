@@ -3,7 +3,7 @@ import type { World } from './world';
 import { ATTRIBUTE_IDS, IRON_FOUNDATION, IRON_SUPPORT } from './human';
 import { ironFoundationsFor } from './development';
 import type { PracticedSkillId } from './martialTypes';
-import { earnedStanding, onBreakthrough } from '../progression/experience';
+import { earnedStanding, featsAtLeast, onBreakthrough } from '../progression/experience';
 import { EMBODIED_TRIALS, isLeveledRank, nextRank, rankOfLevel, type LeveledRank } from '../progression/levels';
 
 export type AdvancementStage = 'Normal' | 'Iron' | 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
@@ -133,7 +133,7 @@ export function assessRankBreakthrough(world: World, p: Person): RankBreakthroug
   reasons.push(...bodilyReadiness(world, p));
   const s = earnedStanding(p)!;
   if (!s.peak) reasons.push(`peak ${stage} is required (now ${s.label}, ${Math.floor(s.rankXp)}/${s.peakXp} experience)`);
-  const feats = (p.experience?.feats ?? []).filter(f => f.level >= trial.featLevel && world.event(f.eventId)?.type === 'attack');
+  const feats = featsAtLeast(world, p, trial.featLevel);
   if (feats.length < trial.feats) reasons.push(`${feats.length}/${trial.feats} opposed victories over ${rankOfLevel(trial.featLevel)}-band threats (level ${trial.featLevel}+)`);
   const featEventIds = feats.map(f => f.eventId);
   const candidates = (Object.entries(p.capability?.bySkill ?? {}) as [SkillId, { effectiveSeconds: number; sourceEventIds: EventId[] }][])
