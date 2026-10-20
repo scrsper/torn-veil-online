@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, groundWalkDirection, contactChartPosition, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, groundWalkDirection, holdGroundKeys, contactChartPosition, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
 
@@ -47,6 +47,53 @@ it('requires neutral axes and a sequence newer than the latest actually sent act
   expect(isNeutralGroundRequest({seq:11,command},12)).toBe(false);
   for(const key of ['throttle','yaw','pitch','strafe','lift'])expect(isNeutralGroundRequest({seq:13,command:{...command,input:{...command.input,[key]:.01}}},12)).toBe(false);
   expect(isNeutralGroundRequest({seq:13,command:{...command,input:{...command.input,brake:undefined}}},12)).toBe(false);
+});
+
+it('releases a physical chord before a delayed full-axis request, then still requires the newer accepted neutral and stable ticks',async()=>{
+  let now=0,seq=0,escapeAt=-1;
+  vi.spyOn(Date,'now').mockImplementation(()=>now);
+  const held=new Set<string>(),listeners:((r:any)=>void)[]=[],sent:any[]=[];
+  let responded:{predicate:(r:any)=>boolean;resolve:(r:any)=>void}|null=null;
+  const emit=()=>{
+    const input={throttle:Number(held.has('w')),strafe:held.has('a')?-1:0,yaw:0,pitch:0,lift:0,brake:!held.size};
+    const data={seq:++seq,command:{type:'input',input}};
+    const request={url:()=> 'http://127.0.0.1:7533/realms/universe/command',method:()=> 'POST',postDataJSON:()=>data};
+    sent.push(data);listeners.forEach(f=>f(request));
+    const response={url:request.url,request:()=>request,ok:()=>true,status:()=>200,json:async()=>({ok:true,snapshot:{lastSeq:seq,revision:2}})};
+    if(responded?.predicate(response)){responded.resolve(response);responded=null;}
+  };
+  const page={on:(_name:string,f:(r:any)=>void)=>listeners.push(f),
+    keyboard:{down:async(key:string)=>{
+      if(key==='Escape'){
+        escapeAt=now;held.clear();
+        // First W response arrives at100ms. The pending WA chord has already
+        // been coalesced into ordinary Escape's neutral input by then.
+        now=100;emit();
+      }else{held.add(key);if(!seq)emit();}
+    },up:async(key:string)=>{held.delete(key);}},
+    waitForRequest:()=>{throw Error('Diagnostic requests must not schedule physical release');},
+    waitForResponse:(predicate:(r:any)=>boolean)=>new Promise(resolve=>{responded={predicate,resolve};}),
+    waitForTimeout:async(ms:number)=>{now+=ms;}};
+  const read=async()=>({lastSeq:seq,revision:Math.floor(now/50),system:{planets:[{center:{x:0,y:0,z:0},radius:1600}]},
+    state:{mode:'surface',tick:Math.floor(now/50),position:{x:Math.min(now,100)*.007,y:500,z:1500}}});
+  const report:any={},noop=async()=>{};
+  const qa=createContactQA({page,report,read,save:noop,check:noop,orbit:noop,zoom:noop,recenter:noop});
+  const before=await read(),physical=await holdGroundKeys(page,['w','a'],20);
+  const stopped=await qa.stopGround('delayed-chord',before);
+  expect(physical.physicalHoldMs).toBe(20);expect(escapeAt).toBe(20);
+  expect(sent.map(p=>[p.command.input.throttle,p.command.input.strafe])).toEqual([[1,0],[0,0]]);
+  expect(stopped.lastSeq).toBe(2);expect(stopped.state.position.x).toBeCloseTo(.7);
+  expect(report.contactQA.stops[0].ack.lastActiveSeq).toBe(1);
+  expect(report.contactQA.stops[0].settled.ticks).toBeGreaterThanOrEqual(3);
+  expect(now).toBeGreaterThanOrEqual(400);
+});
+
+it('starts the requested hold after physical keydown completion without adding a request wait',async()=>{
+  let now=0;vi.spyOn(Date,'now').mockImplementation(()=>now);
+  const page={keyboard:{down:async()=>{now+=6;}},waitForTimeout:async(ms:number)=>{now+=ms;},
+    waitForRequest:()=>{throw Error('No network wait is permitted during the pulse');}};
+  const physical=await holdGroundKeys(page,['s','d'],20);
+  expect(physical).toEqual({requestedMs:20,startedAt:0,keydownCompleteAt:12,releaseRequestedAt:32,physicalHoldMs:32,afterKeydownMs:20});
 });
 
 it('recognizes the recorded180-to30degree turn progress without relaxing linear stall or route bounds',()=>{

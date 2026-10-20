@@ -28,6 +28,18 @@ export function groundRouteProgress(previous,remaining,headingError,now){
 }
 export function groundTurnPulse(error,tailMs){return clamp((Math.abs(error)-.03)/1.8*1000-tailMs,20,260);}
 export function groundWalkPulse(remaining,tailMs){return clamp((remaining-.4)/7*1000-tailMs,20,550);}
+/** Physical key duration must not wait for a serialized network request. A
+ * short chord can be coalesced before transmission; its accepted neutral
+ * response and settled position are checked separately by stopGround. */
+export async function holdGroundKeys(page,keys,requestedMs){
+ const startedAt=Date.now();
+ await Promise.all(keys.map(key=>page.keyboard.down(key)));
+ const keydownCompleteAt=Date.now();
+ await page.waitForTimeout(requestedMs);
+ const releaseRequestedAt=Date.now();
+ return{requestedMs,startedAt,keydownCompleteAt,releaseRequestedAt,
+  physicalHoldMs:releaseRequestedAt-startedAt,afterKeydownMs:releaseRequestedAt-keydownCompleteAt};
+}
 /** Select ordinary body-relative WASD, matching the shared surface integrator's
  * normalized diagonals. Precise body yaw is not a precondition for walking. */
 export function groundWalkDirection(forward,up,desired){
@@ -155,7 +167,7 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   try{
    const value=request.postDataJSON(),input=value.command?.input;if(value.command?.type!=='input')return;
    if(['throttle','yaw','pitch','strafe','lift'].some(k=>input[k]!==0))lastActiveSeq=Math.max(lastActiveSeq,value.seq);
-   if(report.contactQA.inputRequests.length<2048)report.contactQA.inputRequests.push({seq:value.seq,input:{throttle:input.throttle,yaw:input.yaw,pitch:input.pitch,strafe:input.strafe,lift:input.lift,brake:input.brake}});
+   if(report.contactQA.inputRequests.length<2048)report.contactQA.inputRequests.push({at:Date.now(),seq:value.seq,input:{throttle:input.throttle,yaw:input.yaw,pitch:input.pitch,strafe:input.strafe,lift:input.lift,brake:input.brake}});
   }catch{}
  });
  let tracing=false;
@@ -267,17 +279,13 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
     progress=groundRouteProgress(progress,remaining,0,Date.now());
     if(Date.now()-progress.lastProgress>4500)throw Error('Ground waypoint made no linear or angular progress for 4.5 seconds');
     const requestedWalkMs=groundWalkPulse(remaining*walk.alignment,walkTailMs);
-    const requested=page.waitForRequest(request=>{
-     if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
-     try{const p=request.postDataJSON(),i=p.command?.input;return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&i.throttle===walk.throttle&&i.strafe===walk.strafe&&i.yaw===0;}catch{return false;}
-    },{timeout:3000}).then(request=>({request}),error=>({error}));
-    await Promise.all(walk.keys.map(key=>page.keyboard.down(key)));const observed=await requested;
-    if(observed.error)throw Error('Ordinary walking input was not sent to the host');
-    await page.waitForTimeout(requestedWalkMs);
+    const physical=await holdGroundKeys(page,walk.keys,requestedWalkMs);
     const stopped=await stopGround(label+'-pulse',view);settled=true;
     const actual=len(sub(stopped.state.position,view.state.position)),measuredTail=clamp(actual/7*1000-requestedWalkMs,0,300);
     walkTailMs=walkTailMs*.4+measuredTail*.6;
-    attempt.walks??=[];attempt.walks.push({requestedMs:requestedWalkMs,metres:actual,keys:walk.keys,estimatedTailMs:walkTailMs});
+    const requests=report.contactQA.inputRequests.filter(r=>r.seq>(view.lastSeq??0)&&r.at>=physical.startedAt);
+    attempt.walks??=[];attempt.walks.push({requestedMs:requestedWalkMs,physical,metres:actual,keys:walk.keys,estimatedTailMs:walkTailMs,
+     requestSeqs:requests.map(r=>r.seq),completeChordSent:requests.some(r=>r.input.throttle===walk.throttle&&r.input.strafe===walk.strafe&&r.input.yaw===0)});
    }
    throw Error('Ground waypoint exceeded the 18-second bound');
   }finally{await release();attempt.elapsed=Date.now()-began;await save();}
