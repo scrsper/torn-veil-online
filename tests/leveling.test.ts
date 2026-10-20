@@ -356,6 +356,10 @@ describe('player-facing leveling: observed threat, announcements and item grades
     const rows = carriedItemRows(tw.sim, p, []);
     expect(rows.find(r => r.id === sword.id)!.description).toContain(`${itemGrade(sword)!.grade} weapon (item level ${itemGrade(sword)!.level})`);
     expect(rows.find(r => r.id === bread.id)!.description.some(d => d.includes('grade'))).toBe(false);
+    const essence = makeItem(tw.world, 'book', 'storm essence', { owner: p.id, holder: p.id });
+    essence.arcaneSource = { version: 1, abilityId: 'ess-storm', kind: 'essence' };
+    const lines = carriedItemRows(tw.sim, p, []).find(r => r.id === essence.id)!.description;
+    expect(lines).toContain('Teaches Chain Lightning, a chain form'); expect(lines.some(d => d.includes('Normal-grade'))).toBe(false);
   });
 });
 

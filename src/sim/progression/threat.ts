@@ -120,6 +120,17 @@ export function bodyThreat(w: World, b: Body, opts: { equipped?: boolean } = {})
  * on them and a Normal person may carry a Gold-grade focus. Items with no combat function have
  * no grade. Wear counts: a degraded item grades lower, a broken one has none. */
 export interface ItemGrade { level: number; rank: LeveledRank; grade: string; power: number; role: 'weapon' | 'armor' | 'focus' | 'source' }
+/** The line a holder reads about an item: its grade when it multiplies an ordinary adult's power,
+ * otherwise (most single-target forms over ten seconds) what form it teaches, never a misleading
+ * "Normal-grade" on every essence. Null for items with no combat function. */
+export function itemGradeText(item: Item): string | null {
+  const g = itemGrade(item); if (!g) return null;
+  if (g.role === 'source' && g.power <= 1) {
+    const d = ARCANE_DEFINITIONS.get(item.arcaneSource!.abilityId);
+    return d ? `Teaches ${d.name}, a ${d.kernel} form` : null;
+  }
+  return `${g.grade} ${g.role} (item level ${g.level})`;
+}
 export function itemGrade(item: Item): ItemGrade | null {
   if (item.quantity <= 0 || item.condition === 0) return null;
   const grade = (power: number, role: ItemGrade['role']): ItemGrade => {
