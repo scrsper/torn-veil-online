@@ -1,5 +1,12 @@
 # Current candidate: integrated universe traversal release (2026-10-20)
 
+Input correction `ffd79c7` adds sequenced owner-socket delivery with separate
+received/durable receipts. 65 affected checks, TypeScript, web build and the
+unchanged0.75m live microtap target pass. Corrected-source full journey/restart
+and final-head CI remain pending. Work continues in the separate
+`torn-veil-universe-input` checkout; original7533 source/save stays frozen until
+manual graceful stop (explicitly approved shutdown input was again tool-denied).
+
 Combines traversal with public main `8a9fa58`, earned progression and the current
 John Smith authority. Writer schema 33 preserves both independent schema-32
 histories; legacy Tower silver stops after the current authority is initialized.

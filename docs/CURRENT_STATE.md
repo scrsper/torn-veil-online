@@ -1,5 +1,11 @@
 # Torn Veil current release candidate - October 20, 2026
 
+Latest local input correction `ffd79c7` passes65 affected checks, TypeScript,
+web build and the retained0.75m ordinary microtap benchmark. Full corrected
+journey/restart and final-head CI remain required; PR72 stays draft. Original
+test host7533 still requires manual graceful stop because its explicitly
+approved shutdown input was rejected by the tool approval policy.
+
 Universe traversal integrates public main `8a9fa58`, earned progression and John
 Smith. Source `4cde1b4` passes53 ordinary journey checks with foreign landing/reload
 and town return. Draft PR72 still requires exact host restart and final-head CI.

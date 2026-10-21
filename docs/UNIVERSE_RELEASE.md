@@ -7,6 +7,28 @@ the exact-save host restart and all CI jobs on its final head pass. The PR carri
 the live CI and merge status; this document records the source and evidence.
 Historical contact evidence remains in `UNIVERSE_CONTACT_HANDOFF.md`.
 
+### Input correction checkpoint
+
+Local implementation `ffd79c7` replaces response-limited movement delivery with
+sequenced input on the existing owner WebSocket. Received receipts release the
+input queue; durable receipts alone release structural commands and transitions.
+The original canonical journal, simulation clock and travel speeds are unchanged.
+65 focused tests, TypeScript and the Babylon bundle pass. Four ordinary browser
+short taps physically43–54ms move0.35–0.70m and pass the unchanged0.75m target.
+[Input evidence and coverage limits](evidence/universe-release/input-stream/RESULTS.md).
+The first streamed-input journey exposed stale view polling under held input;
+authoritative polling is corrected and66 affected checks pass. The preserved
+[failure and recovery](evidence/universe-release/input-stream-first-journey/RESULTS.md)
+remains separate from full corrected-source journey/restart and final-head CI,
+which are still pending.
+
+The original7533 host is still idle and healthy at durable16203/checkpoint14597.
+After Jacob explicitly approved its graceful shutdown/restart, one retry of
+terminal5701 `shutdown` was rejected again: approval required by policy while
+AskForApproval is Never. Manual graceful stop is required before its exact save
+can checkpoint and upgrade; source and journal fingerprints remain untouched.
+The isolated input checkout on7534 owns its own new test hosts and clean shutdowns.
+
 ## Scope and history
 
 The candidate integrates the original traversal checkpoints `41b783f`, `53c1f73`
@@ -46,9 +68,9 @@ the engine-fingerprint guard is unchanged.
   fingerprint bypass is an acceptable substitute.
 - Final-head CI: required. Earlier published `2447752` passed all four CI jobs;
   this does not certify later fixes. See PR72 for the current head's checks.
-- Precision limit U076 remains open: one corrected short tap moved1.05 m and
-  failed the retained0.75 m benchmark under118 ms serialized response latency.
-  The full physical route passes, but fine-input precision is not certified.
+- Precision U076: the historical1.05m failure remains preserved. New streamed
+  input passes the retained0.75m short-tap benchmark; full corrected-source
+  traversal and restart acceptance are still required before release.
 - Known presentation limits: left-foot contact on the sampled slope, weak boot
   contact shadows and live minimum-camera hide-threshold coverage. These remain
   explicit issues, not claimed fixes. Geometry penetration/drift/gap limits remain
@@ -126,9 +148,9 @@ attempt7 passes those corrected checks. The benchmark precision failure remains.
 
 1. Finish this release's exact-save restart and final-head CI before readiness
    or merge. Keep the source unchanged across the restart check.
-2. Improve input delivery through ordered host admission and durable receipts,
-   retaining owner/epoch/sequence, structural barriers and journal replay. Do not
-   drop simulation time or submit overlapping commands past the busy fence.
+2. Finish the corrected input source's ordinary journey and exact-save restart.
+   Ordered admission and separate durable receipts are implemented; keep the
+   owner/sequence fences, structural barriers and real-worker replay checks.
 3. Complete left-foot slope contact, clipped slope-front framing and foreign
    source-triangle sole coverage. Improve low-contrast flight/terrain composition;
    measure steady-speed pose correctness and the actual hide/restore threshold.

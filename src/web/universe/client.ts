@@ -67,6 +67,7 @@ export async function startUniverse() {
   }
   let snapshot: Snapshot | null = null, seq = 0, connected = false, disposed = false, lastReply = 0, busy = false, polling = false, requestId = 0, acceptedRequest = 0;
   let streamedInput = false;
+  let inputInFlight = false;
   const inputStream = new UniverseInputStream(() => controllerToken, value => {
     if (campaignSocket?.readyState !== WebSocket.OPEN) throw Error('Movement connection is closed.');
     campaignSocket.send(JSON.stringify(value));
@@ -106,7 +107,9 @@ export async function startUniverse() {
     }
   };
   async function poll() {
-    if (disposed || busy || polling || campaignMode && !controllerToken) return;
+    // Stream receipts do not carry snapshots. Held-input heartbeats must not
+    // starve authoritative view polling while their provisional receipt waits.
+    if (disposed || busy && !inputInFlight || polling || campaignMode && !controllerToken) return;
     polling = true;
     const request = ++requestId, token = controllerToken;
     try { const response = await fetch(endpoint, { cache: 'no-store', headers: headers(), signal: AbortSignal.timeout(2500) }); if (!response.ok) throw Error(`Host ${response.status}`); const result = await response.json(); if (disposed || leaving || token !== controllerToken) return; if (campaignMode) acceptView(result, request); else accept(result, request); }
@@ -116,7 +119,8 @@ export async function startUniverse() {
   }
   async function transmit(command: Command): Promise<boolean> {
     if (!snapshot) return false;
-    busy = true; const request = ++requestId, token = controllerToken, sessionId = snapshot.sessionId;
+    busy = true; inputInFlight = campaignMode && streamedInput && command.type === 'input';
+    const request = ++requestId, token = controllerToken, sessionId = snapshot.sessionId;
     try {
       if (campaignMode && streamedInput) {
         if (command.type === 'input') {
@@ -134,7 +138,7 @@ export async function startUniverse() {
       if (!result.ok) say(result.error ?? 'The host refused that action.', true);
       return response.ok && result.ok === true;
     } catch { if (!disposed && !leaving && token === controllerToken) { connected = false; say('Connection interrupted. Controls pause until the host returns.', true); } return false; }
-    finally { busy = false; }
+    finally { inputInFlight = false; busy = false; }
   }
   const send = (command: Command) => { if (disposed || leaving || campaignMode && (!controllerToken || !campaign?.active)) return; if (!connected) return say(campaignMode ? 'Saved world host is offline. Reconnect before continuing.' : 'Expedition host is offline. Start Play Torn Veil Universe.cmd.', true); queue.enqueue(command); };
   const goTown = async () => {

@@ -19,6 +19,11 @@ export function recordInputReceipts(page,report){
  report.inputReceipts??=[];report.controlFailures??=[];
  page.on('websocket',socket=>{
   if(new URL(socket.url()).pathname!=='/realms/universe/socket')return;
+  socket.on('framesent',event=>{try{
+   const m=JSON.parse(String(event.payload));
+   if(m.type==='universe_input'&&m.command?.type==='input'&&report.commands)
+    report.commands.input=(report.commands.input??0)+1;
+  }catch{}});
   socket.on('framereceived',event=>{try{
    const m=JSON.parse(String(event.payload));if(m.type!=='universe_input_receipt')return;
    const entry={at:Date.now(),seq:m.seq,phase:m.phase,ok:m.ok,
