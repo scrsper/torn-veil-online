@@ -29,7 +29,7 @@ uniform sampler2D splatGrass, splatDirt, splatCobble, splatCobbleN, splatMask;
   vec2 wp = vPositionW.xz;
   vec4 m = texture2D(splatMask, (wp - splatRect.xy) / splatRect.zw);
   vec3 g1 = toLinearSpace(texture2D(splatGrass, wp / 2.6).rgb), g2 = toLinearSpace(texture2D(splatGrass, wp / 7.3 + .37).rgb);
-  vec3 grass = mix(g1, g2, .35);
+  vec3 grass = mix(g1, g2, .35) * vec3(.88, 1.2, .55) * 1.85;
   float macro = toLinearSpace(texture2D(splatDirt, wp / 61.).rgb).g;
   grass *= mix(vec3(1.08, 1.0, .82), vec3(.72, .86, .62), m.b) * (.82 + macro * 1.1);
   vec3 dirt = toLinearSpace(texture2D(splatDirt, wp / 3.1).rgb) * vec3(1.05, .98, .9);

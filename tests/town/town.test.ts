@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { townLayout, terrainHeight, toLocal, toTown, TOWN_SEED, WALLS } from '../../src/sim/town/layout';
 import { TownCollision } from '../../src/sim/town/collision';
 import { groundMask } from '../../src/sim/town/groundMask';
-import { angleDelta, createPlayer, forwardOf, rightOf, stepPlayer, wishDirection, RUN, WALK } from '../../src/sim/town/movement';
+import { angleDelta, createPlayer, type PlayerState, forwardOf, rightOf, stepPlayer, wishDirection, RUN, WALK } from '../../src/sim/town/movement';
 import { boomDirection, clampPitch, clampZoom, collideBoom, easeBoom, orbitInput, shoulderPivot, NEAR_MIN, PITCH_MAX, PITCH_MIN, PROBE, ZOOM_MAX, ZOOM_MIN } from '../../src/sim/town/camera';
 import { TownFolk, NPC_RADIUS } from '../../src/sim/town/npcs';
 
@@ -75,14 +75,14 @@ describe('player movement', () => {
     expect(RUN).toBeGreaterThan(WALK);
   });
   it('walks to a clicked target and stops there; keys cancel the target', () => {
-    let p = { ...createPlayer(0, -84, 0, W), target: { x: 4, z: -80 } };
+    let p: PlayerState = { ...createPlayer(0, -84, 0, W), target: { x: 4, z: -80 } };
     for (let i = 0; i < 600 && p.target; i++) p = stepPlayer(p, still, 0, 1 / 60, W);
     expect(p.target).toBeNull(); expect(Math.hypot(p.x - 4, p.z + 80)).toBeLessThan(.3);
     p = stepPlayer({ ...p, target: { x: 10, z: -60 } }, { forward: 1, right: 0, run: false }, 0, 1 / 60, W);
     expect(p.target).toBeNull();
   });
   it('drops a click target it cannot reach (walking into the fountain)', () => {
-    let p = { ...createPlayer(0, -8, 0, W), target: { x: 0, z: 0 } };
+    let p: PlayerState = { ...createPlayer(0, -8, 0, W), target: { x: 0, z: 0 } };
     for (let i = 0; i < 600 && p.target; i++) p = stepPlayer(p, still, 0, 1 / 60, W);
     expect(p.target).toBeNull(); expect(world.blocked(p.x, p.z)).toBe(false);
   });

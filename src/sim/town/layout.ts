@@ -82,8 +82,8 @@ export const TOWN_LIBRARY: readonly LibraryPlace[] = Object.freeze([
 /** Paths: cobbles inside the walls, worn earth outside. */
 function townPaths(): PathStrip[] {
   return [
-    { kind: 'cobble', points: [[0, -86], [0, -74]], width: 6 },
-    { kind: 'cobble', points: [[0, -38], [0, -18]], width: 6.5 },
+    { kind: 'cobble', points: [[0, -86], [0, -18]], width: 6 },
+    { kind: 'cobble', points: [[-24, 2], [-56, 2]], width: 21 },
     { kind: 'cobble', points: [[0, 18], [0, 42]], width: 5.5 },
     { kind: 'cobble', points: [[18, 4], [26, 0]], width: 4 },
     { kind: 'cobble', points: [[-18, 6], [-26, 6]], width: 4 },
@@ -203,7 +203,7 @@ export function townLayout(seed = TOWN_SEED): TownLayout {
 
   const npcs = townNpcs(rng.fork(77), props);
   return {
-    seed, library, props, colliders, paths, plaza: { ...PLAZA }, spawn: { x: 0, z: -84, yaw: 0 },
+    seed, library, props, colliders, paths, plaza: { ...PLAZA }, spawn: { x: 0, z: -77, yaw: 0 },
     tower: { x: TOWER.x, z: TOWER.z, y: towerBase() }, npcs, bounds: { ...BOUNDS }, walls: { ...WALLS },
   };
 }

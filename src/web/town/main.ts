@@ -56,7 +56,9 @@ export async function startTown() {
     const root = new TransformNode(`lib:${p.key}`, scene); root.position.set(p.x, 0, p.z); root.rotation.y = p.yaw;
     const meshes = await lib.instantiate(p.assetId, p.key, root);
     for (const m of meshes) {
-      if (HIDE_GROUND.has(p.assetId) && /RUNTIME_ground/.test(m.name + (m.parent?.name ?? ''))) { m.setEnabled(false); continue; }
+      const path = nodePath(m);
+      // Library ground slabs and flat 'canopy strip' vegetation give way to the town's own ground and trees.
+      if ((HIDE_GROUND.has(p.assetId) && /RUNTIME_ground/.test(path)) || /RUNTIME_vegetation/.test(path)) { m.setEnabled(false); continue; }
       m.receiveShadows = true; atmo.shadows.addShadowCaster(m, false); m.isPickable = true; camBlockers.add(m);
       m.freezeWorldMatrix(); m.alwaysSelectAsActiveMesh = false;
     }
@@ -132,7 +134,7 @@ export async function startTown() {
   }
 
   // Fixed-step simulation, render-rate presentation.
-  let acc = 0, npcAcc = 0, ready = false;
+  let acc = 0, npcAcc = 0, ready = false, freeCam: [Vector3, Vector3] | null = null;
   const input = (): MoveInput => ({
     forward: (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0),
     right: (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0),
@@ -170,6 +172,7 @@ export async function startTown() {
     cam.position.copyFrom(pivot.add(dir.scale(boom)));
     const groundUnder = terrainHeight(cam.position.x, cam.position.z) + .35; if (cam.position.y < groundUnder) cam.position.y = groundUnder;
     cam.setTarget(pivot.add(new Vector3(0, -.05 - orbit.pitch * .1, 0)));
+    if (freeCam) { cam.position.copyFrom(freeCam[0]); cam.setTarget(freeCam[1]); }
     atmo.update(pivot, clock); atmo.follow(new Vector3(px, py, pz));
   });
   // Shared materials accept a few lamps besides sun and sky.
@@ -183,7 +186,10 @@ export async function startTown() {
   (window as unknown as { __town: unknown }).__town = {
     get ready() { return ready; }, layout, status: lib.status,
     view(x: number, z: number, yaw: number, pitch = .22, zoom = 5.2) { player = createPlayer(x, z, yaw, world); prev = player; orbit = { yaw, pitch: clampPitch(pitch), zoom: clampZoom(zoom) }; boom = orbit.zoom; pivot.set(x, player.y + 1.6, z); },
+    /** Capture-only free camera (null restores the follow camera). */
+    freeCam(p: number[] | null, t?: number[]) { freeCam = p && t ? [new Vector3(p[0], p[1], p[2]), new Vector3(t[0], t[1], t[2])] : null; },
     player: () => ({ ...player }), fps: () => engine.getFps(),
   };
 }
+const nodePath = (m: AbstractMesh) => { let s = '', n: { name: string; parent: unknown } | null = m; while (n) { s += n.name + '/'; n = n.parent as typeof n; } return s; };
 const frame = () => new Promise(r => requestAnimationFrame(() => r(null)));

@@ -73,7 +73,7 @@ function template(P: Parts, kind: PropKind, v: number) {
       P.box('glow', .7, 2.62, 0, .24, .38, .24); P.box('iron', .7, 3.0, 0, .38, .08, .38); P.cyl('iron', .7, 3.06, 0, .12, .02, .3, 4);
       break;
     case 'bench': P.box('timber', 0, .42, 0, 1.8, .08, .5, 0, 1); for (const s of [-1, 1]) P.box('stone', s * .7, 0, 0, .18, .42, .45); P.box('timber', 0, .62, -.22, 1.8, .3, .06, 0, 1); break;
-    case 'planter': P.box('stone', 0, 0, 0, 1.4, .55, 1.4, 0, 1.5); P.blob('leafDark', 0, .75, 0, .6, .38, .6, v, .25); for (let i = 0; i < 5; i++) P.blob(FLOWERS[(v + i) % 4], Math.sin(i * 2.4) * .45, .95, Math.cos(i * 2.4) * .45, .14, .1, .14, i, .1, 1); break;
+    case 'planter': P.box('stone', 0, 0, 0, 1.4, .55, 1.4, 0, 1.5); P.blob('leafDark', 0, .75, 0, .6, .38, .6, v, .25); for (let i = 0; i < 5; i++) P.blob(FLOWERS[(v + i) % 4], Math.sin(i * 2.4) * .45, .95, Math.cos(i * 2.4) * .45, .08, .06, .08, i, .1, 1); break;
     case 'sign': P.cyl('darkTimber', 0, 0, 0, 2.6, .14, .16, 6); for (const [y, a] of [[2.1, .3], [1.7, -.5], [1.35, 2.5]] as const) { const b = P.box('timber', 0, y, 0, 1.1, .22, .05, a, 1); void b; } break;
     case 'banner': P.cyl('darkTimber', 0, 0, 0, 6, .14, .18, 6); P.cyl('gold', 0, 6, 0, .25, .02, .16, 6); P.box('darkTimber', 0, 5.6, 0, 1.4, .07, .07); P.box('clothRed', 0, 2.6, 0, 1.2, 3, .03); P.box('gold', 0, 4.1, .02, .5, .5, .02, 0, 1, 0, Math.PI / 4); break;
     case 'notice': for (const s of [-1, 1]) P.box('darkTimber', s * .8, 0, 0, .14, 2.3, .14); P.box('timber', 0, .9, 0, 1.7, 1.1, .08, 0, 1); P.gable('darkTimber', 0, 2.2, 0, 1.9, .5, .3, 0, .1, .06); for (let i = 0; i < 4; i++) P.box('paper', -.5 + i * .33, 1.1 + (i % 2) * .4, .05, .26, .34, .01); break;
@@ -98,9 +98,8 @@ function template(P: Parts, kind: PropKind, v: number) {
       P.cyl('stone', 0, 0, 0, .7, 6.6, 6.8, 16, 2); P.cyl('stoneDark', 0, .7, 0, .14, 6.9, 6.9, 16, 2); P.cyl('water', 0, .55, 0, .02, 6.1, 6.1, 24);
       P.cyl('stone', 0, 0, 0, 2.3, .7, .9, 10, 1); P.cyl('stone', 0, 2.3, 0, .35, 2.2, .6, 14, 1); P.cyl('water', 0, 2.62, 0, .02, 2, 2, 16);
       P.cyl('stone', 0, 2.6, 0, 1, .3, .4, 8, 1); P.blob('stone', 0, 3.8, 0, .3, .4, .3, 1, .05, 1); P.cyl('gold', 0, 4.15, 0, .3, .02, .14, 6);
-      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; P.cyl('water', Math.sin(a) * 1.05, .62, Math.cos(a) * 1.05, 1.98, .06, .12, 5); }
       break;
-    case 'flowers': for (let i = 0; i < 7; i++) { const a = i * 2.39 + v, r = .2 + (i % 3) * .22; P.blob('leafDark', Math.sin(a) * r, .12, Math.cos(a) * r, .2, .16, .2, i, .2, 1); P.blob(FLOWERS[(v + i) % 4], Math.sin(a) * r, .3, Math.cos(a) * r, .1, .07, .1, i + 3, .2, 1); } break;
+    case 'flowers': for (let i = 0; i < 7; i++) { const a = i * 2.39 + v, r = .2 + (i % 3) * .22; P.blob('leafDark', Math.sin(a) * r, .12, Math.cos(a) * r, .2, .16, .2, i, .2, 1); P.blob(FLOWERS[(v + i) % 4], Math.sin(a) * r, .3, Math.cos(a) * r, .07, .05, .07, i + 3, .2, 1); } break;
     case 'bush': P.blob(v % 2 ? 'leafDark' : 'leaf', 0, .5, 0, .9, .65, .8, v, .25); P.blob('leafDark', .5, .38, .3, .55, .45, .55, v + 2, .25); break;
     case 'rock': P.blob('stoneDark', 0, .2, 0, .9, .55, .7, v, .2, 1); break;
     case 'tree': {

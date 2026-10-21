@@ -23,7 +23,7 @@ export function groundMask(layout: TownLayout, n = 1024, size = 420): GroundMask
     const pd = Math.hypot(x - layout.plaza.x, z - layout.plaza.z) + jitter;
     cob = Math.max(cob, 1 - sm(layout.plaza.r - .2, layout.plaza.r + .2, pd)); dirt = Math.max(dirt, (1 - sm(layout.plaza.r, layout.plaza.r + 3, pd)) * .8);
     // Worn ground under and around the library spaces (their own paving sits on top), stalls and gates.
-    for (const r of rects) { const dx = Math.max(r.x0 - x, 0, x - r.x1), dz = Math.max(r.z0 - z, 0, z - r.z1), d = Math.hypot(dx, dz) + jitter; dirt = Math.max(dirt, (1 - sm(0, 3, d)) * .75); }
+    for (const r of rects) { const dx = Math.max(r.x0 - x, 0, x - r.x1), dz = Math.max(r.z0 - z, 0, z - r.z1), d = Math.hypot(dx, dz) + jitter; dirt = Math.max(dirt, (1 - sm(0, 2.5, d)) * .35); }
     for (const s of stalls) { const d = Math.hypot(s.x - x, s.z - z) + jitter; dirt = Math.max(dirt, (1 - sm(1.5, 3.2, d)) * .7); }
     // Trodden strip along the inside of the walls.
     const inside = x > W.x0 && x < W.x1 && z > W.z0 && z < W.z1, wd = Math.min(x - W.x0, W.x1 - x, z - W.z0, W.z1 - z) + jitter;
