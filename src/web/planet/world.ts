@@ -45,6 +45,7 @@ export async function startPlanetWorld() {
   const sky = new PlanetSky(scene, lite ? 1024 : ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
   const sinks: ((d: V3) => number)[] = [];
   const terrain = lite ? new PlanetTerrain(scene, spec, 72, 320, 96) : new PlanetTerrain(scene, spec); buildRoads(scene, spec);
+  const seaMat = terrain.water.material as StandardMaterial;
   terrain.sink = d => { let m = 0; for (const f of sinks) { const v = f(d); if (Math.abs(v) > Math.abs(m)) m = v; } return m; };
   const loader = new LibraryLoader(scene);
   const label = document.createElement('div');
@@ -351,12 +352,15 @@ export async function startPlanetWorld() {
       camera.position = v(scale(normalize(add(around, { x: 0, y: .35, z: 0 })), orbitRadius)); camera.upVector = new Vector3(0, 1, 0); camera.setTarget(Vector3.Zero());
       sky.update(state, normalize(v2p(camera.position)), Vector3.Zero(), camera.maxZ * .45, 1);
       scene.fogDensity = 0;
+      seaMat.emissiveColor.set(0, 0, 0);
     } else {
       const yawQ = Quaternion.RotationAxis(u, camYaw), back = fwd.applyRotationQuaternion(yawQ).scale(-1), cam = pos.add(u.scale(1.6)).add(back.scale(Math.cos(camPitch) * camDist)).add(u.scale(Math.sin(camPitch) * camDist));
       // Keep the camera above ground.
       const camDir = normalize(v2p(cam)), floor = surfaceRadius(spec, camDir) + .6, cr = cam.length();
       camera.position = cr < floor ? cam.scale(floor / cr) : cam; camera.upVector = u; camera.setTarget(pos.add(u.scale(1.5 + camLift)));
-      sky.update(state, up, pos, camera.maxZ * .45, 0);
+      const l = sky.update(state, up, pos, camera.maxZ * .45, 0);
+      // The sea at eye level mirrors the sky near the horizon, so it reads as water at low sun and dusk rather than going black.
+      seaMat.emissiveColor.set(l.horizon[0] * .22, l.horizon[1] * .24, l.horizon[2] * .26);
     }
     // Lanterns behind the pagoda's lattice glow after dusk.
     // Keyed to the sun, not daylight (moonlight keeps daylight above zero): full glow once the sun is 6° down.
