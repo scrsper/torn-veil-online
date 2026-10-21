@@ -16,8 +16,8 @@ Driven by /workspace/town-run/loop.sh (Claude Code, Opus 5.5). Each session: rea
 - [x] tsc --noEmit + targeted vitest green
 - [x] Production static build of the town page
 - [x] Deploy to Cloudflare Pages (new project) + live URL
-- [ ] 3-4 screenshots of the deployed build in /workspace/torn-veil-online/media/starting-town/
-- [ ] Final report in /workspace/town-run/DONE
+- [x] 3-4 screenshots of the deployed build in /workspace/torn-veil-online/media/starting-town/
+- [x] Final report in /workspace/town-run/DONE
 
 ## Decisions
 - **Read (session 1, 2026-10-20 22:10 CT):** vault Agent Operating Guide v0.0.4, Exclusions, Torn Veil index, TV CLAUDE.md, Torn Veil readiness and Constitution review, Agent Ops/Memory; repo AGENTS.md, CLAUDE.md, constitution (vision, §46 rendering is not reality, sim clocks), world-sphere-100f PROGRESS (engine = Babylon.js 9.28, right-handed Y-up; GLB registry `LibraryLoader` with in-browser sha256; cooked library collision `libraryCollision.json`; CC0 scans via `loadScannedMaps`; pagoda exterior `buildPagoda`). PROCEDURAL_SETTLEMENTS / COMBAT_CAMERA_REFINEMENT skimmed for intent only; the town uses its own small camera rig.
@@ -34,6 +34,7 @@ See docs/town/ASSET_MANIFEST.md (11 torn-veil-assets GLBs, 9 CC0 Poly Haven scan
 - The Tower is a distant landmark only (not enterable on this page; its floors are the Tower game in /?world and /?ascent).
 - Placeholder figures have no limb animation (bob only); NPCs don't react to the player (they are bodies the player collides with).
 - Camera collision tests buildings/walls/GLB spaces + terrain, not props or trees (by design: foliage would yank the boom).
+- Headless Chrome needs `env -u DISPLAY` on this box (a stale DISPLAY=:5 breaks SwiftShader WebGL).
 - Headless captures use SwiftShader (software GL), so recorded fps there (~0.5) says nothing about real GPUs.
 
 ## Log
@@ -44,3 +45,5 @@ See docs/town/ASSET_MANIFEST.md (11 torn-veil-assets GLBs, 9 CC0 Poly Haven scan
 - Iterated on headless shots (/workspace/town-run/shots/s1–s5): ground splat brightness, cobbles through the hamlet lane, market paving, hidden GLB canopy strips/ground slabs, 38 houses on side-street lots, haze, window glow.
 - Commits 9331a41 … (see git log). tsc green; `npx vitest run tests/town` 18/18.
 - Deploy: pushed `claude/starting-town-oct20`; created Pages project `torn-veil-town` (wrangler 4.151 tried to delegate Pages→Workers for agents and failed before deploying anything; re-ran create with `--force` as its notice directs; verified no stray Worker). Deployed dist-town → https://torn-veil-town.pages.dev (200; GLBs and textures 200). Added custom domain town.badtengu.com to the project and one new proxied CNAME `town` → torn-veil-town.pages.dev (no record existed; nothing else touched).
+- 23:00–23:15 CT: dusk window/lamp bloom tamed; rebuilt and redeployed. Custom domain https://town.badtengu.com is active (200). Final screenshots of the deployed build (checked by eye: no black frames, all 11 GLBs `glb`, no z-fighting): /workspace/torn-veil-online/media/starting-town/20261020-0{1-street-eye-level,2-plaza-fountain-tower,3-behind-player-north-gate,4-dusk-wide}.png. tsc green; tests/town 18/18. Dev server stopped. DONE written.
+- Next (if more sessions run): nicer procedural tree silhouettes; a river under the ravine bridge GLB; NPC reaction to the player.
