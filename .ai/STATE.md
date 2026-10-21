@@ -1,5 +1,9 @@
 # Current candidate: integrated universe traversal release (2026-10-20)
 
+Current published implementation528898c also passes20 independent restart checks and read-only checkpoint21126 restore. Latest21 camera/cutaway/interior/boundary checks, TypeScript and web build pass. The unendowed combat campaign proves actual dagger contact and injury/learning/equipment retention, but town return is correctly rejected while a visible warden threatens (Break contact before returning). Escape/return/reentry and held-guard queue congestion remain acceptance work. [Gameplay evidence](evidence/universe-release/gameplay-follow-up/RESULTS.md).
+
+PR72 stays draft. Current-head CI is running; prior02bb green does not certify corrected code. Original7533 remains untouched and its approved shutdown is tool-policy blocked. Its background tool PTY is not a visible PowerShell terminal; the app open request was only queued. No manual terminal hunt, force kill or alternative-control bypass.
+
 Implementation956e837 passes54 ordinary traversal checks and20 same-save restart
 checks on owned7534, plus12 repeated short taps under the unchanged0.75m limit.
 67 input/API/QA checks,11 lighting/boundary checks (overlap), TypeScript and final

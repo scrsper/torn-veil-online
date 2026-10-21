@@ -1,0 +1,100 @@
+{
+  "implementation": "528898c4d7b5c011c761860c12315e808602844c",
+  "independentRestart": {
+    "checks": [
+      "Controlled town character is rendered",
+      "Exact restarted save renders the same body and full inventory",
+      "Exact restarted host retains the final canonical town position",
+      "Town and spherical preview share canonical identity and items",
+      "Inactive page projects actual town before entry",
+      "UAL motion pack is loaded and hash verified",
+      "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+      "Idle names its actual source clip and destination rig",
+      "Exact restarted checkpoint remains inactive on the surface",
+      "Restart preserves discoveries and the original parked vessel",
+      "Explore preserves the actual current preview position",
+      "Mapped settlement traversal retains canonical identity",
+      "Home surface admits canonical return",
+      "Controlled town character is rendered",
+      "Fully rendered town retains original person, body and inventory",
+      "No rejected commands, failed required assets or unrecovered network requests during journey",
+      "No unexpected browser runtime or asset errors (raw recoverable backpressure remains recorded)",
+      "No rejected owner-stream movement receipts during journey",
+      "All sampled normal-quality shadow workloads remain within112 casters and240k triangles",
+      "All recorded presentation checks passed after safe canonical return"
+    ],
+    "hostExit": {
+      "code": 0,
+      "signal": null
+    },
+    "checkpoint": 21126
+  },
+  "ordinaryCampaign": {
+    "checks": [
+      {
+        "name": "same injured ordinary campaign resumes after real host restart",
+        "ok": true,
+        "detail": {
+          "id": "canonical-tower_1",
+          "health": 26.128526268291207
+        }
+      },
+      {
+        "name": "real study and physical dagger equipment survive restart",
+        "ok": true
+      },
+      {
+        "name": "ordinary keyboard movement reaches blue threshold through real opening",
+        "ok": true,
+        "detail": {
+          "position": {
+            "x": 6207.795379765822,
+            "y": 1.0625,
+            "z": 105.69601250736625
+          }
+        }
+      },
+      {
+        "name": "reload retains same run learning rank and full carried inventory",
+        "ok": true
+      },
+      {
+        "name": "reload releases stale guard and does not restore injury",
+        "ok": true,
+        "detail": {
+          "before": 26.128526268291207,
+          "after": 26.128526268291207
+        }
+      },
+      {
+        "name": "normal threshold transition admitted",
+        "ok": false,
+        "detail": {
+          "error": "Error: Break contact before returning"
+        }
+      }
+    ],
+    "returnResponse": {
+      "kind": "actual-return-response",
+      "status": 409,
+      "reply": {
+        "error": "Error: Break contact before returning"
+      },
+      "position": {
+        "x": 6207.795379765822,
+        "y": 1.0625,
+        "z": 105.69601250736625
+      }
+    },
+    "errors": [
+      "409 http://127.0.0.1:7534/realms/ascent",
+      "Failed to load resource: the server responded with a status of 409 (Conflict)",
+      "AssertionError [ERR_ASSERTION]: normal threshold transition admitted"
+    ],
+    "notes": [
+      "Continues actual dagger-hit campaign; no grants, teleports, save edits or injury reset.",
+      "Return rejects while nearby visible warden threatens: Break contact before returning. This intended contact restriction is retained. Escape and successful town return/reentry remain unverified.",
+      "Earlier threshold screenshot contains queue full notice under held guard; reduce redundant guard renewal using existing refresh policy and verify latency without changing simulation cadence."
+    ]
+  }
+}
