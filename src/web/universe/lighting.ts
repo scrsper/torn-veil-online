@@ -20,13 +20,14 @@ export function universeLightState(radial: V3, altitude: number, atmosphere: num
   const elevation = (radial.x * sun.x + radial.y * sun.y + radial.z * sun.z) / (n * sn);
   const air = smooth(1 - Math.max(0, altitude) / Math.max(1, atmosphere));
   const day = smooth((elevation + .12) / .47);
-  // Preserve the established ground treatment. At altitude the same existing
-  // fill/irradiance sources retain readable cloth and limb silhouettes against
-  // space; no camera-following light, glow or extra shadow pass is introduced.
+  // Keep daylight ground unchanged, but retain readable terrain on the night
+  // side and cloth silhouettes in space through the existing ambient sources.
+  // No camera-following light, glow or extra shadow pass is introduced.
   const altitudeFill = smooth((Math.max(0, altitude) - 40) / Math.max(160, atmosphere));
+  const nightFill = air * (1 - day);
   return { air, day, elevation, stars: 1 - air * day, shadows: altitude < 120,
-    altitudeFill, fillIntensity: .3 + .25 * air * day + .16 * altitudeFill,
-    environmentIntensity: .2 + .3 * air * day + .14 * altitudeFill };
+    altitudeFill, fillIntensity: .3 + .25 * air * day + .28 * nightFill + .42 * altitudeFill,
+    environmentIntensity: .2 + .3 * air * day + .22 * nightFill + .32 * altitudeFill };
 }
 export interface ShadowCandidate { id: number; distance: number; triangles: number; priority: number }
 /** Babylon reports prototype indices, including for thin-instance batches.
@@ -121,9 +122,9 @@ export class UniverseLighting implements UniverseShadowOwner {
     this.sky.setColor3('tint', sky); this.sky.setFloat('air', air); this.sky.setFloat('day', day);
     this.key.intensity = 1.45;
     this.fill.direction.set(radial.x, radial.y, radial.z);
-    this.fill.diffuse = Color3.Lerp(new Color3(.4, .48, .68), new Color3(.76, .8, .86), day);
-    this.fill.groundColor = Color3.Lerp(new Color3(.04, .05, .09), new Color3(.3, .27, .24), day);
-    this.fill.groundColor.addInPlace(new Color3(.06, .07, .08).scale(altitudeFill));
+    this.fill.diffuse = Color3.Lerp(new Color3(.5, .58, .74), new Color3(.76, .8, .86), day);
+    this.fill.groundColor = Color3.Lerp(new Color3(.14, .16, .22), new Color3(.3, .27, .24), day);
+    this.fill.groundColor.addInPlace(new Color3(.18, .2, .24).scale(altitudeFill));
     this.fill.intensity = this.state.fillIntensity;
     this.scene.environmentIntensity = this.state.environmentIntensity;
     this.scene.clearColor = new Color4(.003, .006, .018, 1);

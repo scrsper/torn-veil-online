@@ -13,26 +13,31 @@ describe('spherical presentation lighting', () => {
     const a = universeLightState(s, 249.99, 500), b = universeLightState(s, 250.01, 500);
     expect(Math.abs(a.air - b.air)).toBeLessThan(.0001);
   });
-  it('preserves ground lighting exactly and lifts only bounded existing fill at altitude', () => {
+  it('preserves daylight ground and bounds night-side and space readability using existing fill', () => {
     const sun = UNIVERSE_SUN_DIRECTION;
     for (const radial of [sun, { x: -sun.x, y: -sun.y, z: -sun.z }]) {
       for (const atmosphere of [120, 300]) {
         for (const altitude of [0, 3, 40]) {
           const state = universeLightState(radial, altitude, atmosphere);
           expect(state.altitudeFill).toBe(0);
-          expect(state.fillIntensity).toBe(.3 + .25 * state.air * state.day);
-          expect(state.environmentIntensity).toBe(.2 + .3 * state.air * state.day);
+          if (state.day === 1) {
+            expect(state.fillIntensity).toBe(.3 + .25 * state.air);
+            expect(state.environmentIntensity).toBe(.2 + .3 * state.air);
+          } else {
+            expect(state.fillIntensity).toBeGreaterThan(.5);
+            expect(state.environmentIntensity).toBeGreaterThan(.35);
+          }
         }
         let previous = 0;
         for (const altitude of [40, 50, 100, 200, 400, 5000]) {
           const state = universeLightState(radial, altitude, atmosphere);
           expect(state.altitudeFill).toBeGreaterThanOrEqual(previous);
-          expect(state.fillIntensity - (.3 + .25 * state.air * state.day)).toBeLessThanOrEqual(.16000001);
-          expect(state.environmentIntensity - (.2 + .3 * state.air * state.day)).toBeLessThanOrEqual(.14000001);
+          expect(state.fillIntensity).toBeLessThanOrEqual(.97);
+          expect(state.environmentIntensity).toBeLessThanOrEqual(.82);
           previous = state.altitudeFill;
         }
         const space = universeLightState(radial, 5000, atmosphere);
-        expect(space.fillIntensity).toBeCloseTo(.46); expect(space.environmentIntensity).toBeCloseTo(.34);
+        expect(space.fillIntensity).toBeCloseTo(.72); expect(space.environmentIntensity).toBeCloseTo(.52);
         expect(space.shadows).toBe(false); expect(space.stars).toBe(1);
       }
     }
