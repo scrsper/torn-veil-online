@@ -3,6 +3,7 @@ import { createServer, request, type IncomingMessage, type ServerResponse } from
 import { RealmRuntime, type RealmOperation } from '../../src/server/realmRuntime';
 import { RealmSession } from '../../src/sim/world/realms/session';
 import { RealmUniverseApi } from '../../src/server/realmUniverseApi';
+import { neutralInput } from '../../src/sim/world/universe/travel';
 
 const closers: (() => Promise<void>)[] = [];
 afterEach(async () => { for (const close of closers.splice(0)) await close(); });
@@ -41,6 +42,66 @@ async function fixture() {
   const command = (seq: number, value: unknown) => post('command', { sessionId: control.token, seq, command: value });
   return { runtime, control, api, origin, headers, post, enter, command };
 }
+
+describe('owner input stream admission and durable structural barriers', () => {
+  const movement = (sessionId: string, seq: number, throttle = 0) => ({ sessionId, seq,
+    command: { type: 'input', input: { ...neutralInput(), throttle } } });
+  const settled = () => new Promise<void>(resolve => setImmediate(resolve));
+  it('admits release during a pending input save and fences structural mutation until durable', async () => {
+    const f = await fixture(); await f.enter();
+    const commit = deferred(), receipts: any[] = [], before = f.control.applications.length;
+    f.control.persist = () => commit.promise;
+    f.api.receiveInput(f.control.token, movement(f.control.token, 1, 1), r => receipts.push(r));
+    f.api.receiveInput(f.control.token, movement(f.control.token, 2), r => receipts.push(r));
+    expect(f.api.busy).toBe(false); expect(f.control.applications.length - before).toBe(2);
+    expect(receipts.map(r => [r.seq, r.phase, r.ok])).toEqual([[1,'received',true],[2,'received',true]]);
+    const view = await (await fetch(`${f.origin}/realms/universe`, {headers:f.headers()})).json();
+    expect(view.snapshot.lastSeq).toBe(2); expect(view.snapshot.durableSeq).toBe(0);
+    expect((await f.command(3, {type:'target',planetId:view.snapshot.state.targetPlanetId})).status).toBe(409);
+    expect(f.control.applications.length - before).toBe(2);
+    commit.resolve(); await settled();
+    expect(receipts.filter(r=>r.phase==='durable').map(r=>r.seq)).toEqual([1,2]);
+    const after = await (await fetch(`${f.origin}/realms/universe`, {headers:f.headers()})).json();
+    expect(after.snapshot.durableSeq).toBe(2);
+    const result = await f.command(3, {type:'target',planetId:view.snapshot.state.targetPlanetId});
+    expect(result.status).toBe(200); expect((await result.json()).snapshot.durableSeq).toBe(3);
+  });
+  it('rejects stale/invalid/structural input, bounds pending writes, and fences old-owner completions', async () => {
+    const f = await fixture(); await f.enter(); const before = f.control.applications.length;
+    const rejected: any[] = [];
+    for (const value of [movement('wrong-owner',1), movement(f.control.token,0),
+      {sessionId:f.control.token,seq:1,command:{type:'launch'}},
+      {sessionId:f.control.token,seq:1,command:{type:'input',input:{...neutralInput(),yaw:NaN}}}])
+      f.api.receiveInput(f.control.token,value,r=>rejected.push(r));
+    f.api.busy=true;f.api.receiveInput(f.control.token,movement(f.control.token,1),r=>rejected.push(r));f.api.busy=false;
+    expect(rejected.every(r=>!r.ok)).toBe(true);expect(f.control.applications.length).toBe(before);
+    const commit=deferred(),old:any[]=[],fresh:any[]=[];f.control.persist=()=>commit.promise;
+    for(let seq=1;seq<=64;seq++)f.api.receiveInput(f.control.token,movement(f.control.token,seq),r=>old.push(r));
+    f.api.receiveInput(f.control.token,movement(f.control.token,65),r=>old.push(r));
+    f.api.receiveInput(f.control.token,movement(f.control.token,64),r=>old.push(r));
+    expect(f.control.applications.length-before).toBe(64);expect(old.filter(r=>!r.ok)).toHaveLength(2);
+    f.control.token='replacement';
+    f.api.receiveInput(f.control.token,movement(f.control.token,1),r=>fresh.push(r));
+    commit.resolve();await settled();
+    expect(old.filter(r=>r.phase==='durable')).toEqual([]);
+    expect(fresh.map(r=>[r.seq,r.phase,r.ok])).toEqual([[1,'received',true],[1,'durable',true]]);
+  });
+  it('never labels failed persistence as durable and still persists after a disposed receipt consumer', async () => {
+    const f=await fixture();await f.enter();const receipts:any[]=[];
+    f.control.persist=async()=>{f.control.ready=false;throw Error('Injected input append failure');};
+    f.api.receiveInput(f.control.token,movement(f.control.token,1),r=>receipts.push(r));await settled();
+    expect(receipts.map(r=>[r.phase,r.ok])).toEqual([['received',true],['failed',false]]);
+    const count=f.control.applications.length;
+    f.api.receiveInput(f.control.token,movement(f.control.token,2),r=>receipts.push(r));
+    expect(f.control.applications).toHaveLength(count);
+    const other=await fixture();await other.enter();let writes=0;
+    other.control.persist=async()=>{writes++;};
+    other.api.receiveInput(other.control.token,movement(other.control.token,1),()=>{throw Error('Socket disposed');});
+    await settled();expect(writes).toBe(1);
+    const view=await(await fetch(`${other.origin}/realms/universe`,{headers:other.headers()})).json();
+    expect(view.snapshot.durableSeq).toBe(1);
+  });
+});
 
 describe('canonical universe HTTP controller and persistence boundaries', () => {
   it('serves settlement geometry read-only under the current controller', async () => {

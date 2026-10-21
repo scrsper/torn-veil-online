@@ -48,18 +48,20 @@ describe('responsive authoritative universe input', () => {
   });
 
   it('coalesces only unsent input while preserving structural command order and one request in flight', async () => {
-    const replies = [deferred(), deferred(), deferred()], sent: UniverseCommand[] = [];
+    const replies = [deferred(), deferred(), deferred(), deferred()], sent: UniverseCommand[] = [];
     let active = 0, maximum = 0;
     const queue = new UniverseCommandQueue(() => true, async command => {
       active++; maximum = Math.max(maximum, active); sent.push(command);
       try { return await replies[sent.length - 1].promise; } finally { active--; }
     });
     queue.enqueue(input(1)); queue.enqueue(input(-1)); queue.enqueue({ type: 'target', planetId: 'next' }); queue.enqueue(input(0));
-    replies[0].resolve(true); await settle(); expect(sent[1]).toEqual({ type: 'target', planetId: 'next' });
+    replies[0].resolve(true); await settle(); expect(sent[1]).toEqual(input(-1));
     replies[1].resolve(true); await settle();
-    expect(sent[2]).toEqual({ type: 'input', input: { ...neutralInput(), brake: true } });
+    expect(sent[2]).toEqual({ type: 'target', planetId: 'next' });
     replies[2].resolve(true); await settle();
-    expect(sent).toHaveLength(3); expect(maximum).toBe(1); expect(queue.length).toBe(0);
+    expect(sent[3]).toEqual(input(0));
+    replies[3].resolve(true); await settle();
+    expect(sent).toHaveLength(4); expect(maximum).toBe(1); expect(queue.length).toBe(0);
   });
 
   it.each(['escape', 'held', 'released', 'tap'] as const)('retains cancellation after slow navigation and coalesced input: %s', async intent => {

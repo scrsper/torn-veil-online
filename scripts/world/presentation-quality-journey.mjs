@@ -13,7 +13,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import {createContactQA} from './presentation-contact-qa.mjs';
-import {httpFailureEvidence,recoveredCrossingBackpressure} from './presentation-network-qa.mjs';
+import {httpFailureEvidence,recoveredCrossingBackpressure,recordInputReceipts} from './presentation-network-qa.mjs';
 if (process.env.TV_QUALITY_ISOLATED !== '1' || !process.env.TV_QUALITY_URL || !process.env.TV_QUALITY_EXPECT_SAVE)
   throw Error('Require explicit isolated URL, expected save path, and TV_QUALITY_ISOLATED=1.');
 const target = new URL(process.env.TV_QUALITY_URL), mode = process.env.TV_QUALITY_MODE ?? 'journey';
@@ -40,6 +40,7 @@ const comparisonBaseline=JSON.parse(await readFile(comparisonPath,'utf8'));
 const check = (ok, label) => { assert.ok(ok, label); report.checks.push(label); console.log('PASS ' + label); };
 const browser = await chromium.launch({ channel: 'chrome', headless: false, args: ['--use-angle=d3d11', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+recordInputReceipts(page,report);
 page.setDefaultTimeout(20000);
 const watchdog = setTimeout(() => void browser.close(), mode === 'restart' ? 300000 : 660000);
 const error = (message, location = '') => {
@@ -117,7 +118,7 @@ const wait = (fn, arg, timeout = 45000) => page.waitForFunction(fn, arg, { timeo
 const read = () => page.evaluate(() => {
   const d = window.__tvUniverse, c = d?.campaign, s = c?.active ? d?.snapshot : d?.preview ?? d?.snapshot;
   return { state: s?.state, status: s?.status, system: s?.system, preview: d?.preview,
-    revision: s?.revision, lastSeq: s?.lastSeq,
+    revision: s?.revision, lastSeq: s?.lastSeq, inputTransport:d?.inputTransport,
     campaign: c ? { active: c.active, personId: c.personId, bodyId: c.bodyId, name: c.name, health: c.health, inventory: c.inventory,
       canExplore: c.canExplore, canReturn: c.canReturn, flight: c.flight, message: c.message,
       footSupport:c.footSupport?{id:c.footSupport.id,available:c.footSupport.available,reason:c.footSupport.reason,origin:c.footSupport.origin,radius:c.footSupport.radius,triangles:c.footSupport.triangles.length}:null } : null,
@@ -775,6 +776,7 @@ try {
     'No rejected commands, failed required assets or unrecovered network requests during journey');
   check(report.errors.every(e=>report.expectedConsoleErrors.includes(e)),
     'No unexpected browser runtime or asset errors (raw recoverable backpressure remains recorded)');
+  check(!report.controlFailures.length,'No rejected owner-stream movement receipts during journey');
   const lightSamples=report.samples.flatMap(s=>s.metrics?.lightingSamples??[]);
   if(lightSamples.length)check(lightSamples.every(s=>s.casters<=112&&s.triangles<=240000),'All sampled normal-quality shadow workloads remain within112 casters and240k triangles');
   check(!report.presentationFailures?.length,'All recorded presentation checks passed after safe canonical return');

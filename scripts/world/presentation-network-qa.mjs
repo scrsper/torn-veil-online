@@ -14,3 +14,17 @@ export function recoveredCrossingBackpressure(entry,lastSuccessAt){
   &&(entry.condition==='saving-crossing'||entry.reason==='Saving the crossing. Try again shortly.')
   &&Number.isFinite(lastSuccessAt)&&lastSuccessAt>entry.at;
 }
+
+export function recordInputReceipts(page,report){
+ report.inputReceipts??=[];report.controlFailures??=[];
+ page.on('websocket',socket=>{
+  if(new URL(socket.url()).pathname!=='/realms/universe/socket')return;
+  socket.on('framereceived',event=>{try{
+   const m=JSON.parse(String(event.payload));if(m.type!=='universe_input_receipt')return;
+   const entry={at:Date.now(),seq:m.seq,phase:m.phase,ok:m.ok,
+    ...(m.error?{error:String(m.error).slice(0,240)}:{})};
+   if(report.inputReceipts.length<4096)report.inputReceipts.push(entry);
+   if(!m.ok)report.controlFailures.push(entry);
+  }catch{}});
+ });
+}

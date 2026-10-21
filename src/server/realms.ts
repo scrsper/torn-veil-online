@@ -163,13 +163,22 @@ ws.on('connection', (client, req) => {
   owner = client; ownerToken = randomUUID(); signature = ''; johnSmithRevision = -1; johnSmithSent = ''; towerView = req.url === '/realms/ascent/socket'; universeView = req.url === '/realms/universe/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
   rebindTower();
   towerReady='';towerSignature='';
-  client.send(JSON.stringify({ type: 'controller', token: ownerToken })); let budget = 0, budgetAt = Date.now();
+  client.send(JSON.stringify({ type: 'controller', token: ownerToken,
+    ...(universeView ? { inputTransport: 'sequenced-input-v1' } : {}) })); let budget = 0, budgetAt = Date.now();
   client.on('message', async data => {
     if (updateError) return;
     if (Date.now() - budgetAt > 1000) { budget = 0; budgetAt = Date.now(); }
     if (++budget > 180) return;
     try {
       const m = JSON.parse(data.toString());
+      if (m.type === 'universe_input' && universeView && owner === client) {
+        const token = ownerToken;
+        universeApi.receiveInput(token, m, receipt => {
+          if (owner === client && ownerToken === token && client.readyState === WebSocket.OPEN)
+            client.send(JSON.stringify(receipt));
+        });
+        return;
+      }
       if (universeApi.busy || session.world.universeExpedition?.active && m.type !== 'save') return;
       if(m.type==='tower_ready'){const geometry=towerController?.geometry();if(towerView&&geometry?.assetScene&&m.interiorId===geometry.id)towerReady=geometry.id;return;}
       if(towerView&&towerController?.geometry()?.assetScene&&towerReady!==towerController.geometry()!.id)return;

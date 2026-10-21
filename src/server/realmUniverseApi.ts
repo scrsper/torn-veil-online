@@ -3,6 +3,12 @@ import type { RealmSession } from '../sim/world/realms/session';
 import type { RealmOperation } from './realmRuntime';
 import { canonicalUniverseView } from './canonicalUniverse';
 import { canonicalSettlementProjection } from './universeSettlements';
+import { parseUniverseCommand, type TravelInput } from '../sim/world/universe/travel';
+
+export interface UniverseInputReceipt {
+  type: 'universe_input_receipt'; phase: 'received' | 'durable' | 'failed';
+  sessionId: string; seq: number; ok: boolean; input?: TravelInput; error?: string;
+}
 
 interface Host {
   session(): RealmSession;
@@ -16,8 +22,7 @@ interface Host {
  * independently stepped World, client checkpoint, or path-selected import exists. */
 export class RealmUniverseApi {
   busy = false;
-  private owner = '';
-  private lastSeq = 0;
+  private epoch = { token: '', lastSeq: 0, durableSeq: 0, pending: 0 };
   constructor(private readonly host: Host, private readonly port: number) {}
 
   /** Contact is produced by a tick after the land intent. Publish the landed
@@ -30,11 +35,54 @@ export class RealmUniverseApi {
     finally { this.busy = false; }
   }
 
-  private view() {
+  private current() {
     const token = this.host.token();
-    if (token !== this.owner) { this.owner = token; this.lastSeq = 0; }
+    if (token !== this.epoch.token) this.epoch = { token, lastSeq: 0, durableSeq: 0, pending: 0 };
+    return this.epoch;
+  }
+  private view() {
+    const epoch = this.current(), token = epoch.token;
     const view = canonicalUniverseView(this.host.session());
-    return { ...view, snapshot: view.snapshot ? { ...view.snapshot, sessionId: token, lastSeq: this.lastSeq } : null };
+    return { ...view, snapshot: view.snapshot ? { ...view.snapshot, sessionId: token,
+      lastSeq: epoch.lastSeq, durableSeq: epoch.durableSeq } : null };
+  }
+
+  /** The existing owner socket admits input in journal order without pausing
+   * simulation for disk I/O. Received is provisional; only durable acknowledges
+   * storage. Structural HTTP commands remain behind the durable input barrier. */
+  receiveInput(token: string, value: unknown, send: (receipt: UniverseInputReceipt) => void): void {
+    const v = value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+    const seq = Number.isSafeInteger(v.seq) && Number(v.seq) > 0 ? Number(v.seq) : 0;
+    const emit = (receipt: UniverseInputReceipt) => { try { send(receipt); } catch { /* socket disposal cannot cancel journal persistence */ } };
+    const reject = (error: string) => emit({ type: 'universe_input_receipt', phase: 'received', sessionId: token, seq, ok: false, error });
+    if (!token || token !== this.host.token() || !this.host.ready()) { reject('World controller changed or saving failed.'); return; }
+    const epoch = this.current();
+    if (v.sessionId !== token || !seq || seq <= epoch.lastSeq) { reject('Stale input sequence or session.'); return; }
+    if (this.busy || epoch.pending >= 64) { reject('Input admission is blocked by a crossing or persistence backlog.'); return; }
+    let command;
+    try { command = parseUniverseCommand(v.command); }
+    catch { reject('Invalid movement input.'); return; }
+    if (command.type !== 'input') { reject('Only movement input uses this stream.'); return; }
+    try {
+      const result = this.host.apply({ type: 'universe_travel', command });
+      epoch.lastSeq = seq; epoch.pending++;
+      const error = result?.error ?? result?.value?.error;
+      const receipt = { type: 'universe_input_receipt' as const, sessionId: token, seq,
+        ok: !error, input: command.input, ...(error ? { error: String(error) } : {}) };
+      emit({ ...receipt, phase: 'received' });
+      void (async () => {
+        try {
+          await this.host.persist();
+          if (this.epoch !== epoch || this.host.token() !== token) return;
+          if (!this.host.ready()) { emit({ ...receipt, phase: 'failed', ok: false, error: 'Saving failed. Movement is not acknowledged as durable.' }); return; }
+          epoch.durableSeq = Math.max(epoch.durableSeq, seq);
+          emit({ ...receipt, phase: 'durable' });
+        } catch {
+          if (this.epoch === epoch && this.host.token() === token)
+            emit({ ...receipt, phase: 'failed', ok: false, error: 'Saving failed. Movement is not acknowledged as durable.' });
+        } finally { epoch.pending--; }
+      })();
+    } catch { reject('Movement could not enter the journal.'); }
   }
 
   async handle(req: IncomingMessage, res: ServerResponse, path: string): Promise<boolean> {
@@ -72,15 +120,16 @@ export class RealmUniverseApi {
       // Reading a request body yields. Recheck both ownership and the persistence
       // fence before mutating the World, even if authorization was valid at arrival.
       if (token !== this.host.token() || !this.host.ready()) { respond(409, { error: 'World controller changed. Reload before continuing.' }); return true; }
-      if (this.busy) { respond(409, { error: 'A crossing is being saved. Try again shortly.' }); return true; }
+      const epoch = this.current();
+      if (this.busy || epoch.pending) { respond(409, { error: 'A crossing or movement is being saved. Try again shortly.' }); return true; }
       const value = JSON.parse(Buffer.concat(parts).toString('utf8'));
       if (!value || typeof value !== 'object' || Array.isArray(value)) { respond(400, { error: 'Invalid universe command.' }); return true; }
       this.view();
       if (path.endsWith('/command')) {
-        if (value.sessionId !== token || !Number.isSafeInteger(value.seq) || value.seq <= this.lastSeq) {
+        if (value.sessionId !== token || !Number.isSafeInteger(value.seq) || value.seq <= epoch.lastSeq) {
           respond(409, { ok: false, error: 'Stale command sequence or session.', ...this.view() }); return true;
         }
-        this.lastSeq = value.seq;
+        epoch.lastSeq = value.seq;
       }
       this.busy = true;
       try {
@@ -89,11 +138,14 @@ export class RealmUniverseApi {
           : { type: 'universe', command: value });
         const error = result?.error ?? result?.value?.error;
         const reply = { ok: !error, ...(error ? { error } : {}), ...this.view() };
+        const committedSeq = epoch.lastSeq;
         // The scheduler pauses while this exact result is becoming durable. Never
         // acknowledge a transition using a later, uncommitted simulation snapshot.
         await this.host.persist();
         if (!this.host.ready()) { respond(503, { error: 'Saving failed. World paused for durable recovery.' }); return true; }
         if (token !== this.host.token()) { respond(409, { error: 'World controller changed while saving. Reconnect to inspect the durable result.' }); return true; }
+        epoch.durableSeq = Math.max(epoch.durableSeq, committedSeq);
+        if (reply.snapshot) reply.snapshot.durableSeq = committedSeq;
         respond(error ? 409 : 200, reply);
       } finally { this.busy = false; }
     } catch {

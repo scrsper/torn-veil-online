@@ -1,8 +1,35 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, groundWalkDirection, holdGroundKeys, contactChartPosition, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse, groundWalkPulse, groundWalkDirection, holdGroundKeys, durableGroundStop, contactChartPosition, isNeutralGroundRequest} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
+
+it('requires a newer durable neutral stream receipt, matching input, and an observed snapshot',()=>{
+ const input={throttle:0,strafe:0,yaw:0,pitch:0,lift:0,brake:true};
+ const view={lastSeq:5,inputTransport:{mode:'stream',lastReceived:5,lastDurable:5,lastDurableInput:{seq:5,input}}};
+ expect(durableGroundStop(view,4)).toEqual({seq:5,input});
+ expect(durableGroundStop(view,5)).toBeNull();
+ for(const change of [{lastDurable:4},{lastReceived:4},{failure:'saving failed'},
+  {lastDurableInput:{seq:5,input:{...input,throttle:1}}},{mode:'http'}])
+  expect(durableGroundStop({...view,inputTransport:{...view.inputTransport,...change}},4)).toBeNull();
+ expect(durableGroundStop({...view,lastSeq:4},4)).toBeNull();
+});
+
+it('waits through a provisional stream receipt and still measures stable distinct host ticks',async()=>{
+ let now=0;vi.spyOn(Date,'now').mockImplementation(()=>now);
+ const neutral={throttle:0,strafe:0,yaw:0,pitch:0,lift:0,brake:true};
+ const read=async()=>({lastSeq:now?5:4,revision:Math.floor(now/50),system:{planets:[{center:{x:0,y:0,z:0},radius:1600}]},
+  state:{mode:'surface',tick:Math.floor(now/50),position:{x:0,y:500,z:1500}},
+  inputTransport:{mode:'stream',generation:1,lastSent:now?5:4,lastReceived:now?5:4,
+   lastDurable:now>=120?5:4,lastDurableInput:{seq:now>=120?5:4,input:neutral}}});
+ const page={on:()=>{},keyboard:{down:async()=>{now=1;},up:async()=>{}},
+  waitForTimeout:async(ms:number)=>{now+=ms;},waitForResponse:()=>{throw Error('Stream stop must not wait for HTTP');}};
+ const report:any={},noop=async()=>{};
+ const qa=createContactQA({page,report,read,save:noop,check:noop,orbit:noop,zoom:noop,recenter:noop});
+ await qa.stopGround('stream-stop',await read());
+ expect(report.contactQA.stops[0].ack).toMatchObject({seq:5,phase:'durable',ok:true});
+ expect(now).toBeGreaterThanOrEqual(420);expect(report.contactQA.stops[0].settled.ticks).toBeGreaterThanOrEqual(3);
+});
 
 describe('ordinary ground stop evidence',()=>{
   function fixture(accepted=true,brake=true){

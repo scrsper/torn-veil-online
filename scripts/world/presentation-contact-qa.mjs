@@ -40,6 +40,11 @@ export async function holdGroundKeys(page,keys,requestedMs){
  return{requestedMs,startedAt,keydownCompleteAt,releaseRequestedAt,
   physicalHoldMs:releaseRequestedAt-startedAt,afterKeydownMs:releaseRequestedAt-keydownCompleteAt};
 }
+export function durableGroundStop(view,minimumSeq){
+ const t=view.inputTransport,a=t?.lastDurableInput;
+ return t?.mode==='stream'&&!t.failure&&a&&t.lastDurable>=a.seq&&t.lastReceived>=a.seq&&view.lastSeq>=a.seq
+  &&isNeutralGroundRequest({seq:a.seq,command:{type:'input',input:a.input}},minimumSeq)?a:null;
+}
 /** Select ordinary body-relative WASD, matching the shared surface integrator's
  * normalized diagonals. Precise body yaw is not a precondition for walking. */
 export function groundWalkDirection(forward,up,desired){
@@ -220,33 +225,57 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   }
   await save();return summary;
  };
+ page.on('websocket',socket=>{
+  if(new URL(socket.url()).pathname!=='/realms/universe/socket')return;
+  socket.on('framereceived',event=>{try{if(JSON.parse(String(event.payload)).type==='controller')lastActiveSeq=0;}catch{}});
+  socket.on('framesent',event=>{try{
+   const v=JSON.parse(String(event.payload)),input=v.command?.input;if(v.type!=='universe_input'||!input)return;
+   if(['throttle','yaw','pitch','strafe','lift'].some(k=>input[k]!==0))lastActiveSeq=Math.max(lastActiveSeq,v.seq);
+   if(report.contactQA.inputRequests.length<2048)report.contactQA.inputRequests.push({at:Date.now(),seq:v.seq,transport:'owner-websocket',input:{throttle:input.throttle,yaw:input.yaw,pitch:input.pitch,strafe:input.strafe,lift:input.lift,brake:input.brake}});
+  }catch{}});
+ });
  const release=async()=>{await Promise.all(['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Escape'].map(key=>page.keyboard.up(key)));};
  // A keyup is local input, not a host acknowledgment. The host may still apply
  // its last movement sample for six ticks. Observe the ordinary Brake request,
  // then distinct authoritative snapshots, before judging a waypoint or posing.
  const stopGround=async(label,priorView)=>{
   const before=priorView??await read(),began=Date.now();
-  const minimumSeq=Math.max(before.lastSeq??0,lastActiveSeq);
+  const minimumSeq=Math.max(before.lastSeq??0,lastActiveSeq,before.inputTransport?.lastSent??0);
   const record={label,control:'Escape',before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},minimumSeq,observations:[]};report.contactQA.stops.push(record);
   if(before.state.mode!=='surface')throw Error('Ground stop requested outside the surface');
-  const responsePromise=page.waitForResponse(response=>{
+  const streamed=before.inputTransport?.mode==='stream';
+  const generation=before.inputTransport?.generation;
+  const responsePromise=streamed?null:page.waitForResponse(response=>{
    if(new URL(response.url()).pathname!=='/realms/universe/command'||response.request().method()!=='POST')return false;
    try{return isNeutralGroundRequest(response.request().postDataJSON(),Math.max(minimumSeq,lastActiveSeq));}catch{return false;}
   },{timeout:4500});
   // Attach rejection handling immediately; a failed click must not leave an
   // unhandled pending observer. This never submits a direct command itself.
-  const pending=responsePromise.then(response=>({response}),error=>({error}));
+  const pending=responsePromise?.then(response=>({response}),error=>({error}));
   // Documented Escape invokes the same Brake handler immediately, without a
   // mouse actionability wait while W/turn remains held. It clears game keys;
   // release Playwright's physical keys afterward, including Escape itself.
-  await page.keyboard.down('Escape');await release();const observed=await pending;
-  if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
-  const response=observed.response,body=await response.json(),request=response.request().postDataJSON(),seq=request.seq;
-  record.ack={seq,brake:request.command.input.brake,lastActiveSeq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
-  if(!isNeutralGroundRequest(request,Math.max(minimumSeq,lastActiveSeq))||!response.ok()||body.ok!==true||!Number.isSafeInteger(body.snapshot?.lastSeq)||body.snapshot.lastSeq<seq)throw Error('Host did not accept the ordinary neutral ground command');
+  await page.keyboard.down('Escape');await release();let seq;
+  if(streamed){
+   while(Date.now()-began<4500){
+    const view=await read();if(view.inputTransport?.generation!==generation)throw Error('Ground stop owner changed');
+    const ack=durableGroundStop(view,Math.max(minimumSeq,lastActiveSeq));
+    if(ack){seq=ack.seq;record.ack={seq,brake:ack.input.brake,lastActiveSeq,ok:true,
+     transport:'owner-websocket',phase:'durable',lastSeq:view.lastSeq,durableSeq:view.inputTransport.lastDurable};break;}
+    await page.waitForTimeout(25);
+   }
+   if(!seq)throw Error('Ordinary ground stop received no newer durable owner-stream receipt');
+  }else{
+   const observed=await pending;
+   if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
+   const response=observed.response,body=await response.json(),request=response.request().postDataJSON();seq=request.seq;
+   record.ack={seq,brake:request.command.input.brake,lastActiveSeq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
+   if(!isNeutralGroundRequest(request,Math.max(minimumSeq,lastActiveSeq))||!response.ok()||body.ok!==true||!Number.isSafeInteger(body.snapshot?.lastSeq)||body.snapshot.lastSeq<seq)throw Error('Host did not accept the ordinary neutral ground command');
+  }
   let anchor=null,since=0,lastTick=null,ticks=0;
   while(Date.now()-began<6500){
    const view=await read();if(view.state.mode!=='surface')throw Error('Ground stop changed travel mode');
+   if(streamed&&view.inputTransport?.generation!==generation)throw Error('Ground stop owner changed');
    record.observations.push({elapsed:Date.now()-began,position:view.state.position,tick:view.state.tick,lastSeq:view.lastSeq,revision:view.revision});
    if(view.lastSeq>=seq){
     if(!anchor||len(sub(view.state.position,anchor))>.015){anchor={...view.state.position};since=Date.now();ticks=0;lastTick=null;}

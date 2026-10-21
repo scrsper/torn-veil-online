@@ -42,7 +42,9 @@ export class UniverseCommandQueue {
   clear() { this.pending.length = 0; }
   enqueue(command: UniverseCommand) {
     if (command.type === 'input') {
-      const previous = this.pending.findIndex(c => c.type === 'input');
+      // Structural commands are barriers: input may coalesce only within the
+      // unsent tail after the most recent structural intent.
+      const previous = this.pending.at(-1)?.type === 'input' ? this.pending.length - 1 : -1;
       if (previous >= 0) {
         const pending = this.pending[previous];
         // Every active input cancels assistance on the host. If it never reaches

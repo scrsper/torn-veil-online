@@ -13,7 +13,7 @@ export { validateUniversePayload, type SavePayload } from '../sim/world/universe
 
 export interface UniverseSnapshot {
   spec: UniverseSpec; system: StarSystem; state: TravelState; revision: number; status: TravelStatus;
-  sessionId: string; lastSeq: number;
+  sessionId: string; lastSeq: number; durableSeq?: number;
 }
 export interface UniverseReceipt extends CommandResult { snapshot: UniverseSnapshot }
 
