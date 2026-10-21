@@ -40,7 +40,7 @@ export async function startTown() {
   for (const m of built.casters) atmo.shadows.addShadowCaster(m, false);
   for (const m of built.meshes) if (m.name.startsWith('town-static')) { m.isPickable = true; camBlockers.add(m); }
   atmo.setLamps(built.lamps, lite ? 2 : 4);
-  if (atmo.glow) { for (const m of scene.meshes) if (m.material === kit.mats.glow || (m.material === kit.mats.window && atmo.preset.windows > .5)) atmo.glow.addIncludedOnlyMesh(m as Mesh); }
+  if (atmo.glow) { for (const m of scene.meshes) if (m.material === kit.mats.glow || (m.material === kit.mats.window && atmo.preset.windows > 1)) atmo.glow.addIncludedOnlyMesh(m as Mesh); }
   (kit.mats.window as PBRMaterial).emissiveColor = new Color3(.95, .55, .2).scale(atmo.preset.windows);
   (kit.mats.glow as StandardMaterial).emissiveColor = new Color3(1, .62, .26).scale(Math.max(.35, atmo.preset.lamps));
 
