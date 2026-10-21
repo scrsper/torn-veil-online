@@ -21,15 +21,17 @@ function build(name: string, scene: Scene, positions: number[], colours: number[
   return mesh;
 }
 export class PlanetTerrain {
-  readonly globe: Mesh; patch: Mesh | null = null; readonly water: Mesh; readonly material: StandardMaterial; readonly detail: PBRMaterial;
+  readonly globe: Mesh; patch: Mesh | null = null; readonly water: Mesh; readonly material: PBRMaterial; readonly detail: PBRMaterial;
   private heights: Float32Array; private dirs: V3[] = []; private patchCentre: V3 | null = null;
   /** Presentation-only depression (metres) under authored ground, e.g. the focused town's canonical terrain. */
   sink: (d: V3) => number = () => 0;
   /** Presentation-only ground colour override, so the patch blends into authored ground at its edges. */
   tint: (d: V3, colour: number[]) => number[] = (_d, colour) => colour;
   constructor(readonly scene: Scene, readonly spec: PlanetSpec, readonly n = 96, readonly patchSize = 360, readonly patchCells = 144) {
-    const m = this.material = new StandardMaterial('planet-ground', scene);
-    m.diffuseColor = Color3.White(); m.ambientColor = new Color3(.8, .8, .8); m.specularColor = new Color3(.04, .04, .04);
+    // The coarse globe shades like the near patch (same PBR response, minus the detail maps), so
+    // the patch's edge doesn't show as a square of different light around the observer.
+    const m = this.material = new PBRMaterial('planet-ground', scene);
+    m.albedoColor = Color3.White(); m.metallic = 0; m.roughness = 1; m.environmentIntensity = .3;
     // Near ground: the shared CC0 scanned grass normal/roughness as metre-scale detail under biome colour.
     const maps = loadScannedMaps(scene, 'grass_ground'), dm = this.detail = new PBRMaterial('planet-ground-detail', scene);
     dm.albedoColor = Color3.White(); dm.bumpTexture = maps.normal; dm.bumpTexture.level = 1; dm.invertNormalMapY = true; dm.metallicTexture = maps.arm;

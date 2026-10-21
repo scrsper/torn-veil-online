@@ -158,7 +158,11 @@ export async function startPlanetWorld() {
     const meshes = await loader.instantiate(p.assetId, p.id, root);
     // The assets' own 'earth banks' ground wears the planet ground at the placement (biome
     // colour over the shared scanned grass detail), so it reads as one ground with the patch.
-    if (loader.status[p.assetId] === 'glb') for (const m of meshes) if (/earth banks$/.test(m.material?.name ?? '')) m.material = bankMaterial(d);
+    // On a landmark's levelled site the planet ground itself runs under the settlement, so the flat
+    // earth slab (a hard-edged square of one colour against the patch) is hidden; the market keeps
+    // its paving and the ravine bridge its banks, which share that material.
+    const family = libraryAsset(p.assetId)?.family, ownGround = p.anchor !== 'site' || family === 'market_square' || family === 'ravine_bridge';
+    if (loader.status[p.assetId] === 'glb') for (const m of meshes) if (/earth banks$/.test(m.material?.name ?? '')) { if (ownGround) m.material = bankMaterial(d); else m.setEnabled(false); }
     for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
     root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
     q.root = root; q.loading = false;

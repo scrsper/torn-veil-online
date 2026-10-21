@@ -1,4 +1,5 @@
-import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, type Scene } from '@babylonjs/core';
+import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, VertexBuffer, type Scene } from '@babylonjs/core';
+import { loadScannedMaps } from '../render/materials';
 import { PAGODA_SHAPE } from '../../sim/world/planet/pagoda';
 
 /** The Tower of Chrysanthus from outside: an ordinary East Asian pagoda. Square plan,
@@ -39,11 +40,33 @@ function roof(scene: Scene, name: string, inner: number, eave: number, y: number
   const fascia = sheet(.45, 1, 1, 1);
   return { tiles, soffit, fascia };
 }
+/** Metre-scale planar UVs (each face projected along its dominant normal axis, in the parent's
+ * frame) so scanned surfaces keep their real size on boxes and roof ribbons of any extent. */
+function metreUVs(m: Mesh, tile: number) {
+  const pos = m.getVerticesData(VertexBuffer.PositionKind), nor = m.getVerticesData(VertexBuffer.NormalKind); if (!pos || !nor) return;
+  const uv = new Float32Array(pos.length / 3 * 2), o = m.position;
+  for (let i = 0; i < pos.length / 3; i++) {
+    const x = pos[i * 3] + o.x, y = pos[i * 3 + 1] + o.y, z = pos[i * 3 + 2] + o.z, ax = Math.abs(nor[i * 3]), ay = Math.abs(nor[i * 3 + 1]), az = Math.abs(nor[i * 3 + 2]);
+    // Upward faces run their courses along the nearer eave (roof slates on all four slopes).
+    const [u, v] = ay >= ax && ay >= az ? (ax > az ? [z, x] : [x, z]) : ax >= az ? [z, y] : [x, y];
+    uv[i * 2] = u / tile; uv[i * 2 + 1] = v / tile;
+  }
+  m.setVerticesData(VertexBuffer.UVKind, uv, false);
+}
+/** Scanned CC0 surface (repo textures/world) on a pagoda material: albedo tinted to the old flat colour, plus its normal map. */
+function scanned(scene: Scene, m: StandardMaterial, surface: string, tint: [number, number, number]) {
+  const maps = loadScannedMaps(scene, surface); m.diffuseTexture = maps.albedo; m.bumpTexture = maps.normal; m.invertNormalMapY = true;
+  m.diffuseColor = new Color3(...tint); m.ambientColor = m.diffuseColor.scale(.9);
+}
 export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOptions = PAGODA) {
   const red = mat(scene, 'pagoda-vermilion', '#a5372b'), tile = mat(scene, 'pagoda-tile', '#2e3638'), wood = mat(scene, 'pagoda-timber', '#5a3424'),
     plaster = mat(scene, 'pagoda-plaster', '#e6dcc7'), stone = mat(scene, 'pagoda-stone', '#8d877c'), gold = mat(scene, 'pagoda-gold', '#c9a043', .15),
     lamp = mat(scene, 'pagoda-lantern', '#3a2418'), door = mat(scene, 'pagoda-door', '#120c09');
   gold.specularColor = new Color3(.6, .5, .25); gold.specularPower = 48;
+  // Cut stone, lime plaster, slate tiles and weathered timber from the scanned set; vermilion lacquer and gilt stay plain.
+  scanned(scene, stone, 'cobblestone_floor_08', [.97, .95, .9]); scanned(scene, plaster, 'plastered_wall', [1.28, 1.24, 1.14]);
+  scanned(scene, tile, 'roof_slates_02', [.62, .67, .7]); scanned(scene, wood, 'weathered_planks', [1.1, .76, .6]);
+  const tileSize = new Map<StandardMaterial, number>([[stone, 2.5], [plaster, 3], [tile, 2], [wood, 2]]);
   const meshes: Mesh[] = [], add = (m: Mesh, material: StandardMaterial) => { m.material = material; m.parent = parent; meshes.push(m); return m; };
   // Two-step stone podium and a stair to the door.
   const [outer, inner] = PAGODA_SHAPE.podium;
@@ -100,5 +123,6 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
   const mast = add(MeshBuilder.CreateCylinder('pagoda-mast', { diameter: .45, height: 13, tessellation: 12 }, scene), gold); mast.position.y = y + 6.5;
   for (let k = 0; k < 9; k++) { const ring = add(MeshBuilder.CreateTorus(`pagoda-ring-${k}`, { diameter: 2.2 - k * .1, thickness: .22, tessellation: 20 }, scene), gold); ring.position.y = y + 2 + k * 1.05; }
   const jewel = add(MeshBuilder.CreateSphere('pagoda-jewel', { diameter: 1.1, segments: 10 }, scene), gold); jewel.position.y = y + 13.3;
+  for (const m of meshes) { const t = tileSize.get(m.material as StandardMaterial); if (t) metreUVs(m, t); }
   return { meshes, lamp, height: y + 14, door: new Vector3(0, 2.4, -(o.base * .78) / 2), footprint: outer * 2 };
 }
