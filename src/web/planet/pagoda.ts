@@ -52,7 +52,9 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
     lamp = mat(scene, 'pagoda-lantern', '#3a2418'), door = mat(scene, 'pagoda-door', '#120c09');
   gold.specularColor = new Color3(.6, .5, .25); gold.specularPower = 48;
   // Cut stone, lime plaster, slate tiles and weathered timber from the scanned set; vermilion lacquer and gilt stay plain.
-  scanned(scene, stone, 'cobblestone_floor_08', [.97, .95, .9]); scanned(scene, plaster, 'plastered_wall', [1.28, 1.24, 1.14]);
+  scanned(scene, stone, 'cobblestone_floor_08', [.97, .95, .9]); scanned(scene, plaster, 'plastered_wall', [1.4, 1.27, 1.06]);
+  // Lime plaster in the eaves' shade takes warm bounce from the podium and ground, not only the blue zenith fill.
+  plaster.ambientColor = new Color3(1.9, 1.62, 1.18);
   scanned(scene, tile, 'roof_slates_02', [.62, .67, .7]); scanned(scene, wood, 'weathered_planks', [1.1, .76, .6]);
   const tileSize = new Map<StandardMaterial, number>([[stone, 2.5], [plaster, 3], [tile, 2], [wood, 2]]);
   const meshes: Mesh[] = [], add = (m: Mesh, material: StandardMaterial) => { m.material = material; m.parent = parent; meshes.push(m); return m; };
