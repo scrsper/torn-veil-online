@@ -1,5 +1,6 @@
 import { Color3, Color4, FreeCamera, HemisphericLight, Mesh, MeshBuilder, PBRMaterial, PointLight, Scene, StandardMaterial, Texture, Vector3, type AbstractEngine } from '@babylonjs/core';
 import { loadScannedMaps, useScannedMaps } from '../render/materials';
+import { metreUVs } from './uvs';
 import { towerFloorSpec, floorPlan, TOWER_FLOORS, type TowerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import { interiorVoxel, type InteriorPlan } from '../../sim/world/interiors/layout';
 import { towerTheme } from '../realms/towerThemes';
@@ -50,7 +51,7 @@ export class TowerSurvey {
     const floorMesh = MeshBuilder.CreateGround('survey-ground', { width: plan.half * 2 + 2, height: plan.half * 2 + 2 }, s); floorMesh.position.set(o.x, 1, o.z); floorMesh.material = ground; this.meshes.push(floorMesh);
     for (const b of plan.solids) {
       const m = MeshBuilder.CreateBox(b.id, { width: b.w, height: b.h, depth: b.d }, s); m.position.set(b.x + b.w / 2, b.y + b.h / 2, b.z + b.d / 2);
-      m.material = b.kind === 'bench' ? metal : wall; this.meshes.push(m);
+      m.material = b.kind === 'bench' ? metal : wall; if (b.kind !== 'bench') metreUVs(m, 2.5); this.meshes.push(m);
     }
     const disc = (name: string, p: { x: number; z: number }, m: StandardMaterial, d = 2.2) => { const c = MeshBuilder.CreateCylinder(name, { diameter: d, height: .08, tessellation: 24 }, s); c.position.set(p.x, 1.04, p.z); c.material = m; this.meshes.push(c); return c; };
     disc('survey-stair', plan.exit, gold); disc('survey-entrance', plan.start, blue); disc('survey-cistern', { x: plan.start.x, z: plan.start.z + 2 }, water, 1);

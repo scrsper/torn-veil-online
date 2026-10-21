@@ -1,5 +1,6 @@
-import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, VertexBuffer, type Scene } from '@babylonjs/core';
+import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, type Scene } from '@babylonjs/core';
 import { loadScannedMaps } from '../render/materials';
+import { metreUVs } from './uvs';
 import { PAGODA_SHAPE } from '../../sim/world/planet/pagoda';
 
 /** The Tower of Chrysanthus from outside: an ordinary East Asian pagoda. Square plan,
@@ -39,19 +40,6 @@ function roof(scene: Scene, name: string, inner: number, eave: number, y: number
   // Fascia: the eave line itself, dropped 0.45 m (two rows at k = 1).
   const fascia = sheet(.45, 1, 1, 1);
   return { tiles, soffit, fascia };
-}
-/** Metre-scale planar UVs (each face projected along its dominant normal axis, in the parent's
- * frame) so scanned surfaces keep their real size on boxes and roof ribbons of any extent. */
-function metreUVs(m: Mesh, tile: number) {
-  const pos = m.getVerticesData(VertexBuffer.PositionKind), nor = m.getVerticesData(VertexBuffer.NormalKind); if (!pos || !nor) return;
-  const uv = new Float32Array(pos.length / 3 * 2), o = m.position;
-  for (let i = 0; i < pos.length / 3; i++) {
-    const x = pos[i * 3] + o.x, y = pos[i * 3 + 1] + o.y, z = pos[i * 3 + 2] + o.z, ax = Math.abs(nor[i * 3]), ay = Math.abs(nor[i * 3 + 1]), az = Math.abs(nor[i * 3 + 2]);
-    // Upward faces run their courses along the nearer eave (roof slates on all four slopes).
-    const [u, v] = ay >= ax && ay >= az ? (ax > az ? [z, x] : [x, z]) : ax >= az ? [z, y] : [x, y];
-    uv[i * 2] = u / tile; uv[i * 2 + 1] = v / tile;
-  }
-  m.setVerticesData(VertexBuffer.UVKind, uv, false);
 }
 /** Scanned CC0 surface (repo textures/world) on a pagoda material: albedo tinted to the old flat colour, plus its normal map. */
 function scanned(scene: Scene, m: StandardMaterial, surface: string, tint: [number, number, number]) {
