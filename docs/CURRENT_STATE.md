@@ -1,17 +1,15 @@
 # Torn Veil current release candidate - October 20, 2026
 
-Latest local input correction `ffd79c7` passes65 affected checks, TypeScript,
-web build and the retained0.75m ordinary microtap benchmark. Full corrected
-journey/restart and final-head CI remain required; PR72 stays draft. Original
-test host7533 still requires manual graceful stop because its explicitly
-approved shutdown input was rejected by the tool approval policy.
-
-Universe traversal integrates public main `8a9fa58`, earned progression and John
-Smith. Source `4cde1b4` passes53 ordinary journey checks with foreign landing/reload
-and town return. Draft PR72 still requires exact host restart and final-head CI.
-See [release status](UNIVERSE_RELEASE.md), [asset setup](UNIVERSE_ASSETS.md) and
-[actual destinations](UNIVERSE_DESTINATIONS.md). Older build records below retain
-their original scope; they do not establish this candidate's acceptance.
+Implementation956e837 passes54 ordinary world-travel checks and20 same-save
+restart checks on owned7534;12 repeated taps pass0.75m.67 input/API/QA and11
+lighting/boundary checks (overlap), TypeScript and final web build pass. Night
+terrain/space readability improves modestly through existing ambient lighting.
+Fresh ordinary town/Tower/combat acceptance is in progress. PR72 stays draft
+until final-head CI and the separate original7533 exact-save restart pass.
+That original writer remains frozen because the tool denied its explicitly
+approved graceful shutdown. See [release status](UNIVERSE_RELEASE.md),
+[asset setup](UNIVERSE_ASSETS.md) and [destinations](UNIVERSE_DESTINATIONS.md).
+Older records below retain their original scope.
 
 ## Previous build record - October 11, 2026
 

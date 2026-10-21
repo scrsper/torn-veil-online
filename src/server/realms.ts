@@ -60,7 +60,7 @@ async function checkpoint() {
   if (checkpointBusy || updateError) return; checkpointBusy = true;
   try { await journal.checkpoint(); } catch (e) { failPersistence(e); } finally { checkpointBusy = false; }
 }
-const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.config.ts'), server: { middlewareMode: true, hmr: false } });
+const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.config.ts'), server: { middlewareMode: true, hmr: false, ws: false } });
 const universeApi = new RealmUniverseApi({
   session: () => session, token: () => owner ? ownerToken : '', ready: () => !updateError,
   apply: op => apply(op), persist: () => persist(true),

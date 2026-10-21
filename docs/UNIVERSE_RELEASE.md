@@ -1,38 +1,34 @@
 # Traversal release integration — October 20, 2026
 
-The integrated implementation at `4cde1b4` completes the ordinary-input journey:
-53 checks, zero HTTP/browser errors, foreign landing/reload and home/town return.
-[PR 72](https://github.com/scrsper/torn-veil-online/pull/72) remains draft until
-the exact-save host restart and all CI jobs on its final head pass. The PR carries
-the live CI and merge status; this document records the source and evidence.
+Implementation `956e837` passes54 ordinary journey checks and20 same-save host
+restart checks on the independently owned port7534 fixture, with zero browser,
+HTTP or rejected movement-receipt errors. It retains the actual town character,
+all items, earned progression, current John Smith and parked vessel through
+walking, personal flight, foreign landing/reload, home return and server restart.
+[Current evidence](evidence/universe-release/input-release/RESULTS.md).
+
+[PR72](https://github.com/scrsper/torn-veil-online/pull/72) remains draft. The
+original7533 host/save restart is a separate unresolved gate, and final-head CI
+must pass. That original writer is idle/healthy at durable16203/checkpoint14597;
+after Jacob explicitly approved graceful shutdown/restart, one retry of terminal5701
+`shutdown` was rejected: approval required by policy while AskForApproval is Never.
+Manual graceful stop must checkpoint its old-engine tail before upgrading.
+No forced kill, duplicate writer or fingerprint bypass is permitted.
+
+Movement now enters the existing owner WebSocket in sequence without waiting
+for round-trip receipts. Received is provisional, durable means saved, and
+structural commands/transitions wait for durability. No prediction, travel-speed
+change, dropped simulation time or relaxed waypoint threshold.12 repeated taps
+physically41–53ms move0–0.70m under the retained0.75m bound, with complete diagonal
+chords observed on wire.67 affected input/API/QA checks and11 lighting/boundary
+checks (overlapping groups), TypeScript and the final Babylon build pass.
+Earlier receipt-wait and polling failures are preserved in the evidence history.
+
+Night-side terrain and space silhouettes use a bounded increase to the existing
+ambient sources, with daylight ground unchanged. Current screenshots were
+inspected; dark clothing, sparse terrain and contact/framing gaps remain.
+A separate fresh, unendowed town/Tower/combat follow-up is in progress.
 Historical contact evidence remains in `UNIVERSE_CONTACT_HANDOFF.md`.
-
-### Input correction checkpoint
-
-Local implementation `ffd79c7` replaces response-limited movement delivery with
-sequenced input on the existing owner WebSocket. Received receipts release the
-input queue; durable receipts alone release structural commands and transitions.
-The original canonical journal, simulation clock and travel speeds are unchanged.
-65 focused tests, TypeScript and the Babylon bundle pass. Four ordinary browser
-short taps physically43–54ms move0.35–0.70m and pass the unchanged0.75m target.
-[Input evidence and coverage limits](evidence/universe-release/input-stream/RESULTS.md).
-The first streamed-input journey exposed stale view polling under held input;
-authoritative polling is corrected and66 affected checks pass. The preserved
-[failure and recovery](evidence/universe-release/input-stream-first-journey/RESULTS.md)
-remains separate from full corrected-source journey/restart and final-head CI,
-which are still pending.
-
-The repeat short-tap check on `d60392e` failed0.75m with one0.9793m diagonal.
-Release was still waiting for a provisional round-trip receipt. The queue now
-uses ordered synchronous WebSocket admission; receipt failures remain monitored
-and structural actions still wait for saving. Repeat acceptance remains required.
-
-The original7533 host is still idle and healthy at durable16203/checkpoint14597.
-After Jacob explicitly approved its graceful shutdown/restart, one retry of
-terminal5701 `shutdown` was rejected again: approval required by policy while
-AskForApproval is Never. Manual graceful stop is required before its exact save
-can checkpoint and upgrade; source and journal fingerprints remain untouched.
-The isolated input checkout on7534 owns its own new test hosts and clean shutdowns.
 
 ## Scope and history
 
@@ -66,16 +62,18 @@ the engine-fingerprint guard is unchanged.
   foreign landing and rendered town return; full body remains legible and clear
   of controls. Weak space contrast and dark/sparse foreign terrain remain limits.
 - Current ordinary journey: **passed**, with original waypoint/departure bounds,
-  accepted neutral input and stable position; [53-check evidence](evidence/universe-release/verified-run/acceptance.json).
-- Exact-save host restart: **pending**. The original managed terminal rejects
+  durable neutral input and stable position; [54-check evidence](evidence/universe-release/input-release/acceptance.json).
+- Independent7534 exact-save restart: **passed**,20 checks and final read-only
+  checkpoint18240 restore. This is separate from the original7533 save.
+- Original7533 exact-save host restart: **pending**. The original managed terminal rejects
   shutdown input under the current tool approval policy. Its isolated host must
   stop gracefully before restarting the same save; no forced termination or
   fingerprint bypass is an acceptable substitute.
-- Final-head CI: required. Earlier published `2447752` passed all four CI jobs;
+- Final-head CI: required. Earlier published `02bb8fa` passed all four CI jobs;
   this does not certify later fixes. See PR72 for the current head's checks.
-- Precision U076: the historical1.05m failure remains preserved. New streamed
-  input passes the retained0.75m short-tap benchmark; full corrected-source
-  traversal and restart acceptance are still required before release.
+- Precision U076: historical1.05m and0.9793m failures remain preserved. Ordered
+  wire admission passes12 repeated taps under the retained0.75m benchmark,
+  with complete diagonal chords observed; corrected traversal/restart pass.
 - Known presentation limits: left-foot contact on the sampled slope, weak boot
   contact shadows and live minimum-camera hide-threshold coverage. These remain
   explicit issues, not claimed fixes. Geometry penetration/drift/gap limits remain
@@ -153,8 +151,8 @@ attempt7 passes those corrected checks. The benchmark precision failure remains.
 
 1. Finish this release's exact-save restart and final-head CI before readiness
    or merge. Keep the source unchanged across the restart check.
-2. Finish the corrected input source's ordinary journey and exact-save restart.
-   Ordered admission and separate durable receipts are implemented; keep the
+2. Finish fresh ordinary town/Tower/combat acceptance and preserve any failure
+   evidence. Corrected traversal and its owned same-save restart pass; keep the
    owner/sequence fences, structural barriers and real-worker replay checks.
 3. Complete left-foot slope contact, clipped slope-front framing and foreign
    source-triangle sole coverage. Improve low-contrast flight/terrain composition;

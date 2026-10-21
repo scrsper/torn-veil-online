@@ -1,11 +1,14 @@
 # Current candidate: integrated universe traversal release (2026-10-20)
 
-Input correction `ffd79c7` adds sequenced owner-socket delivery with separate
-received/durable receipts. 65 affected checks, TypeScript, web build and the
-unchanged0.75m live microtap target pass. Corrected-source full journey/restart
-and final-head CI remain pending. Work continues in the separate
-`torn-veil-universe-input` checkout; original7533 source/save stays frozen until
-manual graceful stop (explicitly approved shutdown input was again tool-denied).
+Implementation956e837 passes54 ordinary traversal checks and20 same-save restart
+checks on owned7534, plus12 repeated short taps under the unchanged0.75m limit.
+67 input/API/QA checks,11 lighting/boundary checks (overlap), TypeScript and final
+web build pass. Existing ambient lighting improves night/space readability.
+The separate fresh town/Tower/combat pass is in progress. PR72 stays draft:
+original7533 exact-save restart remains tool-policy blocked despite explicit
+shutdown approval, and corrected final-head CI remains required. Work is in
+`torn-veil-universe-input`; old7533 source/save stays frozen. See
+`docs/UNIVERSE_RELEASE.md` for evidence, preserved failures and remaining work.
 
 Combines traversal with public main `8a9fa58`, earned progression and the current
 John Smith authority. Writer schema 33 preserves both independent schema-32

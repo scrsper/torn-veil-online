@@ -63,7 +63,7 @@ export async function startRealms(): Promise<void> {
     <div class="rv-loading" id="rv-loading">Preparing nearby streets…</div>
   </div>`;
   const quests = new ClientObjectives();
-  const sliceHud = new SliceHud(ui, hudObjectiveApi(quests)), welcome = onboarding(ui);
+  const sliceHud = new SliceHud(ui, hudObjectiveApi(quests)), welcome = onboarding(ui, 'tv.realms.welcome.v1');
   let revealAt = 0;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   await people.load(text=>{document.getElementById('rv-loading')!.textContent=text;});
@@ -149,12 +149,12 @@ export async function startRealms(): Promise<void> {
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
     for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }
-    if(params.get('destination')==='tower'&&!guideStarted) { guideStarted=true;send({type:'navigate',target:'tower'}); }
+    if(params.get('destination')==='tower'&&!guideStarted) { welcome.close();guideStarted=true;send({type:'navigate',target:'tower'}); }
     renderer.setDoors(s.doors);
     effects.show(s.casts,s.time,renderer.origin);
     if (m.saveError) toast('Saving is unavailable. Keep this tab open and inspect the local host log.');
   });
-  const toggleJournal = () => { params.delete('character'); journal = !journal; el('rv-sheet').hidden = !journal; release(); };
+  const toggleJournal = () => { welcome.close();params.delete('character'); journal = !journal; el('rv-sheet').hidden = !journal; release(); };
   const expedition = async (type: 'enter' | 'return') => {
     if (transitioning || !state) return false;
     transitioning = true; release();
@@ -199,7 +199,7 @@ export async function startRealms(): Promise<void> {
   el('rv-return').onclick = () => { void expedition('return'); };
   el('rv-journal').onclick = toggleJournal; el('rv-close').onclick = toggleJournal;
   el('rv-save').onclick = () => send({ type: 'save' });
-  const closeTravel=()=>{(ui.querySelector('.rv-wayfinder') as HTMLDetailsElement).open=false;};
+  const closeTravel=()=>{welcome.close();(ui.querySelector('.rv-wayfinder') as HTMLDetailsElement).open=false;};
   el('rv-portal').onclick = () => {send({ type: 'navigate', target: 'portal' });closeTravel();};
   el('rv-tower').onclick = () => {send({ type: 'navigate', target: 'tower' });closeTravel();};
   (el('rv-camera') as HTMLSelectElement).value='elevated';

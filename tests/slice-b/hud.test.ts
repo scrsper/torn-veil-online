@@ -1,6 +1,6 @@
 import { describe,it,expect } from 'vitest';
 import { hudReducer,initialHudState,progressFraction,stubObjectives } from '../../src/web/ui/sliceHudState';
-import { spawnReveal } from '../../src/web/presentation/spawn';
+import { spawnReveal,onboarding } from '../../src/web/presentation/spawn';
 import { towerTheme } from '../../src/web/realms/towerThemes';
 describe('presentation reducers',()=>{
  it('uses an empty objective stub, never inventing world needs',()=>expect(stubObjectives.getActiveObjectives()).toEqual([]));
@@ -41,4 +41,27 @@ it('consumes J throughout onboarding and releases it only after dismissal', () =
  expect(welcomeKey(welcome, 'Enter')).toBe(true);
  expect(open).toBe(false);
  expect(welcomeKey(welcome, 'KeyJ')).toBe(false);
+});
+
+describe('welcome ownership across ordinary reloads',()=>{
+ const host=(blocked=false)=>{
+  const values=new Map<string,string>(),buttons:{onclick?:()=>void}[]=[],removed:unknown[]=[],mounted:unknown[]=[];
+  const document={defaultView:{get sessionStorage(){if(blocked)throw Error('Storage denied');return{
+   getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value);}};}},
+   createElement:()=>{const button={};buttons.push(button);return{className:'',innerHTML:'',querySelector:()=>button,remove(){removed.push(this);}};}};
+  return{parent:{ownerDocument:document,append:(element:unknown)=>mounted.push(element)} as unknown as HTMLElement,values,buttons,removed,mounted};
+ };
+ it('releases interaction keys after a dismissed welcome survives a reload in the same tab',()=>{
+  const h=host(),first=onboarding(h.parent,'town');expect(first.open).toBe(true);expect(welcomeKey(first,'KeyE')).toBe(true);
+  h.buttons[0].onclick!();expect(first.open).toBe(false);expect(h.removed).toHaveLength(1);
+  const reloaded=onboarding(h.parent,'town');expect(reloaded.open).toBe(false);expect(welcomeKey(reloaded,'KeyE')).toBe(false);
+  expect(h.mounted).toHaveLength(1);expect(onboarding(h.parent,'other-mode').open).toBe(true);
+ });
+ it('still permits dismissal when browser storage is unavailable',()=>{
+  const h=host(true),welcome=onboarding(h.parent,'town');expect(welcome.open).toBe(true);
+  expect(()=>welcome.close()).not.toThrow();expect(welcome.open).toBe(false);expect(h.removed).toHaveLength(1);
+ });
+ it('leaves views without the town session option unchanged',()=>{
+  const h=host();onboarding(h.parent).close();expect(onboarding(h.parent).open).toBe(true);expect(h.values.size).toBe(0);
+ });
 });
