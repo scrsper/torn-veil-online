@@ -1,6 +1,7 @@
 import { Color3, Color4, FreeCamera, HemisphericLight, Mesh, MeshBuilder, PBRMaterial, PointLight, Scene, StandardMaterial, Texture, Vector3, type AbstractEngine } from '@babylonjs/core';
 import { loadScannedMaps, useScannedMaps } from '../render/materials';
 import { metreUVs } from './uvs';
+import { buildStoreyFrame } from './storeyFrame';
 import { towerFloorSpec, floorPlan, TOWER_FLOORS, type TowerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import { interiorVoxel, type InteriorPlan } from '../../sim/world/interiors/layout';
 import { towerTheme } from '../realms/towerThemes';
@@ -40,7 +41,7 @@ export class TowerSurvey {
   async enter(floor: number) {
     this.floor = Math.max(1, Math.min(TOWER_FLOORS, Math.floor(floor))); this.highest = Math.max(this.highest, this.floor);
     for (const m of this.meshes) m.dispose(); for (const l of this.lights) l.dispose(); for (const d of this.disposeDressing) d();
-    this.meshes = []; this.lights = []; this.disposeDressing = []; for (const k of this.kitInstances) k.dispose(); this.kitInstances = []; this.kitPlan = null; this.geometry = null;
+    this.meshes = []; this.overhead = []; this.lights = []; this.disposeDressing = []; for (const k of this.kitInstances) k.dispose(); this.kitInstances = []; this.kitPlan = null; this.geometry = null;
     if (this.kit) return this.enterKit();
     const spec = this.spec = towerFloorSpec(this.seed, this.floor), plan = this.plan = floorPlan(this.seed, this.floor), o = plan.origin, theme = towerTheme(this.floor, this.seed);
     const s = this.scene, mat = (name: string, hex: string, e = 0) => { const m = new StandardMaterial(name, s); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.06, .06, .06); if (e) m.emissiveColor = m.diffuseColor.scale(e); return m; };
@@ -55,7 +56,8 @@ export class TowerSurvey {
     }
     const disc = (name: string, p: { x: number; z: number }, m: StandardMaterial, d = 2.2) => { const c = MeshBuilder.CreateCylinder(name, { diameter: d, height: .08, tessellation: 24 }, s); c.position.set(p.x, 1.04, p.z); c.material = m; this.meshes.push(c); return c; };
     disc('survey-stair', plan.exit, gold); disc('survey-entrance', plan.start, blue); disc('survey-cistern', { x: plan.start.x, z: plan.start.z + 2 }, water, 1);
-    for (let k = 0; k < 4; k++) { const st = MeshBuilder.CreateBox(`survey-steps-${k}`, { width: 2.4, height: .3 * (k + 1), depth: .6 }, s); st.position.set(plan.exit.x, 1 + .15 * (k + 1), plan.exit.z - 1.4 - k * .6); st.material = metal; this.meshes.push(st); }
+    // The storey's timber frame: ceiling and beams, posts, cap rails, and the ladder stair up through a lit well.
+    const frame = buildStoreyFrame(s, plan, scanned('survey-planks', 'weathered_planks', '#7a5a42', 1), spec.lighting.torch); this.meshes.push(...frame.meshes, ...frame.overhead); this.overhead = frame.overhead;
     const chest = MeshBuilder.CreateBox('survey-award', { width: 1.2, height: .8, depth: .8 }, s); chest.position.set(plan.exit.x + 1.4, 1.4, plan.exit.z); chest.material = metal; this.meshes.push(chest);
     // Warden stations, as createFloor finds them: rooms other than the start, spaced, away from the entrance and stair.
     const cells: { x: number; z: number }[] = [];
@@ -106,22 +108,25 @@ export class TowerSurvey {
   private open(x: number, z: number) {
     if (this.kitPlan) { const g = this.geometry; if (!g) return true; const y = g.supportAt(x, z, this.pos.y + .5); if (y === null || !g.fits(x, y, z, .3, 1.75)) return false; this.pos.y = y; return true; }
     const p = this.plan!; return [-.3, .3].every(dx => [-.3, .3].every(dz => interiorVoxel(p, Math.floor(x + dx), 1, Math.floor(z + dz)) === 0 && interiorVoxel(p, Math.floor(x + dx), 2, Math.floor(z + dz)) === 0)); }
-  private overviewing = false; private walkFog = 0; private fill: HemisphericLight; private player: Mesh; private materials: PBRMaterial[] = []; private scans = new Map<string, ReturnType<typeof loadScannedMaps>>();
+  private overviewing = false; private overhead: Mesh[] = []; private walkFog = 0; private fill: HemisphericLight; private player: Mesh; private materials: PBRMaterial[] = []; private scans = new Map<string, ReturnType<typeof loadScannedMaps>>();
   private maps(surface: string) { let m = this.scans.get(surface); if (!m) { m = loadScannedMaps(this.scene, surface); this.scans.set(surface, m); } return m; }
   update(dt: number, keys: Set<string>) {
     if (!this.plan && !this.kitPlan || this.overviewing && !keys.size) return;
-    if (this.overviewing) { this.overviewing = false; this.scene.fogDensity = this.walkFog; this.fill.intensity = .55; }
+    if (this.overviewing) { this.overviewing = false; this.scene.fogDensity = this.walkFog; this.fill.intensity = .55; for (const m of this.overhead) m.setEnabled(true); }
     const turn = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0), fwd = (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0);
     this.yaw -= turn * 2.4 * dt; const speed = (keys.has('ShiftLeft') ? 7 : 4) * fwd * dt, dx = -Math.sin(this.yaw) * speed, dz = -Math.cos(this.yaw) * speed;
     if (this.open(this.pos.x + dx, this.pos.z)) this.pos.x += dx; if (this.open(this.pos.x, this.pos.z + dz)) this.pos.z += dz;
     const back = new Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
     this.player.position.set(this.pos.x, this.pos.y + .9, this.pos.z); this.player.rotation.y = this.yaw;
-    this.camera.position = this.pos.add(back.scale(5.5)).add(new Vector3(0, 4.2, 0)); this.camera.setTarget(this.pos.add(new Vector3(0, 1.5, 0)));
+    // Under the storey ceiling the trailing camera stops short of any wall between it and the player.
+    let reach = 5.5; const p = this.plan;
+    if (p) for (let d = .5; d <= 5.5; d += .25) { const x = this.pos.x + back.x * (d + .3), z = this.pos.z + back.z * (d + .3); if (interiorVoxel(p, Math.floor(x), 4, Math.floor(z)) !== 0 || interiorVoxel(p, Math.floor(x), 2, Math.floor(z)) !== 0) { reach = Math.max(.6, d - .25); break; } }
+    this.camera.position = this.pos.add(back.scale(reach)).add(new Vector3(0, p ? 2 + reach * .25 : 4.2, 0)); this.camera.setTarget(this.pos.add(p ? back.scale(-2.5).add(new Vector3(0, 1.6, 0)) : new Vector3(0, 1.5, 0)));
   }
   /** Survey for media/tests: an elevated view of the whole floor. */
   overview() {
     if (!this.overviewing) this.walkFog = this.scene.fogDensity;
-    this.overviewing = true;
+    this.overviewing = true; for (const m of this.overhead) m.setEnabled(false);
     // Seen from above the whole floor: thin the fog for the camera's distance and lift the fill, so deep (darker, foggier) floors read.
     const reach = this.kitPlan ? 120 : this.plan!.half * 2.5; this.scene.fogDensity = Math.min(this.walkFog, .5 / reach); this.fill.intensity = .9;
     if (this.kitPlan) { const k = this.kitPlan, cx = (k.start.x + k.exit.x) / 2, cz = (k.start.z + k.exit.z) / 2, span = Math.hypot(k.exit.x - k.start.x, k.exit.z - k.start.z); this.camera.position = new Vector3(cx + span * .5, span * .9, cz + span * .35); this.camera.setTarget(new Vector3(cx, 1, cz)); return; }
