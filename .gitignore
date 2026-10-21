@@ -59,3 +59,4 @@ web/public/arena/creator/
 # Reproducible canonical static geometry cooked from the verified focused GLBs.
 web/public/focused/collision.json
 web/public/world-assets/
+dist-town

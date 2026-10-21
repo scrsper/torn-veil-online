@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cinderveil — Torn Veil starting town</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1714; font-family: Georgia, 'Times New Roman', serif; color: #f3e6cf; }
+    #game { width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+    #hud { position: fixed; inset: 0; pointer-events: none; }
+    #hud .title { position: absolute; top: 18px; left: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
+    #hud .title b { font-size: 26px; letter-spacing: .06em; display: block; }
+    #hud .title span { font-size: 13px; letter-spacing: .25em; text-transform: uppercase; opacity: .8; }
+    #hud .hint { position: absolute; left: 18px; bottom: 18px; padding: 10px 14px; font: 13px/1.75 system-ui, sans-serif; background: rgba(20,14,10,.55); border: 1px solid rgba(255,220,170,.18); border-radius: 6px; pointer-events: auto; }
+    #hud kbd { display: inline-block; min-width: 14px; padding: 0 5px; margin-right: 3px; border: 1px solid rgba(255,230,190,.45); border-radius: 3px; font: 11px system-ui, sans-serif; text-align: center; background: rgba(255,255,255,.06); }
+    #hud .opts { opacity: .75; font-size: 12px; } #hud a { color: #f0c987; }
+    #hud .loading { position: absolute; top: 50%; left: 0; right: 0; text-align: center; font: 15px system-ui, sans-serif; text-shadow: 0 1px 4px #000; }
+  </style>
+</head>
+<body>
+  <canvas id="game" tabindex="0"></canvas>
+  <div id="hud"></div>
+  <script type="module" src="./town.ts"></script>
+</body>
+</html>
