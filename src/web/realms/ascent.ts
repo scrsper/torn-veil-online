@@ -315,7 +315,8 @@ export async function startCanonicalAscent() {
         const rawPose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
           threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,
           focus: target && (keys.has('KeyQ') || keys.has('KeyG') || mouseGuard) ? { point: { ...target.pos, y: target.pos.y + 1.2 }, weight: .2 } : null }, obstruction, () => 1);
-        const pose = framing.update(rawPose,pivot,walls,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
+        const cameraSolids = plan?.assetScene ? focused.cameraSolids(root.position) : walls;
+        const pose = framing.update(rawPose,pivot,cameraSolids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov; resetView = false;
         // Fade a wall obscuring any part of the owned body, including hips and feet.
@@ -338,7 +339,7 @@ export async function startCanonicalAscent() {
     inspect: () => ({atlas:atlasDressing.stats(),focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
       camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
-      cameraSolids: walls,
+      cameraSolids: plan?.assetScene && frame && binding ? focused.cameraSolids(frame.snapshot.bodies.find(b=>b.bodyId===binding.bodyId)!.pos) : walls,
       controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; const project = (height:number) => { if(!root)return null; const p=Vector3.Project(root.position.add(new Vector3(0,height,0)),Matrix.Identity(),ctx.scene.getTransformMatrix(),camera.viewport.toGlobal(ctx.engine.getRenderWidth(),ctx.engine.getRenderHeight()));return {x:p.x,y:p.y,z:p.z}; }; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z),screen:{feet:project(.05),head:project(1.7)} } : null; })(),
       facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());
