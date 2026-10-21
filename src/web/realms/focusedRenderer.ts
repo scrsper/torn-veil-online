@@ -6,6 +6,7 @@ import type {Atmosphere} from '../world/atmosphere';
 import type {MaterialLibrary} from '../render/materials';
 import type {FocusedTerrain} from '../../sim/world/assets/focusedTerrain';
 import type {SolidBox} from './cameraSolids';
+const CAMERA_ARCHITECTURE=/roof|ceiling|wall|crown|door_jamb|column|post/i;
 /** Existing scene owner: streamed actual GLB instances, cancellation by stable ID,
  * with camera rays over rendered source geometry. No gameplay lives in this class. */
 export class FocusedRenderer {
@@ -19,7 +20,7 @@ export class FocusedRenderer {
  /** Cached actual imported-node bounds constrain only the camera cutaway.
   * Actor movement keeps canonical triangles; distant buildings cannot lift it. */
  cameraSolids(position:{x:number;z:number}):SolidBox[]{const result:SolidBox[]=[];
-  for(const [id,v]of this.active){let boxes=this.architectureBounds.get(id);if(!boxes){boxes=v.root.getChildMeshes().filter(m=>/roof|ceiling|wall|crown|door_jamb|column|post/i.test(m.name)&&m.getTotalVertices()>0).map(m=>{m.computeWorldMatrix(true);const b=m.getBoundingInfo().boundingBox,lo=b.minimumWorld,hi=b.maximumWorld;return {x:lo.x-v.root.position.x,y:lo.y-v.root.position.y,z:lo.z-v.root.position.z,w:hi.x-lo.x,h:hi.y-lo.y,d:hi.z-lo.z};});this.architectureBounds.set(id,boxes);}
+  for(const [id,v]of this.active){let boxes=this.architectureBounds.get(id);if(!boxes){boxes=v.root.getChildMeshes().filter(m=>CAMERA_ARCHITECTURE.test(m.name)&&m.getTotalVertices()>0).map(m=>{m.computeWorldMatrix(true);const b=m.getBoundingInfo().boundingBox,lo=b.minimumWorld,hi=b.maximumWorld;return {x:lo.x-v.root.position.x,y:lo.y-v.root.position.y,z:lo.z-v.root.position.z,w:hi.x-lo.x,h:hi.y-lo.y,d:hi.z-lo.z};});this.architectureBounds.set(id,boxes);}
    for(const b of boxes){const box={...b,x:b.x+v.root.position.x,y:b.y+v.root.position.y,z:b.z+v.root.position.z};if(box.x<position.x+8&&box.x+box.w>position.x-8&&box.z<position.z+8&&box.z+box.d>position.z-8)result.push(box);}
   }return result;
  }
@@ -50,6 +51,6 @@ export class FocusedRenderer {
   if(!this.active.size)return null;const ray=new Ray(new Vector3(from.x,from.y,from.z),new Vector3(dir.x,dir.y,dir.z),max),hit=this.ctx.scene.pickWithRay(ray,m=>!!m.metadata?.focusedPart&&m.isEnabled());return hit?.hit?Math.max(0,hit.distance-.45):max;
  }
  blocked(x:number,y:number,z:number):boolean{if(!this.active.size)return false;const point=new Vector3(x,y,z);for(const d of [Vector3.Right(),Vector3.Left(),Vector3.Up(),Vector3.Down(),Vector3.Forward(),Vector3.Backward()]){const hit=this.ctx.scene.pickWithRay(new Ray(point,d,.35),m=>!!m.metadata?.focusedPart&&m.isEnabled());if(hit?.hit)return true;}return false;}
- cutaway(eye:Vector3,body:Vector3){const point=body.add(new Vector3(0,1.3,0)),delta=eye.subtract(point),worldRay=new Ray(point,delta.normalizeToNew(),delta.length());for(const m of this.meshes()){const architectural=/roof|ceiling|wall|crown/i.test(m.name);if(!architectural)continue;const localRay=Ray.Transform(worldRay,m.computeWorldMatrix(true).clone().invert());m.visibility=m.intersects(localRay,false).hit?.valueOf()? .12:1;}}
+ cutaway(eye:Vector3,body:Vector3){const point=body.add(new Vector3(0,1.3,0)),delta=eye.subtract(point),worldRay=new Ray(point,delta.normalizeToNew(),delta.length());for(const m of this.meshes()){if(!CAMERA_ARCHITECTURE.test(m.name))continue;const localRay=Ray.Transform(worldRay,m.computeWorldMatrix(true).clone().invert());m.visibility=m.intersects(localRay,false).hit?.valueOf()? .12:1;}}
  dispose(){this.revision++;this.terrainAbort?.abort();this.terrain?.dispose();this.wanted.clear();for(const v of this.active.values())v.dispose();this.active.clear();this.architectureBounds.clear();this.assets.dispose();}
 }
