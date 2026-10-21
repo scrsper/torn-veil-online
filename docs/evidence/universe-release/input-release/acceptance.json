@@ -1,0 +1,662 @@
+{
+  "implementation": "956e8373470c545890c4daaf304e4b6b5b2a7947",
+  "launch": "Play Torn Veil Journey.cmd / scripts/world/play-campaign.mjs",
+  "acceptance": "Isolated endowed fixture on7534; original7533 restart remains separately blocked.",
+  "microtap": {
+    "source": "b331a65",
+    "checks": [
+      "Owner input stream is active",
+      "Microtap surface admits ordinary return",
+      "Actual town retains the same body and complete inventory",
+      "All twelve repeated ordinary microtaps completed",
+      "Every 20 ms physical-key tap stopped within two 50 ms travel steps plus 5 cm numerical margin",
+      "No browser, HTTP or input receipt errors"
+    ],
+    "taps": [
+      {
+        "keys": [
+          "w"
+        ],
+        "physicalHoldMs": 53,
+        "displacement": 0,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s"
+        ],
+        "physicalHoldMs": 45,
+        "displacement": 0.3499999934833401,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "w",
+          "a"
+        ],
+        "physicalHoldMs": 41,
+        "displacement": 0.3499999940169587,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s",
+          "d"
+        ],
+        "physicalHoldMs": 42,
+        "displacement": 0.349999993488984,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "w"
+        ],
+        "physicalHoldMs": 45,
+        "displacement": 0.3499999939525839,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s"
+        ],
+        "physicalHoldMs": 41,
+        "displacement": 0.3499999937568636,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "w",
+          "a"
+        ],
+        "physicalHoldMs": 50,
+        "displacement": 0.349999993860857,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s",
+          "d"
+        ],
+        "physicalHoldMs": 52,
+        "displacement": 0.3499999937574476,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "w"
+        ],
+        "physicalHoldMs": 44,
+        "displacement": 0.3499999941231779,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s"
+        ],
+        "physicalHoldMs": 43,
+        "displacement": 0.6999999831618625,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "w",
+          "a"
+        ],
+        "physicalHoldMs": 41,
+        "displacement": 0.3499999939860932,
+        "completeChordSent": true
+      },
+      {
+        "keys": [
+          "s",
+          "d"
+        ],
+        "physicalHoldMs": 43,
+        "displacement": 0.3499999936974164,
+        "completeChordSent": true
+      }
+    ],
+    "threshold": 0.75
+  },
+  "journey": {
+    "checks": [
+      "Controlled town character is rendered",
+      "Town and spherical preview share canonical identity and items",
+      "Inactive page projects actual town before entry",
+      "UAL motion pack is loaded and hash verified",
+      "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+      "Idle names its actual source clip and destination rig",
+      "Isolated fixture is admitted for interplanetary personal flight",
+      "Explore preserves the actual current preview position",
+      "Mapped settlement traversal retains canonical identity",
+      "Opening ground controls produces no rejected travel command",
+      "Help suppresses G/F/C travel commands",
+      "Actual wheel input zooms the rendered camera toward the character",
+      "Ground view hides the world marker over the character",
+      "Both projected foot landmarks and a boot-sized margin clear the viewport and HUD",
+      "Ordinary drag completes a measured 360-degree free orbit",
+      "Ground orbit and zoom: route state unchanged",
+      "Ground orbit and zoom: canonical heading unchanged",
+      "Recenter places the camera behind the transported character heading",
+      "Reversing wheel input restores the preferred distance",
+      "Contact route uses the documented 1600 m home chart",
+      "Ground contact route returns to the previously verified clear departure street",
+      "Ordinary walking moves the canonical body during motion capture",
+      "G lifts the same canonical body",
+      "Lift begins at the walked position without relocating to the vessel",
+      "Vessel has a retained parked position",
+      "Personal flight cannot use vessel warp",
+      "Shared hero is visible in personal flight",
+      "Airborne character uses a bounded flight presentation phase",
+      "Powered flight spends canonical mana",
+      "Hover free orbit: route state unchanged",
+      "Hover free orbit: canonical heading unchanged",
+      "Cruise camera checks begin with active navigation and actualspeed above50m/s",
+      "Cruise free orbit and zoom: route state unchanged",
+      "Continuous route crosses a nearest-world boundary",
+      "Every sampled render frame uses the browser timeline for camera transport",
+      "Automatic horizon rotation respects the advertised90deg/s cap each rendered frame",
+      "Coarse camera samples also respect the horizon rotation cap",
+      "Landing eases the flight presentation back to ground motion",
+      "Foreign personal landing has no local vessel",
+      "Foreign surface HUD describes the parked vessel on its actual world",
+      "Foreign landing retains full canonical identity and inventory",
+      "Personal landing records the same explorer discovery",
+      "Reload preserves body, person and foreign landing",
+      "Foreign reload retains the complete discovery records and parked vessel",
+      "Home landing restores access to the original parked vessel",
+      "Home return retains full canonical identity and inventory",
+      "Home surface admits canonical return",
+      "Controlled town character is rendered",
+      "Fully rendered town retains original person, body and inventory",
+      "No rejected commands, failed required assets or unrecovered network requests during journey",
+      "No unexpected browser runtime or asset errors (raw recoverable backpressure remains recorded)",
+      "No rejected owner-stream movement receipts during journey",
+      "All sampled normal-quality shadow workloads remain within112 casters and240k triangles",
+      "All recorded presentation checks passed after safe canonical return"
+    ],
+    "errors": [],
+    "http": [],
+    "controlFailures": [],
+    "commands": {
+      "explore": 1,
+      "input": 198,
+      "soar": 2,
+      "target": 2,
+      "navigate": 2,
+      "land": 2,
+      "return": 1
+    },
+    "camera": [
+      {
+        "summary": {
+          "switches": 1,
+          "maxUpAngleRadians": 0.1531526409310258,
+          "maxCoarseExcess": 0,
+          "steadyFrameSamples": 0,
+          "falseBrakeFrames": 0,
+          "clockSources": {
+            "timeline": 6241
+          },
+          "poseCoverage": "No sufficiently long steady total-speed interval; phase correctness remains a coverage limitation."
+        },
+        "maxFrameExcess": 2.9743568719098334e-14,
+        "maxFrameRate": 1.570796326799207,
+        "clockSources": {
+          "timeline": 6241
+        }
+      }
+    ],
+    "captures": [
+      {
+        "name": "00-town-rendered"
+      },
+      {
+        "name": "01-town-preview",
+        "metrics": {
+          "p50": 20.900000000000546,
+          "p95": 41.599999999999454,
+          "draws": 847,
+          "activeMeshes": 739,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "02-ground-default",
+        "metrics": {
+          "p50": 20.80000000000109,
+          "p95": 27.899999999999636,
+          "draws": 849,
+          "activeMeshes": 741,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "03-ground-close-back",
+        "metrics": {
+          "p50": 20.799999999999272,
+          "p95": 27.80000000000109,
+          "draws": 800,
+          "activeMeshes": 692,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "04-ground-close-side-a",
+        "metrics": {
+          "p50": 20.799999999999272,
+          "p95": 27.799999999999272,
+          "draws": 537,
+          "activeMeshes": 466,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "05-ground-close-front",
+        "metrics": {
+          "p50": 20.799999999999272,
+          "p95": 27.799999999999272,
+          "draws": 728,
+          "activeMeshes": 620,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "06-ground-close-side-b",
+        "metrics": {
+          "p50": 20.799999999999272,
+          "p95": 27.799999999995634,
+          "draws": 600,
+          "activeMeshes": 497,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "contact-flat-side",
+        "metrics": {
+          "p50": 20.69999999999709,
+          "p95": 27.799999999995634,
+          "draws": 532,
+          "activeMeshes": 461,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "contact-flat-front",
+        "metrics": {
+          "p50": 20.799999999995634,
+          "p95": 27.69999999999709,
+          "draws": 719,
+          "activeMeshes": 611,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 2.9999999999995453
+      },
+      {
+        "name": "contact-step-side",
+        "metrics": {
+          "p50": 20.80000000000291,
+          "p95": 28,
+          "draws": 386,
+          "activeMeshes": 317,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "contact-step-front",
+        "metrics": {
+          "p50": 20.80000000000291,
+          "p95": 27.80000000000291,
+          "draws": 585,
+          "activeMeshes": 479,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "contact-slope-side",
+        "metrics": {
+          "p50": 20.80000000000291,
+          "p95": 27.89999999999418,
+          "draws": 381,
+          "activeMeshes": 311,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3.0000000000009095
+      },
+      {
+        "name": "contact-slope-front",
+        "metrics": {
+          "p50": 20.89999999999418,
+          "p95": 34.60000000000582,
+          "draws": 564,
+          "activeMeshes": 457,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3.0000000000009095
+      },
+      {
+        "name": "contact-returned-flat-side",
+        "metrics": {
+          "p50": 20.80000000000291,
+          "p95": 27.80000000000291,
+          "draws": 532,
+          "activeMeshes": 461,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "contact-returned-flat-front",
+        "metrics": {
+          "p50": 20.80000000000291,
+          "p95": 27.80000000000291,
+          "draws": 715,
+          "activeMeshes": 607,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "08-moving-ascent",
+        "mode": "flight",
+        "altitude": 50.054391200216514
+      },
+      {
+        "name": "08-vertical-ascent",
+        "metrics": {
+          "p50": 13.89999999999418,
+          "p95": 34.70000000001164,
+          "draws": 66,
+          "activeMeshes": 32,
+          "totalMeshes": 425
+        },
+        "mode": "flight",
+        "altitude": 550.4734053332841
+      },
+      {
+        "name": "09-hover-front",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7,
+          "draws": 37,
+          "activeMeshes": 38,
+          "totalMeshes": 338
+        },
+        "mode": "flight",
+        "altitude": 581.6079485318173
+      },
+      {
+        "name": "10-moving-flight-side",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7.100000000005821,
+          "draws": 27,
+          "activeMeshes": 25,
+          "totalMeshes": 262
+        },
+        "mode": "flight",
+        "altitude": 1978.6188681917465
+      },
+      {
+        "name": "10-moving-flight-front",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7.100000000005821,
+          "draws": 14,
+          "activeMeshes": 15,
+          "totalMeshes": 246
+        },
+        "mode": "flight",
+        "altitude": 3145.531946215804
+      },
+      {
+        "name": "10-between-worlds",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7.100000000005821,
+          "draws": 11,
+          "activeMeshes": 12,
+          "totalMeshes": 242
+        },
+        "mode": "flight",
+        "altitude": 5745.96289832404
+      },
+      {
+        "name": "11-nearest-world-transition",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7.100000000005821,
+          "draws": 11,
+          "activeMeshes": 12,
+          "totalMeshes": 242
+        },
+        "mode": "flight",
+        "altitude": 11786.684840394375
+      },
+      {
+        "name": "12-other-world-approach",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7,
+          "draws": 85,
+          "activeMeshes": 79,
+          "totalMeshes": 474
+        },
+        "mode": "flight",
+        "altitude": 85.9024276011778
+      },
+      {
+        "name": "13-other-world-ground",
+        "metrics": {
+          "p50": 6.900000000023283,
+          "p95": 7,
+          "draws": 97,
+          "activeMeshes": 87,
+          "totalMeshes": 482
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "14-reloaded-foreign-ground",
+        "metrics": {
+          "p50": 6.900000000000091,
+          "p95": 7,
+          "draws": 108,
+          "activeMeshes": 100,
+          "totalMeshes": 482
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "15-returned-home",
+        "metrics": {
+          "p50": 20.799999999995634,
+          "p95": 27.700000000004366,
+          "draws": 419,
+          "activeMeshes": 311,
+          "totalMeshes": 2810
+        },
+        "mode": "surface",
+        "altitude": 3
+      },
+      {
+        "name": "16-returned-town-ready"
+      }
+    ]
+  },
+  "restart": {
+    "checks": [
+      "Controlled town character is rendered",
+      "Exact restarted save renders the same body and full inventory",
+      "Exact restarted host retains the final canonical town position",
+      "Town and spherical preview share canonical identity and items",
+      "Inactive page projects actual town before entry",
+      "UAL motion pack is loaded and hash verified",
+      "Visible idle reports the actual verified CC0 source, not a requested fallback alias",
+      "Idle names its actual source clip and destination rig",
+      "Exact restarted checkpoint remains inactive on the surface",
+      "Restart preserves discoveries and the original parked vessel",
+      "Explore preserves the actual current preview position",
+      "Mapped settlement traversal retains canonical identity",
+      "Home surface admits canonical return",
+      "Controlled town character is rendered",
+      "Fully rendered town retains original person, body and inventory",
+      "No rejected commands, failed required assets or unrecovered network requests during journey",
+      "No unexpected browser runtime or asset errors (raw recoverable backpressure remains recorded)",
+      "No rejected owner-stream movement receipts during journey",
+      "All sampled normal-quality shadow workloads remain within112 casters and240k triangles",
+      "All recorded presentation checks passed after safe canonical return"
+    ],
+    "errors": [],
+    "http": [],
+    "controlFailures": []
+  },
+  "lifecycle": [
+    {
+      "mode": "journey",
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "hostExit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "mode": "restart",
+      "browserExit": {
+        "code": 0,
+        "signal": null
+      },
+      "hostExit": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "finalCheckpoint": {
+    "sequence": 18240,
+    "engine": "814980f0c4691926cefb843a96371b13a25d6c23209c3f4d1a6e44426116db31",
+    "person": "p_5",
+    "body": "b_5",
+    "position": {
+      "x": 11313.487947212587,
+      "y": 1.0625,
+      "z": 3093.1184749128597
+    },
+    "inventory": [
+      "i_1",
+      "i_2",
+      "i_3",
+      "i_4",
+      "i_5"
+    ],
+    "experience": {
+      "version": 1,
+      "stage": "Normal",
+      "rankXp": 110,
+      "lifetimeXp": 110,
+      "overflowXp": 0,
+      "foundations": {
+        "strength": 7,
+        "dexterity": 8,
+        "endurance": 9,
+        "vitality": 7,
+        "intellect": 9,
+        "perception": 8,
+        "will": 9
+      },
+      "defeated": [],
+      "feats": [],
+      "achievements": {
+        "awakened": {
+          "eventId": "e_2",
+          "xp": 50,
+          "tick": 8666400
+        }
+      },
+      "receipts": [
+        {
+          "kind": "learning",
+          "xp": 30,
+          "tick": 8666400,
+          "eventId": "e_1"
+        },
+        {
+          "kind": "achievement",
+          "xp": 50,
+          "tick": 8666400,
+          "eventId": "e_2",
+          "key": "awakened"
+        },
+        {
+          "kind": "learning",
+          "xp": 30,
+          "tick": 8666400,
+          "eventId": "e_3"
+        }
+      ],
+      "tally": {
+        "defeats": 0,
+        "practiceSeconds": 0,
+        "levelUps": 1
+      }
+    },
+    "stage": "Normal",
+    "johnSmithVersion": 1,
+    "expeditionActive": false,
+    "discoveries": [
+      {
+        "planetId": "u1:20261017:s0:p0",
+        "systemIndex": 0,
+        "tick": 0,
+        "explorerId": "p_5",
+        "method": "landed"
+      },
+      {
+        "planetId": "u1:20261017:s0:p2",
+        "systemIndex": 0,
+        "tick": 3916,
+        "explorerId": "p_5",
+        "method": "landed"
+      }
+    ],
+    "manifestUnchanged": true,
+    "parkedVessel": {
+      "systemIndex": 0,
+      "planetId": "u1:20261017:s0:p0",
+      "position": {
+        "x": -3.0784811375173877,
+        "y": 524.4641801324371,
+        "z": 1521.0980550469717
+      }
+    },
+    "writeVersion": 33
+  }
+}

@@ -1,4 +1,28 @@
-# Current candidate: Levels and the Normal→Diamond ladder (2026-10-19)
+# Current candidate: integrated universe traversal release (2026-10-20)
+
+Current published implementation528898c also passes20 independent restart checks and read-only checkpoint21126 restore. Latest21 camera/cutaway/interior/boundary checks, TypeScript and web build pass. The unendowed combat campaign proves actual dagger contact and injury/learning/equipment retention, but town return is correctly rejected while a visible warden threatens (Break contact before returning). Escape/return/reentry and held-guard queue congestion remain acceptance work. [Gameplay evidence](evidence/universe-release/gameplay-follow-up/RESULTS.md).
+
+PR72 stays draft. Current-head CI is running; prior02bb green does not certify corrected code. Original7533 remains untouched and its approved shutdown is tool-policy blocked. Its background tool PTY is not a visible PowerShell terminal; the app open request was only queued. No manual terminal hunt, force kill or alternative-control bypass.
+
+Implementation956e837 passes54 ordinary traversal checks and20 same-save restart
+checks on owned7534, plus12 repeated short taps under the unchanged0.75m limit.
+67 input/API/QA checks,11 lighting/boundary checks (overlap), TypeScript and final
+web build pass. Existing ambient lighting improves night/space readability.
+The separate fresh town/Tower/combat pass is in progress. PR72 stays draft:
+original7533 exact-save restart remains tool-policy blocked despite explicit
+shutdown approval, and corrected final-head CI remains required. Work is in
+`torn-veil-universe-input`; old7533 source/save stays frozen. See
+`docs/UNIVERSE_RELEASE.md` for evidence, preserved failures and remaining work.
+
+Combines traversal with public main `8a9fa58`, earned progression and the current
+John Smith authority. Writer schema 33 preserves both independent schema-32
+histories; legacy Tower silver stops after the current authority is initialized.
+Published draft PR72 now has browser-verified implementation `4cde1b4`:53 ordinary
+journey checks pass, including foreign reload and full town return. Exact host
+restart and final-head CI remain required. See `docs/UNIVERSE_RELEASE.md` for current
+evidence and remaining limits. Historical private ancestry remains local.
+
+# Previous candidate: Levels and the Normal→Diamond ladder (2026-10-19)
 
 Branch `claude/vigilant-dirac-3f6zc3`. Adds `src/sim/progression/{levels,experience,threat,persistence}.ts`:
 exponential levels (ten per rank, Normal–Diamond) fed only by canonical receipts for players and

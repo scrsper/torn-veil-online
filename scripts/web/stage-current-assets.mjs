@@ -2,7 +2,9 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,copyFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,dirname,join} from 'node:path';
+import {stageHumanMotion} from './stage-human-motion.mjs';
 const root=resolve(import.meta.dirname,'../..'),out=join(root,'web/public');
+stageHumanMotion();
 const common=execFileSync('git',['rev-parse','--path-format=absolute','--git-common-dir'],{cwd:root,encoding:'utf8'}).trim();
 const sources=[process.env.TV_REALMS_ASSETS,join(dirname(common),'web/public')].filter(Boolean).map(p=>resolve(p));
 const required=[

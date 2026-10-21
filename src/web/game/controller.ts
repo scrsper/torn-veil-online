@@ -96,7 +96,8 @@ export class PlayerController {
     const now = performance.now();
     if (this.input.pressed('lightAttack')) this.attack('light', now);
     if (this.input.pressed('heavyAttack')) this.attack('heavy', now);
-    if (this.input.pressed('dodge')) this.dodge(now);
+    // This controller has no traversal: Space keeps its old meaning here and rolls.
+    if (this.input.pressed('dodge') || this.input.pressed('jump')) this.dodge(now);
   }
 
   private target(): Candidate | undefined { return this.lockedBodyId ? this.candidates().find(c => c.bodyId === this.lockedBodyId) : undefined; }

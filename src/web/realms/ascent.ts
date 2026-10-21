@@ -1,3 +1,8 @@
+import { realmWeather } from './realmAtmosphere';
+import { OptionalAssets } from '../presentation/optionalAssets';
+import { SliceHud } from '../ui/sliceHud';
+import { ClientObjectives, hudObjectiveApi, hudJournal } from '../quests/objectives';
+import { towerTheme } from './towerThemes';
 import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
@@ -8,6 +13,8 @@ import type { Element } from '../arena/tower/capability';
 import { stoneSurface, tiledBox, LOOKS } from '../arena/environment';
 import {MaterialLibrary, loadScannedMaps, useScannedMaps } from '../render/materials';
 import {FocusedRenderer} from './focusedRenderer';
+import { FocusedAssets } from './focusedAssets';
+import { towerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
@@ -15,6 +22,7 @@ import type { TowerController } from '../../server/towerController';
 import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove,cameraPivotHeight } from './thirdPerson';
 import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
 import { InteriorCameraFraming } from './interiorCamera';
+import { AtlasTowerDressing } from '../atlas/tower';
 import { JohnSmithInterface } from './johnSmith';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
@@ -31,6 +39,7 @@ export async function startCanonicalAscent() {
   const focused=new FocusedRenderer(ctx,atmosphere,{x:0,z:0},new MaterialLibrary(ctx.scene),null);let acknowledgedFloor='';
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
+  const atlasDressing = new AtlasTowerDressing(ctx.scene);
   const geometry: Mesh[] = [], objects = new Map<string, Mesh>(), keys = new Set<string>();
   let walls: InteriorPlan['solids'] = [];
   const vfx = new Vfx(ctx.scene), seenCasts = new Set<string>();
@@ -52,8 +61,23 @@ export async function startCanonicalAscent() {
     const mesh = tiledBox(id, w, h, d, 2.8, ctx.scene); mesh.position.set(x + w / 2, y + h / 2, z + d / 2);
     mesh.material = m; mesh.receiveShadows = true; return mesh;
   }
+  // Library dressing from the shared floor spec (braziers on wall crowns, stores/archive/crypt
+  // pieces on the plan's own benches). Presentation only; no collision or mechanics.
+  const dressingAssets = new FocusedAssets(ctx.scene, atmosphere); let dressingManifest: Promise<unknown> | null = null, dressing: { dispose(): void }[] = [];
+  function dressFloor(p: InteriorPlan) {
+    for (const d of dressing) d.dispose(); dressing = [];
+    atlasDressing.setPlan(p);
+    if (p.assetScene) return;
+    dressingManifest ??= dressingAssets.loadManifest().catch(() => null);
+    const spec = towerFloorSpec(p.descriptor.seed, p.descriptor.floor), o = p.origin;
+    void dressingManifest.then(async m => { if (!m) return; for (const [i, d] of spec.dressing.entries()) {
+      if (plan !== p) return;
+      if (atlasDressing.replaces(o.x + d.x, o.z + d.z)) continue;
+      try { const inst = await dressingAssets.instantiate({ id: `${p.id}:dress:${i}`, assetId: d.moduleId, position: [o.x + d.x, d.y, o.z + d.z], yaw: d.yaw, floorId: p.id }); if (plan !== p) inst.dispose(); else dressing.push(inst); } catch { /* plain plan remains */ }
+    } });
+  }
   function drawFloor(p: InteriorPlan) {
-    for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p;
+    for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p; dressFloor(p);
     focused.reconcile(p.assetScene??null,p.start);acknowledgedFloor='';ready=false;
     if(!p.assetScene)geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
     const solids = p.solids.map(voxelSolid); walls = solids.filter(s => s.kind === 'wall');
@@ -72,8 +96,12 @@ export async function startCanonicalAscent() {
     .ascent{font:14px system-ui;color:#f0eade;pointer-events:none}.ascent header,.ascent aside,.ascent footer{position:absolute;background:#14171eea;border:1px solid #7d705644;border-radius:8px;padding:15px;pointer-events:auto}
     .ascent header{left:18px;top:16px;width:270px;padding:12px;background:#14171ed9}.ascent h1{font:20px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:7px 0;font-size:12px}.ascent #as-status{white-space:pre-line}.ascent #as-panel[hidden]{display:none}.ascent a{color:#d7bb80}.ascent #as-notice:empty{display:none}.ascent footer{font-size:12px}.ascent #as-target{color:#efce89;margin-left:20px}
     .ascent aside{right:18px;top:18px;width:240px;max-height:75vh;overflow:auto}.ascent button{display:inline-block;color:#f5ebd3;background:#343a43;border:1px solid #bba47766;border-radius:4px;padding:7px 10px;margin:3px;cursor:pointer}.ascent button:hover{background:#505563}.ascent footer{bottom:18px;left:20px;right:20px;display:flex;justify-content:space-between}.ascent #as-notice{color:#f2c786;min-height:20px}.ascent #as-loading{position:absolute;inset:0;display:grid;place-items:center;background:#111620e8;font-size:21px}.ascent #as-loading[hidden]{display:none}
-  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>O John Smith · MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Defeat the wardens.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
+  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I / Objectives · J</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · LMB strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>O John Smith · MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Objectives · J</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
   const el = (id: string) => document.getElementById(id)!, notice = (text: string) => { el('as-notice').textContent = text; };
+  const quests = new ClientObjectives();
+  const sliceHud = new SliceHud(ui, hudObjectiveApi(quests));
+  const optionalChest = new OptionalAssets(ctx.scene).load('tower-chest');
+  let announcedFloor = 0;
   await people.load(text => { el('as-loading').textContent = text; });
   const ws = new WebSocket(`ws://${location.host}/realms/ascent/socket`);
   function send(command: InteractionCommand) {
@@ -88,14 +116,20 @@ export async function startCanonicalAscent() {
   const john = new JohnSmithInterface(ui, {
     request: c => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'john_smith', command: c })); },
     take: (containerId, itemId) => send({ type: 'container_transfer', containerId, itemId, direction: 'out' }),
-    onOpenChange: () => release(),
+    onOpenChange: open => {
+      if (open) {
+        journalOpen = false; el('as-panel').hidden = true;
+        if (sliceHud.journalOpen) sliceHud.dispatch({ type: 'journal' });
+      }
+      release();
+    },
     pose: () => { const own = frame && binding ? frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId) : undefined; return own ? { ...own.pos, yaw: movementYaw } : null; },
   });
   const release = () => { keys.clear(); mouseGuard=false; inputWasActive = false; send({ type: 'move', x: 0, z: 0, sprint: false }); send({ type: 'guard', held: false }); send({ type: 'crouch', held: false }); };
-  async function leaveView() {
+  async function leaveView(destination = '/?realms') {
     if (movingPage) return; movingPage = true; release();
     await new Promise<void>(resolve => { ws.addEventListener('close', () => resolve(), { once: true }); ws.close(); if (ws.readyState === WebSocket.CLOSED) resolve(); });
-    location.assign('/?realms');
+    location.assign(destination);
   }
   async function transition(type: 'ascend' | 'return') {
     if (!frame || movingPage) return; release();
@@ -119,13 +153,16 @@ export async function startCanonicalAscent() {
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
+    const theme = towerTheme(tower.floor, plan?.descriptor.seed ?? 0);
+    if (announcedFloor !== tower.floor) { announcedFloor = tower.floor; sliceHud.announce(`Floor ${tower.floor} · ${theme.name}`); stone.albedoColor=Color3.FromHexString(theme.wall); floorMat.albedoColor=Color3.FromHexString(theme.floor); brass.diffuseColor=Color3.FromHexString(theme.metal); }
+    sliceHud.dispatch({type:'progress',rank:own.rank});
     const seen = frame.observedThreat[targetId];
     el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}${seen && !tower.clear ? ` · target looks ${seen.grade} (≈level ${seen.level})` : ''}`;
     const xp = frame.snapshot.journal.experience;
     const standing = xp?.leveled ? `${xp.label} (level ${xp.level}) · ${xp.peak ? xp.peakText : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience`}` : own.rank;
     el('as-status').textContent = `${own.name} · ${standing}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
-    el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
+    el('as-goal').textContent = 'Objectives · J · E interact · F threshold';
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
     const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
     const nextActions=JSON.stringify([rest?.available?{id:rest.id,label:rest.label}:null,frame.snapshot.interactions.map(a=>({id:a.id,label:a.label})),container?.id,container?.items.map(i=>({id:i.id,name:i.name}))]);
@@ -147,10 +184,15 @@ export async function startCanonicalAscent() {
   }
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
+    quests.ingestMessage(m);
+    if (m.type === 'tower_frame' && m.questJournal) {
+      sliceHud.dispatch({ type: 'ledger', entries: hudJournal(quests.journal()) });
+    }
     if (m.type === 'controller') token = m.token;
     if (m.type === 'binding') { binding = m.interaction; sequence = 0; keys.clear(); }
     if (m.type === 'tower_geometry') drawFloor(m.plan);
     if (m.type === 'tower_returned') void leaveView();
+    if (m.type === 'universe_active') void leaveView('/?universe&campaign');
     if (m.type === 'notice') notice(m.message);
     if (m.type === 'john_smith') john.update(m.view);
     if (m.type === 'john_smith_result') john.result(m);
@@ -179,11 +221,16 @@ export async function startCanonicalAscent() {
     for (const body of bodies) {
       let v = visuals.get(body.bodyId);
       if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'resident'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
-      if (body.hitSeq > v.hitSeq) v.hit = 1; v.hitSeq = body.hitSeq; v.body = body;
+      if (body.hitSeq > v.hitSeq) { v.hit = 1; } v.hitSeq = body.hitSeq; v.body = body;
     }
     const things = [...m.waterSources.map((i: any) => ({ ...i, water: true })), ...m.items.map((i: any) => ({ ...i, chest: false })), ...m.containers.map((i: any) => ({ ...i, chest: true }))], wanted = new Set(things.map(i => i.id));
     for (const [id, mesh] of objects) if (!wanted.has(id)) { mesh.dispose(); objects.delete(id); }
     for (const i of things) if (!objects.has(i.id)) objects.set(i.id, box(i.id, i.pos.x - .25, i.pos.y, i.pos.z - .18, i.water ? .8 : i.chest ? .8 : .5, i.water ? .025 : i.chest ? .7 : .12, i.water ? .8 : i.chest ? .5 : .36, i.water ? (i.remaining > 0 ? blue : stone) : i.chest ? brass : bookMat));
+    for (const i of things.filter((i:any)=>i.chest)) { const chest=objects.get(i.id)!; if(!chest.metadata?.dressed){chest.metadata={dressed:true};
+      for(const x of [-.25,.25]){const strap=MeshBuilder.CreateBox('chest brass binding',{width:.045,height:.72,depth:.52},ctx.scene);strap.parent=chest;strap.position.x=x;strap.material=gold;}
+      const latch=MeshBuilder.CreateBox('chest latch',{width:.13,height:.18,depth:.04},ctx.scene);latch.parent=chest;latch.position.set(0,.1,-.27);latch.material=gold;
+      void optionalChest.then(asset=>{if(!asset||chest.isDisposed())return;const instance=asset.instantiateModelsToScene();for(const node of instance.rootNodes)node.parent=chest;chest.visibility=0;}).catch(()=>{});
+    }}
     for (const i of m.waterSources) { const mesh = objects.get(i.id); if (mesh) mesh.material = i.remaining > 0 ? blue : stone; }
     ready = !!plan && visuals.has(binding.bodyId)&&(!plan.assetScene||focused.pending===0&&focused.count>0&&!focused.error); el('as-loading').hidden = ready;
     if (ready) refreshHud();
@@ -193,12 +240,15 @@ export async function startCanonicalAscent() {
   el('as-return').onclick = () => void transition('return'); el('as-next').onclick = () => void transition('ascend');
   el('as-save').onclick = () => ws.send(JSON.stringify({ type: 'save' }));
   window.addEventListener('keydown', e => {
+    if(e.code==='KeyO'||john.open)return;
+    if(e.code==='KeyJ'&&!e.repeat){sliceHud.dispatch({type:'journal'});release();return;}
+    if(e.code==='Escape'&&sliceHud.journalOpen){sliceHud.dispatch({type:'journal'});release();return;}
     if(e.code==='KeyI'&&!e.repeat){toggleJournal();return;}
     if(e.code==='Escape'&&journalOpen){toggleJournal();return;}
-    if(journalOpen||john.open)return;
+    if(journalOpen||sliceHud.journalOpen||john.open)return;
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault(); keys.add(e.code); if (e.repeat) return;
     if (e.code === 'KeyC') send({ type: 'crouch', held: true });
-    if (['KeyJ', 'KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
+    if (['KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
     if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: cameraRelativeMove(x, x ? 0 : -1, movementYaw) }); }
     if (e.code === 'KeyE') nearestHand();
     if (/^Digit[1-6]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
@@ -211,7 +261,7 @@ export async function startCanonicalAscent() {
   attachOrbit(canvas, view.camera, view.persist);
   canvas.oncontextmenu=e=>e.preventDefault();
   canvas.onpointerdown = e => {
-    if(journalOpen||john.open)return;
+    if(journalOpen||sliceHud.journalOpen||john.open)return;
     if(e.button===0)send({type:'attack',targetBodyId:targetId||undefined,weight:'light',trajectory:'high'});
     else if(e.button===2){mouseGuard=true;send({type:'guard',held:true});e.preventDefault();}
   };
@@ -229,15 +279,16 @@ export async function startCanonicalAscent() {
       const own = frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId)!, target = frame.snapshot.bodies.find(b => b.bodyId === targetId);
       inputAccum += dt; hudAccum += dt;
       if (inputAccum >= 1 / 60) {
-        inputAccum = 0; const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA')), forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
+        inputAccum = 0; const still = journalOpen || sliceHud.journalOpen || john.open;
+        const right = still ? 0 : Number(keys.has('KeyD')) - Number(keys.has('KeyA')), forward = still ? 0 : Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
         const move = walkingMove(cameraRelativeMove(right, forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
-        const faceTarget = keys.has('KeyG') || mouseGuard || keys.has('KeyQ');
-        const active = !!(right || forward || keys.has('KeyC') || faceTarget);
+        const faceTarget = !still && (keys.has('KeyG') || mouseGuard || keys.has('KeyQ'));
+        const active = !!(right || forward || !still && keys.has('KeyC') || faceTarget);
         // Do not fill a stalled connection with idle or obsolete state samples.
         // A live held movement still buys at most one canonical step per sample.
         if (now - receivedAt < 500 && ws.bufferedAmount < 32768) {
-          if (active || inputWasActive) send({ type: 'move', ...move, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'), crouch: keys.has('KeyC'), facing: faceTarget ? target ? Math.atan2(own.pos.x - target.pos.x, own.pos.z - target.pos.z) : view.camera.renderedYaw : travelFacing(move) });
-          if (keys.has('KeyG')||mouseGuard) send({ type: 'guard', held: true });
+          if (active || inputWasActive) send({ type: 'move', ...move, sprint: !still && (keys.has('ShiftLeft') || keys.has('ShiftRight')), crouch: !still && keys.has('KeyC'), facing: faceTarget ? target ? Math.atan2(own.pos.x - target.pos.x, own.pos.z - target.pos.z) : view.camera.renderedYaw : travelFacing(move) });
+          if (!still && (keys.has('KeyG')||mouseGuard)) send({ type: 'guard', held: true });
           inputWasActive = active;
         }
       }
@@ -264,7 +315,8 @@ export async function startCanonicalAscent() {
         const rawPose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
           threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,
           focus: target && (keys.has('KeyQ') || keys.has('KeyG') || mouseGuard) ? { point: { ...target.pos, y: target.pos.y + 1.2 }, weight: .2 } : null }, obstruction, () => 1);
-        const pose = framing.update(rawPose,pivot,walls,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
+        const cameraSolids = plan?.assetScene ? focused.cameraSolids(root.position) : walls;
+        const pose = framing.update(rawPose,pivot,cameraSolids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov; resetView = false;
         // Fade a wall obscuring any part of the owned body, including hips and feet.
@@ -273,18 +325,21 @@ export async function startCanonicalAscent() {
         for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .08 : 1;
         if(plan?.assetScene)focused.cutaway(camera.position,root.position);
       }
+      john.covered = journalOpen || sliceHud.journalOpen;
       john.frame();
       el('as-target').textContent = target ? `Target · ${target.name}` : 'No visible opponent';
       targetRing.setEnabled(!!target);
       if (target) targetRing.position.set(target.pos.x, target.pos.y + .04, target.pos.z);
     }
-    vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, { kind: 'clear', intensity: 0, wind: .15 }, dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
+    const ownPosition=frame?.snapshot.bodies.find(b=>b.bodyId===binding?.bodyId)?.pos;if(ownPosition)sliceHud.bearing(ownPosition,movementYaw);
+    atlasDressing.update(camera.position, dt);
+    vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, realmWeather(frame ?? {}), dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
-    inspect: () => ({focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
+    inspect: () => ({atlas:atlasDressing.stats(),focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
       camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
-      cameraSolids: walls,
+      cameraSolids: plan?.assetScene && frame && binding ? focused.cameraSolids(frame.snapshot.bodies.find(b=>b.bodyId===binding.bodyId)!.pos) : walls,
       controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; const project = (height:number) => { if(!root)return null; const p=Vector3.Project(root.position.add(new Vector3(0,height,0)),Matrix.Identity(),ctx.scene.getTransformMatrix(),camera.viewport.toGlobal(ctx.engine.getRenderWidth(),ctx.engine.getRenderHeight()));return {x:p.x,y:p.y,z:p.z}; }; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z),screen:{feet:project(.05),head:project(1.7)} } : null; })(),
       facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());

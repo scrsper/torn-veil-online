@@ -1,3 +1,4 @@
+import { facadeDressing } from '../presentation/dressing';
 import { Color3, DynamicTexture, Material, Matrix, Mesh, MeshBuilder, PointLight, Quaternion, StandardMaterial, TransformNode, Vector3, VertexData } from '@babylonjs/core';
 import { SquareMaterials, type SquareFinish } from './squareMaterials';
 import type { RenderContext } from '../render/engine';
@@ -228,6 +229,17 @@ export class RealmRenderer {
         }
       }
       if (lod === 0) {
+        const dressing = facadeDressing(Math.imul(b.x, 73856093) ^ Math.imul(b.z, 19349663));
+        // Flush route studs and facade-mounted dressings never change navigation.
+        for (const side of [-1, 1]) {
+          const x=b.door.x+.5+side*dressing.studOffset;
+          box(metal,x,1.025,b.z-1.5,.28,.025,.28);
+          box(warm,x,3.6,b.z-.08,.14,.7,.06);
+          box(metal,x,3.15,b.z-.1,.7,.08,.15);
+        }
+        // Wall-mounted shelving makes the canonical enterable interior readable.
+        // Keep the doorway and floor clear; solids still belong to the host.
+        for(const y of dressing.shelfHeights)box(roof,b.x+b.w-.22,y,b.z+b.d/2,.12,.09,Math.min(3,b.d/3));
         const doorWidth = b.use === 'tower' ? 5 : 3, doorHeight = b.use === 'tower' ? 7 : 3;
         const d = MeshBuilder.CreateBox(`${b.id}:door`, { width: doorWidth, height: doorHeight, depth: .45 }, scene);
         d.position.set(b.door.x + .5 - origin.x, 1 + doorHeight / 2, b.z + .5 - origin.z); d.material = featured?this.square.get(chunk.realm,'basalt'):metal; d.parent = root; meshes.push(d);

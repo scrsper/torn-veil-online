@@ -25,6 +25,9 @@ export class World {
   realmExpedition?: import('../world/realms/expedition').RealmExpedition;
   interiors?: import('../world/interiors/grid').InteriorRegistry;
   canonicalTower?: import('../world/interiors/towerTypes').CanonicalTowerRun;
+  universeExpedition?: import('../world/universe/binding').CanonicalUniverseBinding;
+  /** John Smith's quest ledger per person (quests/ledger.ts): every system and emergent quest and its one reward claim. */
+  questLedgers?: Record<EntityId, import('../quests/ledger').QuestLedger>;
   /** John Smith's record: attention, ledgers, quests per interface holder and the finite reserve.
    * Orchestrator state beside the world; no mind, goal, combat or economy path reads it. */
   johnSmith?: import('../orchestrator/types').JohnSmithState;
@@ -466,6 +469,8 @@ export class World {
       // The recent receipt window is informational and does not pin ordinary practice events.
       visit(p.experience?.feats); visit(p.experience?.achievements); visit(p.experience?.trackEventId); visit(p.vessel?.eventId); }
     visit(this.canonicalTower);
+    visit(this.universeExpedition);
+    visit(this.questLedgers);
     for (const b of this.bodies()) { visit(b.arcana); visit(b.recoil); }
     for (const b of this.bodies()) if (b.guard && b.guard.until > this.physicalTime) visit(b.guard.eventId);
     visit(this.martialDefinitions);

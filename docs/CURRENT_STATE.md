@@ -1,4 +1,21 @@
-# Torn Veil current build - October 11, 2026
+# Torn Veil current release candidate - October 20, 2026
+
+Current published implementation528898c also passes20 independent restart checks and read-only checkpoint21126 restore. Latest21 camera/cutaway/interior/boundary checks, TypeScript and web build pass. The unendowed combat campaign proves actual dagger contact and injury/learning/equipment retention, but town return is correctly rejected while a visible warden threatens (Break contact before returning). Escape/return/reentry and held-guard queue congestion remain acceptance work. [Gameplay evidence](evidence/universe-release/gameplay-follow-up/RESULTS.md).
+
+PR72 stays draft. Current-head CI is running; prior02bb green does not certify corrected code. Original7533 remains untouched and its approved shutdown is tool-policy blocked. Its background tool PTY is not a visible PowerShell terminal; the app open request was only queued. No manual terminal hunt, force kill or alternative-control bypass.
+
+Implementation956e837 passes54 ordinary world-travel checks and20 same-save
+restart checks on owned7534;12 repeated taps pass0.75m.67 input/API/QA and11
+lighting/boundary checks (overlap), TypeScript and final web build pass. Night
+terrain/space readability improves modestly through existing ambient lighting.
+Fresh ordinary town/Tower/combat acceptance is in progress. PR72 stays draft
+until final-head CI and the separate original7533 exact-save restart pass.
+That original writer remains frozen because the tool denied its explicitly
+approved graceful shutdown. See [release status](UNIVERSE_RELEASE.md),
+[asset setup](UNIVERSE_ASSETS.md) and [destinations](UNIVERSE_DESTINATIONS.md).
+Older records below retain their original scope.
+
+## Previous build record - October 11, 2026
 
 The current local repair is described in [the October 11 repair checkpoint](TORN_VEIL_REPAIR_OCT11.md). It adds one persistent launch/inspection home, shared city/Tower control, relaxed equipped travel and attainable source-backed Gold. Remote main remains the previously published baseline until separately authorized publication.
 

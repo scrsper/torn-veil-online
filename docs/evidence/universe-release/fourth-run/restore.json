@@ -1,0 +1,124 @@
+{
+  "checkpoint": {
+    "format": 1,
+    "sequence": 5342,
+    "engine": "d42707b0293c8af93821f24eba35c2bfaad185643fd59cb982c67f25a161ed53",
+    "worldFile": "world-5342-9c01c378-81c6-4cae-9152-5fa1819cae64.json.gz",
+    "sha256": "7d35884f9d13f72777f22148cca02a464b052eeb1c2f82cc3cb4cdbd5bcbf5aa",
+    "bytes": 48080,
+    "control": {
+      "citySteps": 0,
+      "realm": {
+        "input": {
+          "x": 0,
+          "z": 0,
+          "sprint": false
+        },
+        "inputUntil": 0,
+        "pending": null,
+        "transitionId": 0,
+        "lastRegion": "brass:117,32"
+      },
+      "tower": null,
+      "controller": {
+        "slowAccum": 0.016666666666666666,
+        "interactionTick": 361,
+        "move": {
+          "x": 0,
+          "z": 0,
+          "sprint": false,
+          "expires": 0
+        },
+        "sequence": -1,
+        "appliedSequence": -1,
+        "control": null
+      }
+    }
+  },
+  "person": "p_5",
+  "body": "b_5",
+  "bodyPresent": true,
+  "position": {
+    "x": 11312.240526886884,
+    "y": 1.0625,
+    "z": 3126.0465400635085
+  },
+  "inventory": [
+    "i_1",
+    "i_2",
+    "i_3",
+    "i_4",
+    "i_5"
+  ],
+  "experience": {
+    "version": 1,
+    "stage": "Normal",
+    "rankXp": 110,
+    "lifetimeXp": 110,
+    "overflowXp": 0,
+    "foundations": {
+      "strength": 7,
+      "dexterity": 8,
+      "endurance": 9,
+      "vitality": 7,
+      "intellect": 9,
+      "perception": 8,
+      "will": 9
+    },
+    "defeated": [],
+    "feats": [],
+    "achievements": {
+      "awakened": {
+        "eventId": "e_2",
+        "xp": 50,
+        "tick": 8666400
+      }
+    },
+    "receipts": [
+      {
+        "kind": "learning",
+        "xp": 30,
+        "tick": 8666400,
+        "eventId": "e_1"
+      },
+      {
+        "kind": "achievement",
+        "xp": 50,
+        "tick": 8666400,
+        "eventId": "e_2",
+        "key": "awakened"
+      },
+      {
+        "kind": "learning",
+        "xp": 30,
+        "tick": 8666400,
+        "eventId": "e_3"
+      }
+    ],
+    "tally": {
+      "defeats": 0,
+      "practiceSeconds": 0,
+      "levelUps": 1
+    }
+  },
+  "stage": "Normal",
+  "johnSmithVersion": 1,
+  "expeditionActive": false,
+  "discoveries": [
+    {
+      "planetId": "u1:20261017:s0:p0",
+      "systemIndex": 0,
+      "tick": 0,
+      "explorerId": "p_5",
+      "method": "landed"
+    }
+  ],
+  "parkedVessel": {
+    "x": -3.0784811375173877,
+    "y": 524.4641801324371,
+    "z": 1521.0980550469717
+  },
+  "writeVersion": 33,
+  "manifestUnchanged": true,
+  "note": "Read-only restore after graceful host stop. Retains fixture-earned learning and original inventory. No save editing."
+}

@@ -16,6 +16,8 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [lerp(a[0], b[0], t), lerp(a[1],
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const S = (a: number, b: number, v: number) => { const t = clamp01((v - a) / (b - a)); return t * t * (3 - 2 * t); };
 
+/** Sun and moon directions (unit, view frame, +Y up) and the moon's lit fraction. */
+export interface Celestial { sun: Vector3; moon: Vector3; illumination: number }
 export class Atmosphere {
   readonly key: DirectionalLight;
   readonly fill: HemisphericLight;
@@ -90,12 +92,15 @@ export class Atmosphere {
   removeCaster(mesh: AbstractMesh): void { this.shadow.removeShadowCaster(mesh, false); }
 
   /** `worldSeconds` is the canonical world clock (86400 per day). */
-  update(hourOfDay: number, weather: WeatherProjection, dt: number): void {
+  update(hourOfDay: number, weather: WeatherProjection, dt: number, celestial?: Celestial): void {
     const h = ((hourOfDay % 24) + 24) % 24; this.hour = h;
     const theta = Math.PI * (h - 6) / 12;                       // 0 at 06:00, pi/2 at noon, pi at 18:00
-    const elev = Math.sin(theta);
-    const sunPos = new Vector3(Math.cos(theta) * .85, elev, -.65 * Math.cos(theta) - .2).normalize();
-    const moonPos = sunPos.scale(-1);
+    // Optional canonical sky (sim/world/planet/sky.ts, in this view's frame): the moon has its
+    // own direction and phase instead of mirroring the sun.
+    const sunPos = celestial ? celestial.sun.clone().normalize() : new Vector3(Math.cos(theta) * .85, Math.sin(theta), -.65 * Math.cos(theta) - .2).normalize();
+    const elev = celestial ? sunPos.y : Math.sin(theta);
+    const moonPos = celestial ? celestial.moon.clone().normalize() : sunPos.scale(-1);
+    const moonLight = celestial ? S(-0.05, 0.12, moonPos.y) * (.25 + .75 * celestial.illumination) : 1;
     const wet = weather.kind === 'rain' || weather.kind === 'storm' ? weather.intensity : 0, fog = weather.kind === 'fog' ? Math.max(0.4, weather.intensity) : 0;
     const overcast = clamp01(wet * 0.9 + fog * 0.7 + (weather.kind === 'cloudy' ? 0.5 : 0));
 
@@ -111,7 +116,7 @@ export class Atmosphere {
     const moonColor: RGB = [0.5, 0.6, 0.85];
     const kc = keyFromSun ? sunColor : moonColor;
     this.key.diffuse = new Color3(...kc); this.key.specular = new Color3(kc[0], kc[1], kc[2]);
-    this.key.intensity = (keyFromSun ? lerp(0.3, 2.5, S(-0.06, 0.4, elev)) * (1 - overcast * 0.55) : 0.42 * (1 - overcast * 0.3)) * this.look.key;   // moonlight: dark, but enough to read paths, people and faces
+    this.key.intensity = (keyFromSun ? lerp(0.3, 2.5, S(-0.06, 0.4, elev)) * (1 - overcast * 0.55) : 0.42 * Math.max(.15, moonLight) * (1 - overcast * 0.3)) * this.look.key;   // moonlight: dark, but enough to read paths, people and faces
     this.sunDirection.copyFrom(sunPos);
 
     // A broad, near-neutral daylight fill balances the directional sun. The old blue,
@@ -138,8 +143,8 @@ export class Atmosphere {
     const camera = s.activeCamera;
     const place = (m: Mesh, p: Vector3) => { if (camera) m.position.copyFrom(p.scale(780)); };
     place(this.sunDisc, sunPos); place(this.moonDisc, moonPos);
-    this.sunDisc.setEnabled(elev > -0.12 && overcast < 0.85); this.moonDisc.setEnabled(elev < 0.1 && overcast < 0.9);
-    this.sunMat.alpha = 1 - overcast; this.moonMat.alpha = (1 - overcast) * night;
+    this.sunDisc.setEnabled(elev > -0.12 && overcast < 0.85); this.moonDisc.setEnabled((celestial ? moonPos.y > -0.1 : elev < 0.1) && overcast < 0.9);
+    this.sunMat.alpha = 1 - overcast; this.moonMat.alpha = (1 - overcast) * (celestial ? Math.max(.25, 1 - this.daylight) * (.35 + .65 * celestial.illumination) : night);
     this.starMat.alpha = clamp01(night * 1.2) * (1 - overcast);
     this.cloudMat.setFloat('cloudOpacity',lerp(.16, .55, day) + overcast * lerp(.2,.4,day));
     this.cloudDome.rotation.y += dt * 0.0015 * (0.5 + weather.wind);

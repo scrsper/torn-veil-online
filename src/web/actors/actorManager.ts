@@ -34,6 +34,8 @@ export interface ActorState {
   lookAt?: Vector3 | null;
   speaking?: boolean; gesture?: number;
   combat?: CombatContext | null; hit?: number; guard?: boolean;
+  /** Client-only pose input in the actor's upright local frame; no simulation authority. */
+  flightPresentation?: import('./flightPose').FlightPresentationInput;
 }
 export type VisualFactory = (ctx: RenderContext, atmosphere: Atmosphere, actor: { kind: 'person' | 'wildlife'; body?: BodyState; wildlife?: WildlifeBody }) => BodyVisual;
 

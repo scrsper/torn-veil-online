@@ -1,4 +1,4 @@
-import type { OntologicalStage } from './stages';
+import type { AttainableStage } from './stages';
 import type { AppearanceDescription } from './appearance';
 /**
  * The ontology of Torn Veil Online.
@@ -69,6 +69,8 @@ export interface Body extends Entity {
   /** The current encounter (progression/experience.ts): who hurt this body, whom it struck. */
   encounter?: import('../progression/experience').EncounterTally;
   recoil?: import('../physical/recoil').Recoil;
+  /** An in-flight vault or jump arc (physical/traversal.ts); absent when grounded. */
+  traversal?: import('../physical/traversal').BodyTraversal;
   /** Explicit hand selection after an equipment action; legacy saves retain carried-weapon selection. */
   equipmentMode?: 'explicit';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
@@ -906,7 +908,7 @@ export interface Person extends Entity {
   lineage: { imprints: LineageImprint[]; expressed: Attributes; birthEventId?: EventId;
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
   /** Readiness is derived; a canonical advancement action records the transition event. */
-  ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
+  ontology: { stage: AttainableStage; breakthroughEventId?: EventId };
   /** Earned growth within the current rank (progression/experience.ts). Never a combat input. */
   experience?: import('../progression/experience').ExperienceLedger;
   /** The body the latest breakthrough remade: resilience and foundation ceiling, pinned to it. */
@@ -1163,7 +1165,7 @@ export interface ConstructionProject {
 // right capability/workplace accepts and fulfills by actually performing the production
 // transform (see world/production.ts). Mirrors haul/construction_labor's "world demand → shared
 // Request → real work → wage" shape rather than inventing a fourth ad hoc mechanism.
-export type RequestType = 'haul' | 'construction_labor' | 'production' | 'protection';
+export type RequestType = 'haul' | 'construction_labor' | 'production' | 'protection' | 'provision';
 export type RequestStatus = 'open' | 'accepted' | 'completed' | 'failed' | 'cancelled';
 export interface RequestPayload {
   haulTaskId?: EntityId;
@@ -1177,6 +1179,8 @@ export interface RequestPayload {
   /** protection: the animal the requester fears (as they know it) and its species. */
   creatureId?: EntityId;
   species?: string;
+  /** provision: the gift that met the need, once one did. */
+  fulfilledByEventId?: EventId;
   /** protection: where the requester last knew the animal to be (their own witnessed or told claim). */
   seenAt?: Vec3;
   /** protection: how the requester came to believe it was settled. */
@@ -1485,7 +1489,7 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'universe_entered' | 'universe_returned' | 'universe_travel' | 'system_quest_reward' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

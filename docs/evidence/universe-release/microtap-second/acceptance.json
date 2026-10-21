@@ -1,0 +1,1142 @@
+{
+  "revision": "db70c4a",
+  "started": "2026-10-20T20:36:37.942Z",
+  "finished": null,
+  "checks": [
+    "Microtap surface admits ordinary return",
+    "Actual town retains the same body and complete inventory",
+    "All four ordinary microtaps completed"
+  ],
+  "taps": [
+    {
+      "label": "forward",
+      "keys": [
+        "w"
+      ],
+      "physical": {
+        "requestedMs": 20,
+        "startedAt": 1792528612089,
+        "keydownCompleteAt": 1792528612110,
+        "releaseRequestedAt": 1792528612132,
+        "physicalHoldMs": 43,
+        "afterKeydownMs": 22
+      },
+      "completeChordSent": true,
+      "requestSeqs": [
+        3,
+        4
+      ],
+      "displacement": 0.6999999835757645,
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.4600168167667,
+          "z": 1523.586971558316
+        },
+        "lastSeq": 2,
+        "tick": 10
+      },
+      "after": {
+        "position": {
+          "x": 0,
+          "y": 516.797152807676,
+          "z": 1523.8119410728245
+        },
+        "lastSeq": 4,
+        "tick": 22
+      }
+    },
+    {
+      "label": "backward",
+      "keys": [
+        "s"
+      ],
+      "physical": {
+        "requestedMs": 20,
+        "startedAt": 1792528612673,
+        "keydownCompleteAt": 1792528612693,
+        "releaseRequestedAt": 1792528612716,
+        "physicalHoldMs": 43,
+        "afterKeydownMs": 23
+      },
+      "completeChordSent": true,
+      "requestSeqs": [
+        5,
+        6
+      ],
+      "displacement": 1.0499999645225133,
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 516.797152807676,
+          "z": 1523.8119410728245
+        },
+        "lastSeq": 4,
+        "tick": 22
+      },
+      "after": {
+        "position": {
+          "x": 0,
+          "y": 517.7914121039835,
+          "z": 1523.4743786679223
+        },
+        "lastSeq": 6,
+        "tick": 34
+      }
+    },
+    {
+      "label": "diagonal-forward-left",
+      "keys": [
+        "w",
+        "a"
+      ],
+      "physical": {
+        "requestedMs": 20,
+        "startedAt": 1792528613294,
+        "keydownCompleteAt": 1792528613313,
+        "releaseRequestedAt": 1792528613336,
+        "physicalHoldMs": 42,
+        "afterKeydownMs": 23
+      },
+      "completeChordSent": false,
+      "requestSeqs": [
+        7,
+        8,
+        9
+      ],
+      "displacement": 0.6999999837370547,
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.7914121039835,
+          "z": 1523.4743786679223
+        },
+        "lastSeq": 6,
+        "tick": 34
+      },
+      "after": {
+        "position": {
+          "x": 0,
+          "y": 517.128597045331,
+          "z": 1523.699492361987
+        },
+        "lastSeq": 9,
+        "tick": 46
+      }
+    },
+    {
+      "label": "diagonal-back-right",
+      "keys": [
+        "s",
+        "d"
+      ],
+      "physical": {
+        "requestedMs": 20,
+        "startedAt": 1792528613888,
+        "keydownCompleteAt": 1792528613908,
+        "releaseRequestedAt": 1792528613930,
+        "physicalHoldMs": 42,
+        "afterKeydownMs": 22
+      },
+      "completeChordSent": false,
+      "requestSeqs": [
+        10,
+        11,
+        12
+      ],
+      "displacement": 0.6999999830871211,
+      "before": {
+        "position": {
+          "x": 0,
+          "y": 517.128597045331,
+          "z": 1523.699492361987
+        },
+        "lastSeq": 9,
+        "tick": 46
+      },
+      "after": {
+        "position": {
+          "x": 0,
+          "y": 517.7914121033682,
+          "z": 1523.4743786681317
+        },
+        "lastSeq": 12,
+        "tick": 58
+      }
+    }
+  ],
+  "responses": [
+    {
+      "seq": 1,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528611563,
+      "respondedAt": 1792528611670,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 1,
+      "revision": 5
+    },
+    {
+      "seq": 2,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528611670,
+      "respondedAt": 1792528611743,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 2,
+      "revision": 8
+    },
+    {
+      "seq": 3,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528612110,
+      "respondedAt": 1792528612228,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 3,
+      "revision": 18
+    },
+    {
+      "seq": 4,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528612227,
+      "respondedAt": 1792528612291,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 4,
+      "revision": 21
+    },
+    {
+      "seq": 5,
+      "input": {
+        "throttle": -1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528612694,
+      "respondedAt": 1792528612812,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 5,
+      "revision": 31
+    },
+    {
+      "seq": 6,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528612812,
+      "respondedAt": 1792528612879,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 6,
+      "revision": 35
+    },
+    {
+      "seq": 7,
+      "input": {
+        "throttle": 1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528613314,
+      "respondedAt": 1792528613421,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 7,
+      "revision": 46
+    },
+    {
+      "seq": 8,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528613420,
+      "respondedAt": 1792528613497,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 8,
+      "revision": 49
+    },
+    {
+      "seq": 9,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528613496,
+      "respondedAt": 1792528613559,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 9,
+      "revision": 52
+    },
+    {
+      "seq": 10,
+      "input": {
+        "throttle": -1,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528613909,
+      "respondedAt": 1792528614013,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 10,
+      "revision": 61
+    },
+    {
+      "seq": 11,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528614013,
+      "respondedAt": 1792528614074,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 11,
+      "revision": 64
+    },
+    {
+      "seq": 12,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528614073,
+      "respondedAt": 1792528614151,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 12,
+      "revision": 66
+    },
+    {
+      "seq": 13,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": true
+      },
+      "requestedAt": 1792528614914,
+      "respondedAt": 1792528615013,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 13,
+      "revision": 84
+    },
+    {
+      "seq": 14,
+      "input": {
+        "throttle": 0,
+        "yaw": 0,
+        "pitch": 0,
+        "strafe": 0,
+        "lift": 0,
+        "brake": false
+      },
+      "requestedAt": 1792528615012,
+      "respondedAt": 1792528615077,
+      "status": 200,
+      "ok": true,
+      "lastSeq": 14,
+      "revision": 87
+    }
+  ],
+  "errors": [],
+  "http": [],
+  "recoveryOrAssessmentFailure": "AssertionError [ERR_ASSERTION]: Every 20 ms physical-key tap stopped within two 50 ms travel steps plus 5 cm numerical margin",
+  "contactQA": {
+    "traces": [],
+    "route": [],
+    "stops": [
+      {
+        "label": "microtap-start",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 517.4600168168618,
+            "z": 1523.586971558284
+          },
+          "tick": 0,
+          "lastSeq": 0
+        },
+        "minimumSeq": 0,
+        "observations": [
+          {
+            "elapsed": 158,
+            "position": {
+              "x": 0,
+              "y": 517.4600168168179,
+              "z": 1523.5869715582987
+            },
+            "tick": 3,
+            "lastSeq": 1,
+            "revision": 5
+          },
+          {
+            "elapsed": 282,
+            "position": {
+              "x": 0,
+              "y": 517.4600168167667,
+              "z": 1523.586971558316
+            },
+            "tick": 5,
+            "lastSeq": 2,
+            "revision": 8
+          },
+          {
+            "elapsed": 411,
+            "position": {
+              "x": 0,
+              "y": 517.4600168167667,
+              "z": 1523.586971558316
+            },
+            "tick": 8,
+            "lastSeq": 2,
+            "revision": 11
+          },
+          {
+            "elapsed": 530,
+            "position": {
+              "x": 0,
+              "y": 517.4600168167667,
+              "z": 1523.586971558316
+            },
+            "tick": 10,
+            "lastSeq": 2,
+            "revision": 13
+          }
+        ],
+        "ack": {
+          "seq": 1,
+          "brake": true,
+          "lastActiveSeq": 0,
+          "status": 200,
+          "ok": true,
+          "revision": 5,
+          "lastSeq": 1
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.6999999999002
+          },
+          "elapsed": 530,
+          "ticks": 4,
+          "lastSeq": 2
+        }
+      },
+      {
+        "label": "forward",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 517.4600168167667,
+            "z": 1523.586971558316
+          },
+          "tick": 10,
+          "lastSeq": 2
+        },
+        "minimumSeq": 3,
+        "observations": [
+          {
+            "elapsed": 180,
+            "position": {
+              "x": 0,
+              "y": 516.7971528077419,
+              "z": 1523.8119410728027
+            },
+            "tick": 16,
+            "lastSeq": 4,
+            "revision": 21
+          },
+          {
+            "elapsed": 297,
+            "position": {
+              "x": 0,
+              "y": 516.7971528077024,
+              "z": 1523.8119410728157
+            },
+            "tick": 18,
+            "lastSeq": 4,
+            "revision": 23
+          },
+          {
+            "elapsed": 404,
+            "position": {
+              "x": 0,
+              "y": 516.797152807676,
+              "z": 1523.8119410728245
+            },
+            "tick": 20,
+            "lastSeq": 4,
+            "revision": 25
+          },
+          {
+            "elapsed": 518,
+            "position": {
+              "x": 0,
+              "y": 516.797152807676,
+              "z": 1523.8119410728245
+            },
+            "tick": 22,
+            "lastSeq": 4,
+            "revision": 27
+          }
+        ],
+        "ack": {
+          "seq": 4,
+          "brake": true,
+          "lastActiveSeq": 3,
+          "status": 200,
+          "ok": true,
+          "revision": 21,
+          "lastSeq": 4
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 516.797152807676,
+            "z": 1523.8119410728245
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0625,
+            "z": 3113.0039425238524
+          },
+          "elapsed": 518,
+          "ticks": 4,
+          "lastSeq": 4
+        }
+      },
+      {
+        "label": "backward",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 516.797152807676,
+            "z": 1523.8119410728245
+          },
+          "tick": 22,
+          "lastSeq": 4
+        },
+        "minimumSeq": 5,
+        "observations": [
+          {
+            "elapsed": 184,
+            "position": {
+              "x": 0,
+              "y": 517.7914121041217,
+              "z": 1523.4743786678755
+            },
+            "tick": 28,
+            "lastSeq": 6,
+            "revision": 35
+          },
+          {
+            "elapsed": 318,
+            "position": {
+              "x": 0,
+              "y": 517.791412104084,
+              "z": 1523.4743786678882
+            },
+            "tick": 30,
+            "lastSeq": 6,
+            "revision": 37
+          },
+          {
+            "elapsed": 441,
+            "position": {
+              "x": 0,
+              "y": 517.7914121040338,
+              "z": 1523.4743786679057
+            },
+            "tick": 32,
+            "lastSeq": 6,
+            "revision": 39
+          },
+          {
+            "elapsed": 556,
+            "position": {
+              "x": 0,
+              "y": 517.7914121039835,
+              "z": 1523.4743786679223
+            },
+            "tick": 34,
+            "lastSeq": 6,
+            "revision": 41
+          }
+        ],
+        "ack": {
+          "seq": 6,
+          "brake": true,
+          "lastActiveSeq": 5,
+          "status": 200,
+          "ok": true,
+          "revision": 35,
+          "lastSeq": 6
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 517.7914121039835,
+            "z": 1523.4743786679223
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3114.0480287374357
+          },
+          "elapsed": 557,
+          "ticks": 4,
+          "lastSeq": 6
+        }
+      },
+      {
+        "label": "diagonal-forward-left",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 517.7914121039835,
+            "z": 1523.4743786679223
+          },
+          "tick": 34,
+          "lastSeq": 6
+        },
+        "minimumSeq": 7,
+        "observations": [
+          {
+            "elapsed": 183,
+            "position": {
+              "x": 0,
+              "y": 517.1285970454865,
+              "z": 1523.6994923619347
+            },
+            "tick": 40,
+            "lastSeq": 8,
+            "revision": 49
+          },
+          {
+            "elapsed": 304,
+            "position": {
+              "x": 0,
+              "y": 517.1285970454345,
+              "z": 1523.6994923619523
+            },
+            "tick": 42,
+            "lastSeq": 9,
+            "revision": 52
+          },
+          {
+            "elapsed": 415,
+            "position": {
+              "x": 0,
+              "y": 517.1285970453829,
+              "z": 1523.6994923619695
+            },
+            "tick": 44,
+            "lastSeq": 9,
+            "revision": 54
+          },
+          {
+            "elapsed": 520,
+            "position": {
+              "x": 0,
+              "y": 517.128597045331,
+              "z": 1523.699492361987
+            },
+            "tick": 46,
+            "lastSeq": 9,
+            "revision": 56
+          }
+        ],
+        "ack": {
+          "seq": 8,
+          "brake": true,
+          "lastActiveSeq": 7,
+          "status": 200,
+          "ok": true,
+          "revision": 49,
+          "lastSeq": 8
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 517.128597045331,
+            "z": 1523.699492361987
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0624999999997726,
+            "z": 3113.3519712612274
+          },
+          "elapsed": 520,
+          "ticks": 4,
+          "lastSeq": 9
+        }
+      },
+      {
+        "label": "diagonal-back-right",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 517.128597045331,
+            "z": 1523.699492361987
+          },
+          "tick": 46,
+          "lastSeq": 9
+        },
+        "minimumSeq": 10,
+        "observations": [
+          {
+            "elapsed": 179,
+            "position": {
+              "x": 0,
+              "y": 517.7914121035064,
+              "z": 1523.4743786680847
+            },
+            "tick": 52,
+            "lastSeq": 11,
+            "revision": 64
+          },
+          {
+            "elapsed": 284,
+            "position": {
+              "x": 0,
+              "y": 517.7914121034813,
+              "z": 1523.474378668093
+            },
+            "tick": 53,
+            "lastSeq": 12,
+            "revision": 66
+          },
+          {
+            "elapsed": 394,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 56,
+            "lastSeq": 12,
+            "revision": 69
+          },
+          {
+            "elapsed": 521,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 58,
+            "lastSeq": 12,
+            "revision": 71
+          }
+        ],
+        "ack": {
+          "seq": 11,
+          "brake": true,
+          "lastActiveSeq": 10,
+          "status": 200,
+          "ok": true,
+          "revision": 64,
+          "lastSeq": 11
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 517.7914121033682,
+            "z": 1523.4743786681317
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0625,
+            "z": 3114.0480287367895
+          },
+          "elapsed": 521,
+          "ticks": 4,
+          "lastSeq": 12
+        }
+      },
+      {
+        "label": "microtap-final",
+        "control": "Escape",
+        "before": {
+          "position": {
+            "x": 0,
+            "y": 517.7914121033682,
+            "z": 1523.4743786681317
+          },
+          "tick": 62,
+          "lastSeq": 12
+        },
+        "minimumSeq": 12,
+        "observations": [
+          {
+            "elapsed": 146,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 70,
+            "lastSeq": 13,
+            "revision": 84
+          },
+          {
+            "elapsed": 261,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 72,
+            "lastSeq": 14,
+            "revision": 87
+          },
+          {
+            "elapsed": 371,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 75,
+            "lastSeq": 14,
+            "revision": 90
+          },
+          {
+            "elapsed": 482,
+            "position": {
+              "x": 0,
+              "y": 517.7914121033682,
+              "z": 1523.4743786681317
+            },
+            "tick": 76,
+            "lastSeq": 14,
+            "revision": 91
+          }
+        ],
+        "ack": {
+          "seq": 13,
+          "brake": true,
+          "lastActiveSeq": 10,
+          "status": 200,
+          "ok": true,
+          "revision": 84,
+          "lastSeq": 13
+        },
+        "settled": {
+          "position": {
+            "x": 0,
+            "y": 517.7914121033682,
+            "z": 1523.4743786681317
+          },
+          "chart": {
+            "x": 11312.5,
+            "y": 1.0625,
+            "z": 3114.0480287367895
+          },
+          "elapsed": 482,
+          "ticks": 4,
+          "lastSeq": 14
+        }
+      }
+    ],
+    "findings": [],
+    "limits": [],
+    "targets": {
+      "penetration": 0.03,
+      "sustainedMs": 100,
+      "stationaryP95Gap": 0.04,
+      "unsupportedGap": 0.08,
+      "lockDrift": 0.03
+    },
+    "inputRequests": [
+      {
+        "at": 1792528611563,
+        "seq": 1,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528611670,
+        "seq": 2,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528612110,
+        "seq": 3,
+        "input": {
+          "throttle": 1,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528612227,
+        "seq": 4,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528612694,
+        "seq": 5,
+        "input": {
+          "throttle": -1,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528612812,
+        "seq": 6,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528613314,
+        "seq": 7,
+        "input": {
+          "throttle": 1,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528613420,
+        "seq": 8,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528613496,
+        "seq": 9,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528613909,
+        "seq": 10,
+        "input": {
+          "throttle": -1,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528614013,
+        "seq": 11,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528614073,
+        "seq": 12,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      },
+      {
+        "at": 1792528614914,
+        "seq": 13,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": true
+        }
+      },
+      {
+        "at": 1792528615012,
+        "seq": 14,
+        "input": {
+          "throttle": 0,
+          "yaw": 0,
+          "pitch": 0,
+          "strafe": 0,
+          "lift": 0,
+          "brake": false
+        }
+      }
+    ]
+  },
+  "endTown": {
+    "ready": true,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3,
+        "grade": null
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1,
+        "grade": null
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1,
+        "grade": "Bronze-grade"
+      }
+    ],
+    "position": {
+      "x": 11312.5,
+      "y": 1.0625,
+      "z": 3114.0480287367895
+    }
+  }
+}

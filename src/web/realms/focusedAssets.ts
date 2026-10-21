@@ -67,12 +67,20 @@ export class FocusedAssets {
  }
  async instantiate(p:AssetPlacement,origin:{x:number;z:number}={x:0,z:0}){
   const c=await this.container(p.assetId);if(this.disposed)throw Error('Focused load cancelled');const entries=c.instantiateModelsToScene(n=>p.id+':'+n,false,{doNotInstantiate:n=>/roof|ceiling|wall|crown/i.test(n.name)});
-  const root=new TransformNode(p.id,this.scene);root.position.set(p.position[0]-origin.x,p.position[1],p.position[2]-origin.z);root.rotation.y=p.yaw;
-  root.metadata={assetId:p.assetId,placementId:p.id,packSha256:PACK,floorId:p.floorId};for(const n of entries.rootNodes)n.parent=root;
-  const meshes=root.getChildMeshes();for(const m of meshes){m.metadata={...m.metadata,focusedPart:true,placementId:p.id};m.receiveShadows=true;this.atmosphere.addCaster(m);}
-  if(p.assetId.includes('forest'))this.forestKit().decorate(root,await this.routes(p.assetId));
-  this.references.set(p.assetId,(this.references.get(p.assetId)??0)+1);let released=false;
-  return {root,dispose:()=>{if(released)return;released=true;for(const m of meshes)this.atmosphere.removeCaster(m);entries.dispose();root.dispose();this.references.set(p.assetId,Math.max(0,(this.references.get(p.assetId)??1)-1));this.trim();}};
+  const root=new TransformNode(p.id,this.scene);
+  try{
+   root.position.set(p.position[0]-origin.x,p.position[1],p.position[2]-origin.z);root.rotation.y=p.yaw;
+   root.metadata={assetId:p.assetId,placementId:p.id,packSha256:PACK,floorId:p.floorId};for(const n of entries.rootNodes)n.parent=root;
+   const meshes=root.getChildMeshes();for(const m of meshes){m.metadata={...m.metadata,focusedPart:true,placementId:p.id};m.receiveShadows=true;this.atmosphere.addCaster(m);}
+   if(p.assetId.includes('forest')){const routes=await this.routes(p.assetId);if(this.disposed)throw Error('Focused load cancelled');this.forestKit().decorate(root,routes);}
+   this.references.set(p.assetId,(this.references.get(p.assetId)??0)+1);let released=false;
+   return {root,dispose:()=>{if(released)return;released=true;for(const m of meshes)this.atmosphere.removeCaster(m);entries.dispose();root.dispose();this.references.set(p.assetId,Math.max(0,(this.references.get(p.assetId)??1)-1));this.trim();}};
+  }catch(error){
+   // Ownership transfers only after every asynchronous dependency succeeds.
+   // Rejected metadata or late cancellation must not strand a native hierarchy.
+   for(const mesh of root.getChildMeshes())this.atmosphere.removeCaster(mesh);
+   entries.dispose();root.dispose();throw error;
+  }
  }
  private trim(){for(const [id,c] of this.containers){if(this.containers.size<=16)break;if((this.references.get(id)??0)===0&&!this.loads.has(id)){c.dispose();this.containers.delete(id);}}}
  dispose(){this.disposed=true;for(const c of this.containers.values())c.dispose();this.containers.clear();this.forest?.dispose();for(const maps of this.scanned.values())for(const texture of Object.values(maps))texture.dispose();this.scanned.clear();for(const m of this.foliage.values())m.dispose();this.foliage.clear();for(const texture of this.leafMaps.values())texture.dispose();this.leafMaps.clear();}

@@ -9,6 +9,7 @@ import type { ArcaneBody, ArcaneCast, ArcaneEffect } from './types';
 import type { Rider } from './catalogue';
 
 export type ArcaneHit = (p: Person, body: Body, target: Body, damage: number, intent: ConflictIntent, sourceEventId: string) => WorldEvent | null;
+export const ARCANE_RECOVERY_PER_SECOND = 1.6;
 const distance = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 const finitePoint = (p: Vec3) => !!p && [p.x, p.y, p.z].every(Number.isFinite);
 const eye = (b: Body) => ({ ...b.pos, y: b.pos.y + 1.2 });
@@ -26,7 +27,7 @@ export function arcaneBody(w: World, b: Body): ArcaneBody {
   // Embodied reserve, not an extra health/energy system. Recovery requires a conscious,
   // nourished living body; clocks and reloads cannot award negative or repeated time.
   if (p && capable(w, p, b) && p.physiology.energy >= .25 && p.physiology.hydration >= .25)
-    a.mana = Math.min(arcaneCapacity(p, w, b).reserve, a.mana + elapsed * 1.6);
+    a.mana = Math.min(arcaneCapacity(p, w, b).reserve, a.mana + elapsed * ARCANE_RECOVERY_PER_SECOND);
   a.sampledAt = w.physicalTime;
   a.effects = a.effects.filter(e => e.until > w.physicalTime && e.strength > 0);
   return a;

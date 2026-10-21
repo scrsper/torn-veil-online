@@ -1,4 +1,4 @@
-import type { EntityId, Person, Request, RequestPayload, RequestType } from './types';
+import type { EntityId, Person, Request, RequestPayload, RequestType, Vec3 } from './types';
 import type { World } from './world';
 
 /**
@@ -16,11 +16,13 @@ export interface RequestSpec {
   reward: number;
   cause: string;
   payload: RequestPayload;
+  /** Asked aloud: the request is a perceivable event, learned only by those who see or hear it. */
+  announce?: { actor: EntityId; pos: Vec3; loudness: number; visibility: number };
 }
 
 /** Human-readable label for a request type, used only in event summaries. */
 export function requestTypeLabel(type: RequestType): string {
-  return type === 'haul' ? 'hauling' : type === 'production' ? 'production' : type === 'protection' ? 'dealing with a dangerous animal' : 'construction labour';
+  return type === 'haul' ? 'hauling' : type === 'production' ? 'production' : type === 'protection' ? 'dealing with a dangerous animal' : type === 'provision' ? 'food' : 'construction labour';
 }
 
 export function createRequest(world: World, s: RequestSpec): Request {
@@ -31,6 +33,7 @@ export function createRequest(world: World, s: RequestSpec): Request {
   world.requests.push(r);
   world.emit('request_created', {
     placeId: s.requesterPlaceId, significance: 0.05,
+    ...(s.announce ? { actor: s.announce.actor, pos: s.announce.pos, loudness: s.announce.loudness, visibility: s.announce.visibility } : {}),
     data: { requestId: r.id, type: r.type, reward: r.reward, cause: r.cause },
     summary: `A request for ${requestTypeLabel(r.type)} was raised — ${r.cause}`,
   });

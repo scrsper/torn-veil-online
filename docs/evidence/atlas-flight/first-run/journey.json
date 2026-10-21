@@ -1,0 +1,3273 @@
+{
+  "note": "Ordinary UI journey against a parent-created, isolated capability fixture. No client capability grant, observer teleport, save edit or direct movement injection. This is not a progression-earned character claim.",
+  "checks": [
+    "Inactive page projects actual town before entry",
+    "Isolated fixture is admitted for interplanetary personal flight",
+    "Explore preserves the preview position",
+    "Mapped settlement traversal retains canonical identity",
+    "Help suppresses G/F/C travel commands",
+    "G lifts the same canonical body",
+    "Lift begins at the walked position without relocating to the vessel",
+    "Vessel has a retained parked position",
+    "Personal flight cannot use vessel warp",
+    "Shared hero is visible in personal flight",
+    "Powered flight spends canonical mana",
+    "Foreign personal landing has no local vessel",
+    "Personal landing records the same explorer discovery",
+    "Reload preserves body, person and foreign landing",
+    "Home landing restores access to the original parked vessel",
+    "Ordinary return control reaches the town view"
+  ],
+  "samples": [
+    {
+      "name": "00-town-preview",
+      "metrics": {
+        "p50": 13.899999999999636,
+        "p95": 34.69999999999891,
+        "draws": 707,
+        "activeMeshes": 710,
+        "totalMeshes": 2580
+      },
+      "preview": {
+        "spec": {
+          "version": 1,
+          "seed": 20261017
+        },
+        "system": {
+          "id": "u1:20261017:s0",
+          "index": 0,
+          "seed": 4060649947,
+          "name": "Cinderveil Expanse",
+          "planets": [
+            {
+              "id": "u1:20261017:s0:p0",
+              "index": 0,
+              "seed": 20261017,
+              "radius": 1600,
+              "center": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "kind": "temperate",
+              "name": "Cinderveil",
+              "atmosphere": 185,
+              "gravity": 9.81,
+              "palette": {
+                "land": "#5b7650",
+                "rock": "#777369",
+                "water": "#184e68",
+                "sky": "#84bad8"
+              }
+            },
+            {
+              "id": "u1:20261017:s0:p1",
+              "index": 1,
+              "seed": 3417329974,
+              "radius": 2374,
+              "center": {
+                "x": 16618.641806198448,
+                "y": 1595.3260650858283,
+                "z": -19174.616375932215
+              },
+              "kind": "glacial",
+              "name": "Thalehollow 2",
+              "atmosphere": 187,
+              "gravity": 5.54,
+              "palette": {
+                "land": "#d7e5e9",
+                "rock": "#7195a4",
+                "water": "#244c76",
+                "sky": "#a4c8e5"
+              }
+            },
+            {
+              "id": "u1:20261017:s0:p2",
+              "index": 2,
+              "seed": 1314885531,
+              "radius": 1571,
+              "center": {
+                "x": 778.6715281622598,
+                "y": -251.4495262876153,
+                "z": 28287.980624825654
+              },
+              "kind": "volcanic",
+              "name": "Vesperspire 3",
+              "atmosphere": 200,
+              "gravity": 6.55,
+              "palette": {
+                "land": "#4d4141",
+                "rock": "#7c4a3e",
+                "water": "#452e42",
+                "sky": "#bd715f"
+              }
+            },
+            {
+              "id": "u1:20261017:s0:p3",
+              "index": 3,
+              "seed": 2074974299,
+              "radius": 2220,
+              "center": {
+                "x": -21935.049110092543,
+                "y": -376.23503245413303,
+                "z": -22659.738179816293
+              },
+              "kind": "oceanic",
+              "name": "Vesperrest 4",
+              "atmosphere": 284,
+              "gravity": 7.84,
+              "palette": {
+                "land": "#6e9e78",
+                "rock": "#7e9290",
+                "water": "#136782",
+                "sky": "#92d4dc"
+              }
+            }
+          ]
+        },
+        "state": {
+          "atlasRevision": 1,
+          "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+          "tick": 0,
+          "explorerId": "p_5",
+          "vesselId": "u1:20261017:vessel:1",
+          "systemIndex": 0,
+          "mode": "surface",
+          "position": {
+            "x": 0,
+            "y": 517.4600168168618,
+            "z": 1523.586971558284
+          },
+          "forward": {
+            "x": 0,
+            "y": -0.9468786772162574,
+            "z": 0.3215909989928059
+          },
+          "up": {
+            "x": 0,
+            "y": 0.3215909989928059,
+            "z": 0.9468786772162573
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "landedPlanetId": "u1:20261017:s0:p0",
+          "landedVesselPosition": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          },
+          "targetPlanetId": "u1:20261017:s0:p0",
+          "cruise": false,
+          "landing": false,
+          "discoveries": [
+            {
+              "planetId": "u1:20261017:s0:p0",
+              "systemIndex": 0,
+              "tick": 0,
+              "explorerId": "p_5",
+              "method": "landed"
+            }
+          ],
+          "events": [],
+          "settlementRevision": 1
+        },
+        "revision": 0,
+        "status": {
+          "speed": 0,
+          "altitude": 3,
+          "nearestPlanetId": "u1:20261017:s0:p0",
+          "canLand": false,
+          "canLaunch": true,
+          "message": "Surface exploration · vessel ready"
+        }
+      },
+      "campaign": {
+        "active": false,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": true,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 865.229705649791,
+          "acceleration": 342.42520799007684,
+          "maxAltitude": 107282.80382300226,
+          "estimatedEndurance": 135.99343564196337,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 15.142633953752064,
+          "liftAcceleration": 248.40764331210192,
+          "manaAvailable": 320,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.25,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Veil boarding link ready."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p0",
+        "queriedPlacements": 0,
+        "queries": 20,
+        "requested": 0,
+        "loaded": 0,
+        "instanced": 0,
+        "pending": 0,
+        "peakPending": 0,
+        "cachedModels": 0,
+        "cacheBytes": 0,
+        "cacheTriangles": 0,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [],
+        "loadedIds": [],
+        "instancedIds": [],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": 0,
+          "y": 516.4952438198833,
+          "z": 1520.7463355266352
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24264740943908691,
+              -0.6743381023406982,
+              -2.6888067722320557
+            ],
+            [
+              -0.14371374249458313,
+              -0.6679590344429016,
+              -2.6909639835357666
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 66.95194643376941
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 56,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 120,
+        "decorations": 0
+      },
+      "vessel": {
+        "visible": false,
+        "position": {
+          "x": -3.0784811375173877,
+          "y": 7.004163315575397,
+          "z": -2.4889165113122544
+        }
+      },
+      "phase": "Surface exploration · vessel ready"
+    },
+    {
+      "name": "01-town-on-foot",
+      "metrics": {
+        "p50": 13.799999999999272,
+        "p95": 14,
+        "draws": 654,
+        "activeMeshes": 657,
+        "totalMeshes": 2580
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 75,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": 0,
+          "y": 512.817919196664,
+          "z": 1525.1557004637439
+        },
+        "forward": {
+          "x": 0,
+          "y": -0.947853610697996,
+          "z": 0.31870602863261316
+        },
+        "up": {
+          "x": 0,
+          "y": 0.31870602863261316,
+          "z": 0.947853610697996
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p0",
+        "landedVesselPosition": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        },
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [],
+        "settlementRevision": 1
+      },
+      "status": {
+        "speed": 0,
+        "altitude": 3,
+        "nearestPlanetId": "u1:20261017:s0:p0",
+        "canLand": false,
+        "canLaunch": true,
+        "message": "Surface exploration · vessel ready"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": true,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 865.229705649791,
+          "acceleration": 342.42520799007684,
+          "maxAltitude": 107282.80382300226,
+          "estimatedEndurance": 135.99343564196337,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 15.142633953752064,
+          "liftAcceleration": 248.40764331210192,
+          "manaAvailable": 320,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.25,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Cinderveil docking link ready."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p0",
+        "queriedPlacements": 0,
+        "queries": 28,
+        "requested": 0,
+        "loaded": 0,
+        "instanced": 0,
+        "pending": 0,
+        "peakPending": 0,
+        "cachedModels": 0,
+        "cacheBytes": 0,
+        "cacheTriangles": 0,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [],
+        "loadedIds": [],
+        "instancedIds": [],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": 0,
+          "y": 511.8618011107668,
+          "z": 1522.3121396316492
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24264901876449585,
+              -0.6677981019020081,
+              -2.6902480125427246
+            ],
+            [
+              -0.14371418952941895,
+              -0.6611378192901611,
+              -2.6923792362213135
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 67.12640573405707
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 56,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 120,
+        "decorations": 0
+      },
+      "vessel": {
+        "visible": true,
+        "position": {
+          "x": -3.0784811375173877,
+          "y": 11.646260935772489,
+          "z": -4.057645416771493
+        }
+      },
+      "phase": "Surface exploration · vessel ready",
+      "toast": "Launch before engaging cruise"
+    },
+    {
+      "name": "02-personal-ascent",
+      "metrics": {
+        "p50": 6.900000000001455,
+        "p95": 7.099999999998545,
+        "draws": 16,
+        "activeMeshes": 16,
+        "totalMeshes": 265
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 149,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "flight",
+        "position": {
+          "x": 0,
+          "y": 862.0929748069852,
+          "z": 2563.923696185017
+        },
+        "forward": {
+          "x": 0,
+          "y": -0.9478536106979958,
+          "z": 0.3187060286326131
+        },
+        "up": {
+          "x": 0,
+          "y": 0.31870602863261316,
+          "z": 0.947853610697996
+        },
+        "velocity": {
+          "x": 0,
+          "y": 33.157240012469956,
+          "z": 98.61190828877737
+        },
+        "landedPlanetId": null,
+        "landedVesselPosition": null,
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        },
+        "personalFlight": {
+          "version": 1,
+          "bodyId": "b_5",
+          "phase": "powered",
+          "manaSpent": 8.118038894954875,
+          "effortSpent": 0.001807146049659516,
+          "startedEventId": "e_62"
+        }
+      },
+      "status": {
+        "speed": 104.03706561412993,
+        "altitude": 1098.9785612959295,
+        "nearestPlanetId": "u1:20261017:s0:p0",
+        "canLand": true,
+        "canLaunch": false,
+        "message": "Personal flight · mana and breath in use"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 860.1097615885418,
+          "acceleration": 340.34087760990656,
+          "maxAltitude": 106647.96436855332,
+          "estimatedEndurance": 132.5434356419626,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 15.053028340032458,
+          "liftAcceleration": 246.93770621928152,
+          "manaAvailable": 311.8819611050433,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.21464604575954,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Land in either home town to resume its ordinary interactions."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p0",
+        "queriedPlacements": 0,
+        "queries": 43,
+        "requested": 0,
+        "loaded": 0,
+        "instanced": 0,
+        "pending": 0,
+        "peakPending": 0,
+        "cachedModels": 0,
+        "cacheBytes": 0,
+        "cacheTriangles": 0,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [],
+        "loadedIds": [],
+        "instancedIds": [],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "flight",
+        "visible": true,
+        "position": {
+          "x": 0,
+          "y": 859.7819690594687,
+          "z": 2557.0506064241313
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.2425951212644577,
+              -0.6783133745193481,
+              -2.6868128776550293
+            ],
+            [
+              -0.14370077848434448,
+              -0.6694708466529846,
+              -2.6889641284942627
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 67.12640573405707
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 0,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 42,
+        "vertices": 6762,
+        "triangles": 11760,
+        "pendingTiles": 0,
+        "rebuilds": 128,
+        "decorations": 0
+      },
+      "vessel": {
+        "visible": true,
+        "position": {
+          "x": -3.0784811375173877,
+          "y": -336.2739070129294,
+          "z": -1038.7961122092534
+        }
+      },
+      "phase": "Flying under your own power"
+    },
+    {
+      "name": "03-between-worlds",
+      "metrics": {
+        "p50": 7,
+        "p95": 7.099999999998545,
+        "draws": 12,
+        "activeMeshes": 13,
+        "totalMeshes": 249
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 191,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "flight",
+        "position": {
+          "x": 8.682217653423313,
+          "y": 831.8413019018244,
+          "z": 3331.156688491573
+        },
+        "forward": {
+          "x": 0.01232341056635433,
+          "y": -0.07548498256564908,
+          "z": 0.9970707853302475
+        },
+        "up": {
+          "x": -0.029107727040824465,
+          "y": 0.9966968489272321,
+          "z": 0.07581643334424769
+        },
+        "velocity": {
+          "x": 8.664277946507575,
+          "y": -49.8188992958111,
+          "z": 709.1713218406405
+        },
+        "landedPlanetId": null,
+        "landedVesselPosition": null,
+        "targetPlanetId": "u1:20261017:s0:p2",
+        "cruise": true,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        },
+        "personalFlight": {
+          "version": 1,
+          "bodyId": "b_5",
+          "phase": "powered",
+          "manaSpent": 13.059453874492633,
+          "effortSpent": 0.0029071479929305313,
+          "startedEventId": "e_62"
+        }
+      },
+      "status": {
+        "speed": 710.9718392176878,
+        "altitude": 1827.458928796913,
+        "nearestPlanetId": "u1:20261017:s0:p0",
+        "canLand": true,
+        "canLaunch": false,
+        "message": "Personal flight · following the selected world"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 856.9932738990857,
+          "acceleration": 339.07215476980286,
+          "maxAltitude": 106261.54035280178,
+          "estimatedEndurance": 130.4434356419621,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 14.998485792550959,
+          "liftAcceleration": 246.04296190191258,
+          "manaAvailable": 306.9405461255044,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.193127251611486,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Land in either home town to resume its ordinary interactions."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p0",
+        "queriedPlacements": 0,
+        "queries": 43,
+        "requested": 0,
+        "loaded": 0,
+        "instanced": 0,
+        "pending": 0,
+        "peakPending": 0,
+        "cachedModels": 0,
+        "cacheBytes": 0,
+        "cacheTriangles": 0,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [],
+        "loadedIds": [],
+        "instancedIds": [],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "flight",
+        "visible": true,
+        "position": {
+          "x": 7.5035372644499665,
+          "y": 837.7427065678785,
+          "z": 3232.113673383778
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.22957909107208252,
+              -0.48402348160743713,
+              -2.7304604053497314
+            ],
+            [
+              -0.1567460596561432,
+              -0.48520776629447937,
+              -2.728135347366333
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 70.88431925616739
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 0,
+        "focused": 0,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 30,
+        "vertices": 4830,
+        "triangles": 8400,
+        "pendingTiles": 0,
+        "rebuilds": 128,
+        "decorations": 0
+      },
+      "vessel": {
+        "visible": true,
+        "position": {
+          "x": -10.588760273656945,
+          "y": -314.03123194452553,
+          "z": -1713.9196481169151
+        }
+      },
+      "phase": "Personal flight · assisted passage"
+    },
+    {
+      "name": "04-other-world-approach",
+      "metrics": {
+        "p50": 6.900000000001455,
+        "p95": 7.099999999998545,
+        "draws": 55,
+        "activeMeshes": 57,
+        "totalMeshes": 361
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 1024,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "flight",
+        "position": {
+          "x": 519.1282117903442,
+          "y": -853.9451106704907,
+          "z": 29820.00802278667
+        },
+        "forward": {
+          "x": -0.40977991655462814,
+          "y": -0.6539159287225315,
+          "z": -0.6359830014642147
+        },
+        "up": {
+          "x": -0.2840137329497874,
+          "y": -0.5710897188790731,
+          "z": 0.7701900625732248
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": null,
+        "landedVesselPosition": null,
+        "targetPlanetId": "u1:20261017:s0:p2",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        },
+        "personalFlight": {
+          "version": 1,
+          "bodyId": "b_5",
+          "phase": "powered",
+          "manaSpent": 111.06418430199005,
+          "effortSpent": 0.024723853201138422,
+          "startedEventId": "e_62"
+        }
+      },
+      "status": {
+        "speed": 0,
+        "altitude": 85.91567614786595,
+        "nearestPlanetId": "u1:20261017:s0:p2",
+        "canLand": true,
+        "canLaunch": false,
+        "message": "Personal flight · mana and breath in use"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 795.1829347248747,
+          "acceleration": 317.16915177441365,
+          "maxAltitude": 98597.46404039631,
+          "estimatedEndurance": 88.7934356419574,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 13.916725267501233,
+          "liftAcceleration": 228.2971996074287,
+          "manaAvailable": 208.93581569799474,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 34.766494816892475,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Land in either home town to resume its ordinary interactions."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p2",
+        "queriedPlacements": 5,
+        "queries": 69,
+        "requested": 4,
+        "loaded": 4,
+        "instanced": 4,
+        "pending": 0,
+        "peakPending": 1,
+        "cachedModels": 4,
+        "cacheBytes": 638352,
+        "cacheTriangles": 9384,
+        "renderedTriangles": 9948,
+        "instances": 4,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "loadedIds": [
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "instancedIds": [
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "residentIds": [
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:item-TV-078"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:14",
+            "assetId": "atlas:local:item-TV-208",
+            "position": {
+              "x": 541.1687744822977,
+              "y": -763.1456806165063,
+              "z": 29773.322955335956
+            },
+            "up": {
+              "x": -0.14947979029415842,
+              "y": -0.32205198743286495,
+              "z": 0.9348466770995959
+            },
+            "yaw": 1.324083127594152,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:17:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 476.890087151986,
+              "y": -807.5577966952384,
+              "z": 29743.01024648957
+            },
+            "up": {
+              "x": -0.1902010868315135,
+              "y": -0.3504933804856548,
+              "z": 0.9170484920678128
+            },
+            "yaw": 3.4513447322357558,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:16:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 412.85358432093557,
+              "y": -814.6111047382287,
+              "z": 29738.306347023656
+            },
+            "up": {
+              "x": -0.22888587099094374,
+              "y": -0.35236032174576537,
+              "z": 0.9074433655716138
+            },
+            "yaw": 6.126616024297642,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:11",
+            "assetId": "atlas:local:item-TV-078",
+            "position": {
+              "x": 553.9670775991983,
+              "y": -927.8735124872973,
+              "z": 29691.965694019982
+            },
+            "up": {
+              "x": -0.1427100402382521,
+              "y": -0.4295976071981912,
+              "z": 0.8916724400276063
+            },
+            "yaw": 0.9760927358946799,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "flight",
+        "visible": true,
+        "position": {
+          "x": 519.5954155936565,
+          "y": -852.8605587107738,
+          "z": 29817.250221616134
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.7457017302513123,
+              1.053533673286438,
+              -2.4647841453552246
+            ],
+            [
+              0.4142451584339142,
+              1.2510120868682861,
+              -2.4429986476898193
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 107.88251956761357
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 0,
+        "focused": 0,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 348,
+        "decorations": 167
+      },
+      "vessel": {
+        "visible": false,
+        "position": {
+          "x": -522.2066930135072,
+          "y": 1378.4092906662568,
+          "z": -28298.909967872616
+        }
+      },
+      "phase": "Flying under your own power"
+    },
+    {
+      "name": "05-other-world-ground",
+      "metrics": {
+        "p50": 6.900000000008731,
+        "p95": 7,
+        "draws": 55,
+        "activeMeshes": 58,
+        "totalMeshes": 364
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 1119,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": 532.0410491781115,
+          "y": -823.9696614208733,
+          "z": 29743.786369538146
+        },
+        "forward": {
+          "x": -0.47363501075067,
+          "y": -0.7893381842565248,
+          "z": -0.39065983600291665
+        },
+        "up": {
+          "x": -0.1557345726125186,
+          "y": -0.36151727444348025,
+          "z": 0.9192671011040012
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p2",
+        "landedVesselPosition": null,
+        "targetPlanetId": "u1:20261017:s0:p2",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1090,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1090,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "status": {
+        "speed": 0,
+        "altitude": 3,
+        "nearestPlanetId": "u1:20261017:s0:p2",
+        "canLand": false,
+        "canLaunch": false,
+        "message": "Return within 60 m of your vessel to launch"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 834.1660212625586,
+          "acceleration": 333.0391750815585,
+          "maxAltitude": 103431.11087213171,
+          "estimatedEndurance": 86.47938805036183,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 14.59897947811489,
+          "liftAcceleration": 239.48925253005143,
+          "manaAvailable": 203.49073501586446,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.0332116145387,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Land in either home town to resume its ordinary interactions."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p2",
+        "queriedPlacements": 5,
+        "queries": 83,
+        "requested": 5,
+        "loaded": 5,
+        "instanced": 5,
+        "pending": 0,
+        "peakPending": 1,
+        "cachedModels": 5,
+        "cacheBytes": 683932,
+        "cacheTriangles": 10132,
+        "renderedTriangles": 10696,
+        "instances": 5,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "loadedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "instancedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242",
+          "atlas:local:item-TV-272"
+        ],
+        "residentIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:14",
+            "assetId": "atlas:local:item-TV-208",
+            "position": {
+              "x": 541.1687744822977,
+              "y": -763.1456806165063,
+              "z": 29773.322955335956
+            },
+            "up": {
+              "x": -0.14947979029415842,
+              "y": -0.32205198743286495,
+              "z": 0.9348466770995959
+            },
+            "yaw": 1.324083127594152,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:17:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 476.890087151986,
+              "y": -807.5577966952384,
+              "z": 29743.01024648957
+            },
+            "up": {
+              "x": -0.1902010868315135,
+              "y": -0.3504933804856548,
+              "z": 0.9170484920678128
+            },
+            "yaw": 3.4513447322357558,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:16:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 412.85358432093557,
+              "y": -814.6111047382287,
+              "z": 29738.306347023656
+            },
+            "up": {
+              "x": -0.22888587099094374,
+              "y": -0.35236032174576537,
+              "z": 0.9074433655716138
+            },
+            "yaw": 6.126616024297642,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:11",
+            "assetId": "atlas:local:item-TV-078",
+            "position": {
+              "x": 553.9670775991983,
+              "y": -927.8735124872973,
+              "z": 29691.965694019982
+            },
+            "up": {
+              "x": -0.1427100402382521,
+              "y": -0.4295976071981912,
+              "z": 0.8916724400276063
+            },
+            "yaw": 0.9760927358946799,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:17:10",
+            "assetId": "atlas:local:file-3a113d30def4f0b5-200",
+            "position": {
+              "x": 496.4967906486462,
+              "y": -978.8639151583412,
+              "z": 29675.886253262204
+            },
+            "up": {
+              "x": -0.17722542956760776,
+              "y": -0.4568670061580323,
+              "z": 0.8717016036458654
+            },
+            "yaw": 5.204534051265173,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": 532.5082528959442,
+          "y": -822.8851095975543,
+          "z": 29741.028568234862
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.7520598769187927,
+              1.064401626586914,
+              -2.4597439765930176
+            ],
+            [
+              0.42000022530555725,
+              1.260642409324646,
+              -2.439363718032837
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 107.88251956761357
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 0,
+        "focused": 0,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 356,
+        "decorations": 169
+      },
+      "vessel": {
+        "visible": false,
+        "position": {
+          "x": -535.119530315624,
+          "y": 1348.433841553322,
+          "z": -28222.688314491203
+        }
+      },
+      "phase": "Return within 60 m of your vessel to launch"
+    },
+    {
+      "name": "06-reloaded-foreign-ground",
+      "metrics": {
+        "p50": 6.900000000000091,
+        "p95": 7.099999999999909,
+        "draws": 55,
+        "activeMeshes": 58,
+        "totalMeshes": 364
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 1167,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": 532.0410491781115,
+          "y": -823.9696614208733,
+          "z": 29743.786369538146
+        },
+        "forward": {
+          "x": -0.47363501075067,
+          "y": -0.7893381842565248,
+          "z": -0.39065983600291665
+        },
+        "up": {
+          "x": -0.1557345726125186,
+          "y": -0.36151727444348025,
+          "z": 0.9192671011040012
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p2",
+        "landedVesselPosition": null,
+        "targetPlanetId": "u1:20261017:s0:p2",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1090,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1090,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "status": {
+        "speed": 0,
+        "altitude": 3,
+        "nearestPlanetId": "u1:20261017:s0:p2",
+        "canLand": false,
+        "canLaunch": false,
+        "message": "Return within 60 m of your vessel to launch"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": false,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 864.753010495637,
+          "acceleration": 345.49114528548535,
+          "maxAltitude": 107223.69675308485,
+          "estimatedEndurance": 88.11130927806565,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 15.134291174742344,
+          "liftAcceleration": 248.27078402600893,
+          "manaAvailable": 207.33073501586506,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.242929521753936,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Land in either home town to resume its ordinary interactions."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p2",
+        "queriedPlacements": 5,
+        "queries": 4,
+        "requested": 4,
+        "loaded": 4,
+        "instanced": 4,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 4,
+        "cacheBytes": 620224,
+        "cacheTriangles": 9068,
+        "renderedTriangles": 10696,
+        "instances": 5,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "loadedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "instancedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "residentIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:17:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 476.890087151986,
+              "y": -807.5577966952384,
+              "z": 29743.01024648957
+            },
+            "up": {
+              "x": -0.1902010868315135,
+              "y": -0.3504933804856548,
+              "z": 0.9170484920678128
+            },
+            "yaw": 3.4513447322357558,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:14",
+            "assetId": "atlas:local:item-TV-208",
+            "position": {
+              "x": 541.1687744822977,
+              "y": -763.1456806165063,
+              "z": 29773.322955335956
+            },
+            "up": {
+              "x": -0.14947979029415842,
+              "y": -0.32205198743286495,
+              "z": 0.9348466770995959
+            },
+            "yaw": 1.324083127594152,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:16:13",
+            "assetId": "atlas:local:item-TV-242",
+            "position": {
+              "x": 412.85358432093557,
+              "y": -814.6111047382287,
+              "z": 29738.306347023656
+            },
+            "up": {
+              "x": -0.22888587099094374,
+              "y": -0.35236032174576537,
+              "z": 0.9074433655716138
+            },
+            "yaw": 6.126616024297642,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:18:11",
+            "assetId": "atlas:local:item-TV-078",
+            "position": {
+              "x": 553.9670775991983,
+              "y": -927.8735124872973,
+              "z": 29691.965694019982
+            },
+            "up": {
+              "x": -0.1427100402382521,
+              "y": -0.4295976071981912,
+              "z": 0.8916724400276063
+            },
+            "yaw": 0.9760927358946799,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:u1:20261017:s0:p2:scatter:4:17:10",
+            "assetId": "atlas:local:file-3a113d30def4f0b5-200",
+            "position": {
+              "x": 496.4967906486462,
+              "y": -978.8639151583412,
+              "z": 29675.886253262204
+            },
+            "up": {
+              "x": -0.17722542956760776,
+              "y": -0.4568670061580323,
+              "z": 0.8717016036458654
+            },
+            "yaw": 5.204534051265173,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": 532.5082528959491,
+          "y": -822.8851095975429,
+          "z": 29741.028568234833
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.7281080484390259,
+              1.038443684577942,
+              -2.598541736602783
+            ],
+            [
+              0.37943530082702637,
+              1.2106916904449463,
+              -2.588627338409424
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 110.78278118090935
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 0,
+        "focused": 0,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 120,
+        "decorations": 169
+      },
+      "vessel": {
+        "visible": false,
+        "position": {
+          "x": -535.1195303156289,
+          "y": 1348.4338415533105,
+          "z": -28222.688314491174
+        }
+      },
+      "phase": "Return within 60 m of your vessel to launch"
+    },
+    {
+      "name": "07-returned-home",
+      "metrics": {
+        "p50": 13.89999999999418,
+        "p95": 14,
+        "draws": 546,
+        "activeMeshes": 549,
+        "totalMeshes": 2580
+      },
+      "state": {
+        "atlasRevision": 1,
+        "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+        "tick": 2139,
+        "explorerId": "p_5",
+        "vesselId": "universe_1:vessel",
+        "systemIndex": 0,
+        "mode": "surface",
+        "position": {
+          "x": 0.012045326123654488,
+          "y": 497.8157330701419,
+          "z": 1530.118173432692
+        },
+        "forward": {
+          "x": -0.019475213356248317,
+          "y": -0.9507572880220468,
+          "z": 0.30932393269466096
+        },
+        "up": {
+          "x": 0.0000074859280628654815,
+          "y": 0.3093824715137802,
+          "z": 0.9509376878975752
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "landedPlanetId": "u1:20261017:s0:p0",
+        "landedVesselPosition": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        },
+        "targetPlanetId": "u1:20261017:s0:p0",
+        "cruise": false,
+        "landing": false,
+        "discoveries": [
+          {
+            "planetId": "u1:20261017:s0:p0",
+            "systemIndex": 0,
+            "tick": 0,
+            "explorerId": "p_5",
+            "method": "landed"
+          },
+          {
+            "planetId": "u1:20261017:s0:p2",
+            "systemIndex": 0,
+            "tick": 1090,
+            "explorerId": "p_5",
+            "method": "landed"
+          }
+        ],
+        "events": [
+          {
+            "tick": 80,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          },
+          {
+            "tick": 1090,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 1169,
+            "type": "soar",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p2"
+          },
+          {
+            "tick": 2098,
+            "type": "land",
+            "actorId": "p_5",
+            "systemIndex": 0,
+            "planetId": "u1:20261017:s0:p0"
+          }
+        ],
+        "settlementRevision": 1,
+        "parkedVessel": {
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0",
+          "position": {
+            "x": -3.0784811375173877,
+            "y": 524.4641801324371,
+            "z": 1521.0980550469717
+          }
+        }
+      },
+      "status": {
+        "speed": 0,
+        "altitude": 3,
+        "nearestPlanetId": "u1:20261017:s0:p0",
+        "canLand": false,
+        "canLaunch": true,
+        "message": "Surface exploration · vessel ready"
+      },
+      "system": {
+        "id": "u1:20261017:s0",
+        "index": 0,
+        "seed": 4060649947,
+        "name": "Cinderveil Expanse",
+        "planets": [
+          {
+            "id": "u1:20261017:s0:p0",
+            "index": 0,
+            "seed": 20261017,
+            "radius": 1600,
+            "center": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "kind": "temperate",
+            "name": "Cinderveil",
+            "atmosphere": 185,
+            "gravity": 9.81,
+            "palette": {
+              "land": "#5b7650",
+              "rock": "#777369",
+              "water": "#184e68",
+              "sky": "#84bad8"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p1",
+            "index": 1,
+            "seed": 3417329974,
+            "radius": 2374,
+            "center": {
+              "x": 16618.641806198448,
+              "y": 1595.3260650858283,
+              "z": -19174.616375932215
+            },
+            "kind": "glacial",
+            "name": "Thalehollow 2",
+            "atmosphere": 187,
+            "gravity": 5.54,
+            "palette": {
+              "land": "#d7e5e9",
+              "rock": "#7195a4",
+              "water": "#244c76",
+              "sky": "#a4c8e5"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p2",
+            "index": 2,
+            "seed": 1314885531,
+            "radius": 1571,
+            "center": {
+              "x": 778.6715281622598,
+              "y": -251.4495262876153,
+              "z": 28287.980624825654
+            },
+            "kind": "volcanic",
+            "name": "Vesperspire 3",
+            "atmosphere": 200,
+            "gravity": 6.55,
+            "palette": {
+              "land": "#4d4141",
+              "rock": "#7c4a3e",
+              "water": "#452e42",
+              "sky": "#bd715f"
+            }
+          },
+          {
+            "id": "u1:20261017:s0:p3",
+            "index": 3,
+            "seed": 2074974299,
+            "radius": 2220,
+            "center": {
+              "x": -21935.049110092543,
+              "y": -376.23503245413303,
+              "z": -22659.738179816293
+            },
+            "kind": "oceanic",
+            "name": "Vesperrest 4",
+            "atmosphere": 284,
+            "gravity": 7.84,
+            "palette": {
+              "land": "#6e9e78",
+              "rock": "#7e9290",
+              "water": "#136782",
+              "sky": "#92d4dc"
+            }
+          }
+        ]
+      },
+      "preview": null,
+      "campaign": {
+        "active": true,
+        "personId": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          },
+          {
+            "id": "i_3",
+            "name": "book-well",
+            "quantity": 1
+          },
+          {
+            "id": "i_4",
+            "name": "book-ward",
+            "quantity": 1
+          },
+          {
+            "id": "i_5",
+            "name": "Isolated flight acceptance focus",
+            "quantity": 1
+          }
+        ],
+        "canExplore": false,
+        "canReturn": true,
+        "flight": {
+          "canHover": true,
+          "canFly": true,
+          "canCrossSpace": true,
+          "spaceEnvelope": true,
+          "speed": 864.2844518459029,
+          "acceleration": 342.0403949536752,
+          "maxAltitude": 107165.59855630455,
+          "estimatedEndurance": 43.12323871121731,
+          "manaPerSecond": 2.3530547521608307,
+          "effortPerSecond": 0.0005238104491766719,
+          "protectionStrength": 15.126090795036864,
+          "liftAcceleration": 248.1362607321669,
+          "manaAvailable": 101.47134177799579,
+          "routeManaRequired": 28.23665702592997,
+          "routeEffortRequired": 0.006285725390120062,
+          "routeSeconds": 12,
+          "capacity": {
+            "amplitude": 20,
+            "aperture": 12,
+            "reserve": 320
+          },
+          "estimatedBodyMassKg": 75,
+          "knownLoadKg": 3.5,
+          "unweighedStacks": 0,
+          "safeCarryMassKg": 35.23597972645797,
+          "gravityAbilityId": "book-well",
+          "wardAbilityId": "book-ward",
+          "reasons": [],
+          "causes": [
+            "e_1",
+            "e_2",
+            "e_3"
+          ]
+        },
+        "message": "Cinderveil docking link ready."
+      },
+      "atlas": {
+        "context": "u1:20261017:s0:p0",
+        "queriedPlacements": 0,
+        "queries": 46,
+        "requested": 4,
+        "loaded": 4,
+        "instanced": 4,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 4,
+        "cacheBytes": 620224,
+        "cacheTriangles": 9068,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "loadedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "instancedIds": [
+          "atlas:local:file-3a113d30def4f0b5-200",
+          "atlas:local:item-TV-078",
+          "atlas:local:item-TV-208",
+          "atlas:local:item-TV-242"
+        ],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "avatar": {
+        "ready": true,
+        "loading": false,
+        "error": "",
+        "bodyId": "b_5",
+        "phase": "ground",
+        "visible": true,
+        "position": {
+          "x": 0.012022868339465895,
+          "y": 496.8875856556007,
+          "z": 1527.2653603689996
+        },
+        "assetPath": "people/wren.glb",
+        "presentationRevision": "authored-motion-2026-10-13.1",
+        "motion": {
+          "policy": "authored-in-place",
+          "clip": "unarmed/idle_neutral",
+          "dominantClip": "unarmed/idle_neutral",
+          "stance": "travel",
+          "armed": false,
+          "action": null,
+          "age": null,
+          "hit": false,
+          "planted": false,
+          "locks": [
+            false,
+            false
+          ],
+          "canonicalFacing": 0,
+          "canonicalCrouch": 0,
+          "gait": null,
+          "feet": [
+            [
+              0.24473898112773895,
+              -0.7297601699829102,
+              -2.7839548587799072
+            ],
+            [
+              -0.14409004151821136,
+              -0.7508156299591064,
+              -2.7773423194885254
+            ]
+          ],
+          "contacts": null,
+          "spineTiltDeg": 71.86521143791035
+        }
+      },
+      "settlements": {
+        "revision": 1,
+        "enabled": true,
+        "chunks": 12,
+        "focused": 56,
+        "pending": 0,
+        "terrain": true,
+        "errors": []
+      },
+      "terrain": {
+        "planets": 4,
+        "tiles": 96,
+        "vertices": 15456,
+        "triangles": 26880,
+        "pendingTiles": 0,
+        "rebuilds": 312,
+        "decorations": 0
+      },
+      "vessel": {
+        "visible": true,
+        "position": {
+          "x": -3.090526463641042,
+          "y": 26.648447062295133,
+          "z": -9.020118385720707
+        }
+      },
+      "phase": "Surface exploration · vessel ready"
+    }
+  ],
+  "errors": [
+    "VERTEX SHADER ERROR: 'color' : undeclared identifier at tvForestCoverage=color.a. Generated shader source/define/uniform logs intentionally omitted; 25 bounded entries were captured in the temporary raw report."
+  ],
+  "http": [
+    {
+      "status": 409,
+      "path": "/realms/universe/command"
+    }
+  ],
+  "commands": {
+    "explore": 1,
+    "cruise": 2,
+    "input": 28,
+    "soar": 2,
+    "target": 2,
+    "navigate": 2,
+    "land": 2,
+    "return": 1
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: No browser runtime or asset errors during journey",
+  "lastState": {
+    "campaign": null
+  },
+  "errorSummary": {
+    "capturedConsoleEntries": 25,
+    "uniqueCause": "UniverseSettlements.drawGround did not supply vertex color data required by the existing ForestGround material. Generated GLSL read color.a without a color attribute.",
+    "exactCompilerReason": "VERTEX SHADER ERROR: 'color' : undeclared identifier",
+    "consequence": "Repeated material compile fallback errors; functional round trip completed but visual acceptance failed."
+  }
+}
