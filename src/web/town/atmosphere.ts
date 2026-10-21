@@ -11,7 +11,7 @@ export type TimeOfDay = 'golden' | 'dusk' | 'day';
 interface Preset { elev: number; az: number; sun: Color3; sunI: number; sky: Color3; ground: Color3; hemiI: number; zenith: Color3; horizon: Color3; fog: Color3; fogD: number; env: number; lamps: number; windows: number; exposure: number }
 const D = Math.PI / 180;
 export const PRESETS: Record<TimeOfDay, Preset> = {
-  golden: { elev: 15, az: -58, sun: new Color3(1, .72, .46), sunI: 4.6, sky: new Color3(.5, .6, .82), ground: new Color3(.42, .33, .22), hemiI: .85, zenith: new Color3(.22, .38, .66), horizon: new Color3(1, .74, .5), fog: new Color3(.86, .7, .55), fogD: .0032, env: .45, lamps: .7, windows: .45, exposure: 1.0 },
+  golden: { elev: 15, az: -58, sun: new Color3(1, .72, .46), sunI: 4.6, sky: new Color3(.5, .6, .82), ground: new Color3(.42, .33, .22), hemiI: .85, zenith: new Color3(.22, .38, .66), horizon: new Color3(1, .74, .5), fog: new Color3(.86, .7, .55), fogD: .0024, env: .45, lamps: .7, windows: .45, exposure: 1.0 },
   dusk: { elev: 1.5, az: -68, sun: new Color3(1, .45, .26), sunI: 1.6, sky: new Color3(.3, .34, .55), ground: new Color3(.25, .16, .12), hemiI: .5, zenith: new Color3(.08, .12, .3), horizon: new Color3(.95, .48, .3), fog: new Color3(.5, .38, .38), fogD: .0055, env: .2, lamps: 2.2, windows: 1.4, exposure: 1.15 },
   day: { elev: 42, az: -35, sun: new Color3(1, .95, .86), sunI: 4.4, sky: new Color3(.55, .68, .9), ground: new Color3(.4, .35, .28), hemiI: .7, zenith: new Color3(.2, .42, .8), horizon: new Color3(.75, .85, .95), fog: new Color3(.72, .8, .88), fogD: .0028, env: .7, lamps: 0, windows: 0, exposure: 1.0 },
 };

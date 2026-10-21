@@ -91,6 +91,13 @@ function townPaths(): PathStrip[] {
     { kind: 'dirt', points: [[0, -150], [0, -124], [0, -114]], width: 6 },
     { kind: 'dirt', points: [[0, 64], [2, 110], [-4, 150], [0, 196]], width: 5 },
     { kind: 'dirt', points: [[44, -6], [64, -18], [76, -30], [100, -32]], width: 4 },
+    { kind: 'dirt', points: [[-18, -48], [-40, -48], [-62, -52], [-70, -64]], width: 3.6 },
+    { kind: 'dirt', points: [[18, -56], [40, -56], [56, -42], [64, -18]], width: 3.6 },
+    { kind: 'dirt', points: [[-15, -14], [-36, -24], [-66, -22]], width: 3.4 },
+    { kind: 'dirt', points: [[15, 14], [36, 28], [66, 34]], width: 3.4 },
+    { kind: 'dirt', points: [[-26, 26], [-52, 38], [-68, 30]], width: 3 },
+    { kind: 'dirt', points: [[-3, -82], [-24, -76], [-44, -66]], width: 3 },
+    { kind: 'dirt', points: [[3, -84], [26, -80], [44, -68]], width: 3 },
     { kind: 'dirt', points: [[-50, 14], [-64, 30], [-76, 54], [-90, 74]], width: 3 },
   ];
 }
@@ -137,6 +144,21 @@ export function townLayout(seed = TOWN_SEED): TownLayout {
     if (!corners.some(([cx, cz]) => rects.some(q => inRect(q, cx, cz)) || insideBox(colliders, cx, cz, .8))) house(x, z, a + Math.PI, w, d, h + rng.range(0, .8));
   }
 
+  // Side streets lined with houses: seeded lots on both sides, each facing its street.
+  for (const st of paths) {
+    if (st.width > 7) continue;
+    for (let i = 1; i < st.points.length; i++) {
+      const [ax, az] = st.points[i - 1], [bx, bz] = st.points[i], len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len;
+      for (let t = 5; t < len - 3; t += rng.range(8.5, 11)) for (const side of [-1, 1]) {
+        const w = rng.range(6.2, 9), d = rng.range(5.4, 7), h = rng.range(4.6, 6.6), off = st.width / 2 + d / 2 + rng.range(1, 2.2);
+        const x = ax + ux * t - uz * side * off, z = az + uz * t + ux * side * off, yaw = Math.atan2(uz * side, -ux * side);
+        if (x < W.x0 + 4 + d || x > W.x1 - 4 - d || z < W.z0 + 4 + d || z > W.z1 - 4 - d || Math.hypot(x - PLAZA.x, z - PLAZA.z) < PLAZA.r + 6) continue;
+        const corners = [[-w / 2, -d / 2], [w / 2, -d / 2], [-w / 2, d / 2], [w / 2, d / 2], [0, 0], [0, d / 2 + 1]].map(([lx, lz]) => toTown({ x, z, yaw }, lx, lz));
+        if (corners.some(([cx, cz]) => rects.some(q => inRect(q, cx, cz)) || insideBox(colliders, cx, cz, .9) || onPath(cx, cz, .3))) continue;
+        house(x, z, yaw, w, d, h);
+      }
+    }
+  }
   // The plaza: fountain at the centre, benches and planters around it, lamps on the rim.
   put({ kind: 'fountain', x: PLAZA.x, z: PLAZA.z, yaw: 0, s: 1, v: 0 }); circle(PLAZA.x, PLAZA.z, 3.4);
   for (let i = 0; i < 4; i++) { const a = (45 + i * 90) * D; put({ kind: 'bench', x: Math.sin(a) * 7, z: Math.cos(a) * 7, yaw: a, s: 1 }); box(Math.sin(a) * 7, Math.cos(a) * 7, 1.8, .6, a); }
