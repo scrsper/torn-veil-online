@@ -5,17 +5,17 @@ Base: `world-sphere-100f` @ bd6b05d (chosen 2026-10-20 for the most reusable wor
 Driven by /workspace/town-run/loop.sh (Claude Code, Opus 5.5). Each session: read this file, continue, update it.
 
 ## Checklist
-- [ ] Read vault + repo rules; record decisions here
-- [ ] Town entry point (own page/mode) reusing engine code
-- [ ] Town layout + terrain, composition
-- [ ] Lighting, fog, atmosphere, time of day
-- [ ] Props/dressing from Omnius assets (manifest: docs/town/ASSET_MANIFEST.md)
-- [ ] Placeholder player: WASD + click-to-move
-- [ ] Third-person RPG camera: over-shoulder follow, mouse orbit, zoom, collision
-- [ ] Placeholder NPCs
-- [ ] tsc --noEmit + targeted vitest green
-- [ ] Production static build of the town page
-- [ ] Deploy to Cloudflare Pages (new project) + live URL
+- [x] Read vault + repo rules; record decisions here
+- [x] Town entry point (own page/mode) reusing engine code
+- [x] Town layout + terrain, composition
+- [x] Lighting, fog, atmosphere, time of day
+- [x] Props/dressing from Omnius assets (manifest: docs/town/ASSET_MANIFEST.md)
+- [x] Placeholder player: WASD + click-to-move
+- [x] Third-person RPG camera: over-shoulder follow, mouse orbit, zoom, collision
+- [x] Placeholder NPCs
+- [x] tsc --noEmit + targeted vitest green
+- [x] Production static build of the town page
+- [x] Deploy to Cloudflare Pages (new project) + live URL
 - [ ] 3-4 screenshots of the deployed build in /workspace/torn-veil-online/media/starting-town/
 - [ ] Final report in /workspace/town-run/DONE
 
@@ -28,7 +28,19 @@ Driven by /workspace/town-run/loop.sh (Claude Code, Opus 5.5). Each session: rea
 - **Look:** golden hour default (sun 15° elevation, warm key + cascaded shadows, cool sky fill with warm bounce, EXP2 haze tinted to the horizon, gradient sky with sun glow and cloud deck, volumetric light shafts, lamp glow layer + nearest-lamp point lights). `?time=dusk|day`, `?lite` (1024 single shadow map, no glow/shafts, coarser ground).
 
 ## Assets used / skipped
+See docs/town/ASSET_MANIFEST.md (11 torn-veil-assets GLBs, 9 CC0 Poly Haven scan sets + CC0 sky HDR; skipped: ravine bridge, the focused pack, unvetted foliage PNGs).
 
 ## Known gaps
+- The Tower is a distant landmark only (not enterable on this page; its floors are the Tower game in /?world and /?ascent).
+- Placeholder figures have no limb animation (bob only); NPCs don't react to the player (they are bodies the player collides with).
+- Camera collision tests buildings/walls/GLB spaces + terrain, not props or trees (by design: foliage would yank the boom).
+- Headless captures use SwiftShader (software GL), so recorded fps there (~0.5) says nothing about real GPUs.
 
 ## Log
+
+### 2026-10-20 22:10–23:00 CT — Session 1 (Claude Opus 5.5)
+- Read the vault + repo rules (see Decisions). Verified all 12 torn-veil-assets GLBs against SHA256SUMS; provenance keyword scan clean; re-checked the CC0 scan hashes against material-manifest.json.
+- Built the town end to end: `src/sim/town/{layout,collision,movement,camera,npcs,groundMask}.ts` (pure), `src/web/town/{main,ground,kit,props,atmosphere,actors,hud}.ts`, `web/town.html`, `vite.town.config.ts`, `scripts/town/stage-assets.mjs`, `docs/town/ASSET_MANIFEST.md`, `tests/town/town.test.ts`.
+- Iterated on headless shots (/workspace/town-run/shots/s1–s5): ground splat brightness, cobbles through the hamlet lane, market paving, hidden GLB canopy strips/ground slabs, 38 houses on side-street lots, haze, window glow.
+- Commits 9331a41 … (see git log). tsc green; `npx vitest run tests/town` 18/18.
+- Deploy: pushed `claude/starting-town-oct20`; created Pages project `torn-veil-town` (wrangler 4.151 tried to delegate Pages→Workers for agents and failed before deploying anything; re-ran create with `--force` as its notice directs; verified no stray Worker). Deployed dist-town → https://torn-veil-town.pages.dev (200; GLBs and textures 200). Added custom domain town.badtengu.com to the project and one new proxied CNAME `town` → torn-veil-town.pages.dev (no record existed; nothing else touched).
