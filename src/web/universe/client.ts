@@ -124,7 +124,7 @@ export async function startUniverse() {
     try {
       if (campaignMode && streamedInput) {
         if (command.type === 'input') {
-          const ok = await inputStream.send(++seq, command.input);
+          const ok = inputStream.admit(++seq, command.input);
           return ok && !disposed && !leaving && token === controllerToken && sessionId === snapshot?.sessionId;
         }
         await inputStream.durable();

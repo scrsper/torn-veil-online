@@ -37,10 +37,20 @@ export class UniverseInputStream {
   }
   private fail(error: Error) { this.reset(error.message); this.failure = error.message; this.failed(error); }
 
+  /** WebSocket already preserves wire order. Do not hold a later key release
+   * behind a round-trip receipt; pending receipts still fail closed on error.
+   * Structural commands independently wait for durable(). */
+  admit(seq: number, input: TravelInput): boolean {
+    void this.send(seq, input).catch(() => { /* fail() owns connection closure */ });
+    return !this.failure;
+  }
+
   send(seq: number, input: TravelInput): Promise<boolean> {
     if (this.failure) return Promise.reject(Error(this.failure));
-    if (!this.session() || !Number.isSafeInteger(seq) || seq <= this.lastSent || this.pending.size >= 64)
-      return Promise.reject(Error('Movement input cannot enter this owner stream.'));
+    if (!this.session() || !Number.isSafeInteger(seq) || seq <= this.lastSent || this.pending.size >= 64) {
+      const error = Error('Movement input cannot enter this owner stream.'); this.fail(error);
+      return Promise.reject(error);
+    }
     this.lastSent = seq;
     const promise = new Promise<boolean>((resolve, reject) => {
       const receivedTimer = setTimeout(() => this.fail(Error('Movement receipt timed out.')), this.timeoutMs);

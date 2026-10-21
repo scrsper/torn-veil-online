@@ -22,6 +22,11 @@ authoritative polling is corrected and66 affected checks pass. The preserved
 remains separate from full corrected-source journey/restart and final-head CI,
 which are still pending.
 
+The repeat short-tap check on `d60392e` failed0.75m with one0.9793m diagonal.
+Release was still waiting for a provisional round-trip receipt. The queue now
+uses ordered synchronous WebSocket admission; receipt failures remain monitored
+and structural actions still wait for saving. Repeat acceptance remains required.
+
 The original7533 host is still idle and healthy at durable16203/checkpoint14597.
 After Jacob explicitly approved its graceful shutdown/restart, one retry of
 terminal5701 `shutdown` was rejected again: approval required by policy while

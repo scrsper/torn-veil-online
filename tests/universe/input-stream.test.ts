@@ -23,6 +23,18 @@ function client(){
 }
 
 describe('sequenced input received and durable boundaries',()=>{
+  it('puts a key release on the ordered wire before a delayed first receipt',async()=>{
+    const c=client();
+    const queue=new UniverseCommandQueue(()=>true,async command=>command.type==='input'&&c.stream.admit(c.sent.length+1,command.input));
+    queue.enqueue({type:'input',input:move});await settle();
+    queue.enqueue({type:'input',input:neutralInput()});await settle();
+    expect(c.sent.map(m=>m.command.input.throttle)).toEqual([1,0]);
+    expect(c.stream.stats).toMatchObject({lastSent:2,lastReceived:0,lastDurable:0,pending:2});
+    let saved=false;const barrier=c.stream.durable().then(()=>{saved=true;});
+    c.stream.receive(c.receipt(1,'received'));await settle();expect(saved).toBe(false);
+    c.stream.receive(c.receipt(2,'durable',neutralInput()));await barrier;expect(saved).toBe(true);
+    expect(c.stream.admit(2,neutralInput())).toBe(false);expect(c.failures).toHaveLength(1);
+  });
   it('replays received input, intervening host ticks and release exactly through the real journal worker',async()=>{
     const directory=mkdtempSync(join(tmpdir(),'veil-input-stream-')),path=join(directory,'world.json');
     writeFileSync(path,new RealmSession(731).save());

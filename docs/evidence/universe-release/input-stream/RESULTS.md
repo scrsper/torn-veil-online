@@ -33,3 +33,19 @@ Raw local evidence: `.debug/input-microtap-first/microtap.json` and
 Screenshots accompany this record. Earlier failed benchmarks remain preserved.
 Full corrected-source journey, same-save restart and final-head CI are separate
 release gates; see `docs/UNIVERSE_RELEASE.md` for their current status.
+
+## Repeat failure and ordered-wire correction
+
+The repeat on `d60392e` failed: physical48/46/42/41ms taps moved
+0/0/0.70/0.9793m. The complete diagonal chords did reach the wire. For the last
+tap, input seq12 was sent at6943ms, seq13 at6965ms, and neutral seq14 only at7061ms:
+waiting for seq13's received receipt delayed release. The character returned
+normally with unchanged identity/items; owned host saved and exited0. Raw
+`input-microtap-second` and `input-microtap-controller-second` evidence is retained.
+The initial pass is not a claim of repeatable acceptance.
+
+The corrected queue now releases on synchronous ordered WebSocket admission,
+without waiting for a round-trip receipt. Pending received/durable receipts
+remain bounded and fail closed; structural intent still waits for durability.
+A regression proves release is already on the wire before the first receipt.
+The unchanged0.75m benchmark must pass again on this corrected source.
