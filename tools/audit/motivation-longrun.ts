@@ -6,6 +6,7 @@
 // pass/fail, so a regression is visible as a change rather than only as a broken threshold.
 import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 import { generateVillage } from '../../src/sim/world/village';
 import { pursuitsOf } from '../../src/sim/mind/pursuit';
 import { obligationsOf } from '../../src/sim/social/obligation';
@@ -33,7 +34,7 @@ for (const seed of seeds) {
   const oldest = world.now - days * 24 * 3600;
   for (const p of world.persons()) {
     if (!p.alive) { deaths++; continue; }
-    if (p.controlled) continue;
+    if (isExternallyControlled(p)) continue;
     for (const pu of pursuitsOf(p)) {
       // The longest arc anyone actually saw through is the interesting number, so this counts
       // FINISHED purposes too. Measuring only the live ones reports whatever happens to be a few

@@ -44,7 +44,7 @@ async function main(): Promise<void> {
 
   const indoor = await page.evaluate(() => {
     const g = (window as any).game; const w = g.world;
-    const inside = w.persons().find((p: any) => { const b = w.primaryBody(p.id); return p.alive && !p.controlled && b && w.isIndoors(b.pos); });
+    const inside = w.persons().find((p: any) => { const b = w.primaryBody(p.id); return p.alive && p.id !== w.playerId && b && w.isIndoors(b.pos); });
     if (inside) { g.observer.select(inside.id); g.observer.setFollow(true); }
     return inside ? `${inside.name} in ${w.placeAt(w.primaryBody(inside.id).pos)?.name}` : 'nobody indoors';
   });

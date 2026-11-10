@@ -18,6 +18,7 @@
  */
 import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 import { generateVillage } from '../../src/sim/world/village';
 import { SECONDS_PER_DAY } from '../../src/sim/core/time';
 import { hungerBand, thirstBand } from '../../src/sim/core/physiology';
@@ -88,7 +89,7 @@ function sample(
   thirstStreak: Map<string, number>, thirstStreakMax: Map<string, number>,
   goalDayCount: Map<string, Record<string, number>>,
 ): DaySample {
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   let urgentH = 0, urgentT = 0;
   for (const p of alive) {
     const hb = hungerBand(p), tb = thirstBand(p);
@@ -168,8 +169,8 @@ function main(): void {
     const goalTotals: Record<string, number> = {};
     for (const row of r.goalDayCount.values()) for (const [g, n] of Object.entries(row)) goalTotals[g] = (goalTotals[g] ?? 0) + n;
     console.log('goal occupancy (daily samples): ' + Object.entries(goalTotals).sort((a, b) => b[1] - a[1]).map(([g, n]) => `${g}=${n}`).join(', '));
-    const richest = r.world.persons().filter(p => p.alive && !p.controlled).sort((a, b) => b.wealth - a.wealth)[0];
-    const tw = r.world.persons().filter(p => p.alive && !p.controlled).reduce((a, p) => a + p.wealth, 0);
+    const richest = r.world.persons().filter(p => p.alive && !isExternallyControlled(p)).sort((a, b) => b.wealth - a.wealth)[0];
+    const tw = r.world.persons().filter(p => p.alive && !isExternallyControlled(p)).reduce((a, p) => a + p.wealth, 0);
     console.log(`richest: ${richest.name} (${richest.occupation}) ${Math.round(richest.wealth)} silver = ${(100 * richest.wealth / Math.max(1, tw)).toFixed(1)}% of village wealth`);
   }
 }

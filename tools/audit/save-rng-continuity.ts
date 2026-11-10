@@ -15,6 +15,7 @@
  */
 import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 import { newWorld, serialize, deserialize } from '../../src/sim/persist/save';
 import { SECONDS_PER_DAY } from '../../src/sim/core/time';
 
@@ -102,7 +103,7 @@ const cmp = (w: World) => ({
   weather: `${w.weather.kind}@${w.weather.intensity.toFixed(2)}`,
   meals: w.runTally.food_consumed ?? 0,
   harvests: w.runTally.crop_harvested ?? 0,
-  wealth: Math.round(w.persons().filter(p => p.alive && !p.controlled).reduce((n, p) => n + p.wealth, 0)),
+  wealth: Math.round(w.persons().filter(p => p.alive && !isExternallyControlled(p)).reduce((n, p) => n + p.wealth, 0)),
 });
 console.log('\nBEHAVIOURAL CONSEQUENCE — same seed, +1 more world-day after the save point:');
 console.log(`  uninterrupted run : ${JSON.stringify(cmp(contLive))}`);

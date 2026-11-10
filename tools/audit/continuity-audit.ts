@@ -8,6 +8,7 @@
 // same tool works unchanged against a `main` worktree for a before/after comparison.
 import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 import { generateVillage } from '../../src/sim/world/village';
 import { hungerBand, thirstBand, severityAtLeast } from '../../src/sim/core/physiology';
 import type { EntityId } from '../../src/sim/core/types';
@@ -98,7 +99,7 @@ for (const seed of seeds) {
     if (world.now >= nextSample) {
       nextSample += SAMPLE;
       for (const p of world.persons()) {
-        if (!p.alive || p.controlled) continue;
+        if (!p.alive || isExternallyControlled(p)) continue;
         const desperate = severityAtLeast(hungerBand(p), 'critical') || severityAtLeast(thirstBand(p), 'critical');
         const attending = p.mind.goal && ['eat', 'drink_water', 'sleep', 'flee', 'go_home'].includes(p.mind.goal.type);
         if (desperate && !attending) {

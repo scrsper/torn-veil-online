@@ -11,6 +11,7 @@
 // the left half of this table.
 import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 import { generateVillage } from '../../src/sim/world/village';
 import { hungerBand, thirstBand } from '../../src/sim/core/physiology';
 import type { Item, Person } from '../../src/sim/core/types';
@@ -65,7 +66,7 @@ for (const seed of seeds) {
   let starving = 0, deaths = 0, reports = 0, undelivered = 0, longReports = 0;
   for (const p of world.persons()) {
     if (!p.alive) { deaths++; continue; }
-    if (p.controlled) continue;
+    if (isExternallyControlled(p)) continue;
     if (hungerBand(p) === 'critical' || thirstBand(p) === 'critical') starving++;
     for (const r of Object.values(p.mind.reports ?? {})) {
       reports++;
