@@ -1,5 +1,10 @@
 # Running Torn Veil
 
+> **Historical (Unreal Living Alpha, September 2026).** Unreal was archived on 2026-10-03
+> ([Unreal archive](UNREAL_ARCHIVE.md)) and `Play Torn Veil.cmd` now opens the Babylon launcher.
+> For the current game see the [README](../README.md) and [current state](CURRENT_STATE.md).
+> The instructions below describe the archived packaged client and are kept as a record.
+
 ## Installed Windows game
 
 Double-click **Play Torn Veil** on the desktop, or **Play Torn Veil.cmd** in the

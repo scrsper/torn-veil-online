@@ -1,7 +1,10 @@
 # Continuous Integration (v0.8 §18)
 
-`.github/workflows/pr.yml` runs on every pull request targeting `main`: `npm ci`, `npm run
-typecheck`, `npm test`, `npm run build`, `npm run world:smoke`. It deliberately does not run
+`.github/workflows/pr.yml` runs on every pull request. Its `gate` job runs `npm ci`, `npm run
+typecheck`, `node scripts/web/cook-focused-assets.mjs`, `npm test`, `npm run build:bundle` and
+`npm run world:smoke`. `checkpoint_worker` first runs `tests/checkpoint-encoder.test.ts` on Node 20
+and 22, and `ontology` checks, verifies and builds `tools/ontology`. `build:bundle` is the
+historical Three.js bundle; the Babylon client (`npm run web:build`) is not built in CI. It deliberately does not run
 `npm run world:check`/`world:soak` (multi-seed/multi-day WorldLab validation) — those are meant
 to be run explicitly before a milestone PR is considered ready, not on every push (§18: "do not
 run expensive 30/90-day soak validation on every PR").
