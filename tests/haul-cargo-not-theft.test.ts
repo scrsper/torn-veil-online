@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTestWorld, addPerson, step, v } from './helpers/world';
+import { createTestWorld, addPerson, step } from './helpers/world';
 import { addPlaceStock } from '../src/sim/world/stock';
 import { createHaulTask, claimHaulTask, loadHaulCargo } from '../src/sim/logistics/haul';
 import { makeItem } from '../src/sim/world/factory';

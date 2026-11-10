@@ -1,4 +1,4 @@
-import { hash2, valueNoise, RNG } from '../core/rng';
+import { valueNoise, RNG } from '../core/rng';
 import { B } from '../physical/blocks';
 import type { ResourceNode } from '../core/types';
 import { settlementSeed, SETTLEMENT_SIZE, type SettlementSite } from './settlementSpec';

@@ -1,11 +1,11 @@
 import { setExternalControl } from '../runtime/controllers';
 import { World } from '../core/world';
 import { B } from '../physical/blocks';
-import { WORLD_W, WORLD_H, WORLD_D, CX, CZ, VILLAGE_TOP, generateTerrain, generateVegetation, terrainHeight, riverCenter } from './terrain';
+import { WORLD_W, WORLD_H, WORLD_D, CX, CZ, VILLAGE_TOP, generateTerrain, generateVegetation, terrainHeight } from './terrain';
 import { buildHouse, buildTavern, buildSmithy, buildShop, buildChapel, buildGraveyard, buildGuardhouse, buildFarm, buildStall, buildWell, buildCamp, buildShrine, buildMill, buildBridge, flatten, reserve, fill, v, type BuildCtx, type Facing, type BuildResult } from './structures';
 import { makePerson, makeItem, makePlace, makeBody, makeFaction, makeCreature, ITEM_LABEL } from './factory';
 import { CAST } from './cast';
-import type { Place, Person, Vec3, Anchor, EntityId, Item } from '../core/types';
+import type { Place, Person, Anchor, EntityId, Item } from '../core/types';
 import { createFields, cropBlockFor } from './metabolism';
 import { plantGrove, registerStoneNodes, registerGameGround } from './resources';
 import { createConstructionProject } from './construction';

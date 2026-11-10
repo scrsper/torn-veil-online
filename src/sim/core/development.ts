@@ -1,4 +1,4 @@
-import type { AttributeId, Attributes, Person, SkillId } from './types';
+import type { AttributeId, Attributes, Person } from './types';
 import type { World } from './world';
 import { ATTRIBUTE_IDS, attributeCeiling, clamp, NORMAL_CEILING, individualRng } from './human';
 import type { PracticedSkillId } from './martialTypes';

@@ -26,7 +26,7 @@ const assetRoot = process.env.TV_REALMS_ASSETS ? resolve(process.env.TV_REALMS_A
 const staticRoot=process.env.TV_REALMS_STATIC?resolve(process.env.TV_REALMS_STATIC):null;
 const clientBuild=staticRoot?JSON.parse(readFileSync(resolve(staticRoot,'current-build.json'),'utf8')):null;
 const serverCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-if(clientBuild&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
+if(clientBuild&&clientBuild.commit!==serverCommit)throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
 const journal = new RealmJournal(savePath, Number(process.env.TV_REALMS_SEED ?? 918271));
 await journal.ready;
 if(process.env.TV_FOCUSED_WORLD==='1'&&!journal.runtime.session.world.realmSpec?.focusedKit){journal.apply({type:'adopt_focused'});await journal.flush();}
@@ -110,7 +110,7 @@ const server = createServer(async (req, res) => {
   // Optional read-only local assets. Only public model/texture subtrees, never an arbitrary path.
   if (assetRoot && /^\/(models|textures|arena)\//.test(url.pathname) && !existsSync(resolve('web/public', '.' + url.pathname))) {
     const file = resolve(assetRoot, '.' + decodeURIComponent(url.pathname));
-    if (file.startsWith(assetRoot + '\\') && existsSync(file) && statSync(file).isFile()) {
+    if (file.startsWith(assetRoot + sep) && existsSync(file) && statSync(file).isFile()) {
       const mime: Record<string, string> = { '.glb': 'model/gltf-binary', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
       res.setHeader('content-type', mime[extname(file)] ?? 'application/octet-stream'); createReadStream(file).pipe(res); return;
     }

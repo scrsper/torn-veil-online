@@ -226,6 +226,9 @@ The running game exposes canonical simulation objects for deterministic advancem
 
 # Unreal verification
 
+> Historical: Unreal is archived and `unreal/` is no longer in this tree (see
+> `docs/UNREAL_ARCHIVE.md`). This section applies only to work restored from that archive.
+
 For this Windows project, use shell/native automation first: `unreal/scripts/Run-EditorPython.ps1`
 runs asset/metadata operations in a bounded commandlet with an explicit log and exit status.
 Use `-Render` for operations needing commandlet rendering; it does not create PIE or a viewport.

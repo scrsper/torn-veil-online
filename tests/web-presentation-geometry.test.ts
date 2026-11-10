@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Mesh, NullEngine, Ray, Scene, StandardMaterial, Vector3, VertexBuffer } from '@babylonjs/core';
+import { NullEngine, Ray, Scene, StandardMaterial, Vector3, VertexBuffer } from '@babylonjs/core';
 import { B } from '../src/sim/physical/blocks';
 import { MeshBatch } from '../src/web/world/meshBatch';
 import { buildStructures, decodeStructure } from '../src/web/world/structures';

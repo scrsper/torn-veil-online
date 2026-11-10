@@ -2,7 +2,7 @@ import { portsMatch } from './definitions';
 import type { Person } from '../core/types';
 import type { World } from '../core/world';
 import type { Assembly, Bindings, Component, Connection, Method } from './types';
-import { connect, disconnect, dismantle, mayUseProperty, reachable, owns } from './mechanics';
+import { connect, disconnect, dismantle, mayUseProperty, reachable } from './mechanics';
 import { cognitiveCapability, clamp } from '../core/human';
 import { skillOf } from '../core/skills';
 import { recordCapabilityPractice } from '../core/capability';

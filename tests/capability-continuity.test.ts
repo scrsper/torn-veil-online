@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { discoverAndRecord, arrangeReader, advanceUntil, placeWorker, observeNeed } from '../src/headless/kernel/continuity';
-import { advanceLiving, causalAncestors, createLivingPressure } from '../src/headless/kernel/living';
+import { advanceLiving, causalAncestors } from '../src/headless/kernel/living';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';
 import { methodsHeld } from '../src/sim/mind/invention';

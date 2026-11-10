@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { addPerson, createTestWorld, v, wall } from './helpers/world';
 import { learn } from '../src/sim/mind/knowledge';
-import { introduce } from '../src/sim/mind/people';
 import { converse } from '../src/sim/mind/conversationalIntent';
 import { buildContext, factSentence } from '../src/language/context';
 import { responseChoices, validateDialogue, validateIntent } from '../src/language/contract';

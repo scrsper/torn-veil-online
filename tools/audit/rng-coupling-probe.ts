@@ -23,6 +23,7 @@ import { Simulation } from '../../src/sim/mind/agent';
 import { generateVillage } from '../../src/sim/world/village';
 import { SECONDS_PER_DAY } from '../../src/sim/core/time';
 import { worldStock } from '../../src/sim/world/stock';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 
 function run(seed: number, days: number, burn: number) {
   const world = new World(seed);
@@ -47,7 +48,7 @@ function run(seed: number, days: number, burn: number) {
     if (completeDay < 0 && proj && proj.status === 'complete') completeDay = day;
     if (treesGoneDay < 0 && world.resourceNodes.filter(n => n.kind === 'tree' && n.state === 'available').length === 0) treesGoneDay = day;
   }
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   return {
     burn,
     completeDay: completeDay < 0 ? null : Math.round(completeDay * 100) / 100,

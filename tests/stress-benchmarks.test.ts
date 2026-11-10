@@ -3,9 +3,9 @@ import { Simulation } from '../src/sim/mind/agent';
 import { newWorld } from '../src/sim/persist/save';
 import { createTestWorld, addPerson, v } from './helpers/world';
 import { makeItem, makePlace } from '../src/sim/world/factory';
-import { createHaulTask, claimHaulTask, pickHaulTask, personalCarryUnits } from '../src/sim/logistics/haul';
+import { createHaulTask, pickHaulTask, personalCarryUnits } from '../src/sim/logistics/haul';
 import { createConstructionProject, projectDeficits, stepConstruction } from '../src/sim/world/construction';
-import { plantGrove, registerStoneNodes, extractFromNode } from '../src/sim/world/resources';
+import { plantGrove, extractFromNode } from '../src/sim/world/resources';
 import { addPlaceStock, stockAt, takePlaceStock, worldStock } from '../src/sim/world/stock';
 import { effectivePrice, scarcityModifier } from '../src/sim/world/pricing';
 /** `world/pricing.ts`'s own reference level for bread, restated here because that table is

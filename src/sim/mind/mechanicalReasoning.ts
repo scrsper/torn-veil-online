@@ -7,7 +7,7 @@ import { reachable, operateAssembly, mayUseProperty } from '../kernel/mechanics'
 import { cognitiveCapability, clamp } from '../core/human';
 import { skillOf } from '../core/skills';
 import { learn, eventClaim } from './knowledge';
-import { knownComponents, componentSupplyPlan } from './componentSupply';
+import { knownComponents } from './componentSupply';
 import { remember } from './memory';
 import { developThroughUnderstanding } from '../core/development';
 import { interpretSocial } from './people';

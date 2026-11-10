@@ -10,7 +10,7 @@ import { introduce, knownName, perceivedName } from './people';
 import type { Person, KnowledgeItem, Item, Desire } from '../core/types';
 import { World } from '../core/world';
 import { Simulation } from './agent';
-import { getRel, describeRel, disposition, adjustRel, isClose } from './relationships';
+import { getRel, describeRel, disposition, adjustRel } from './relationships';
 import { describeClaim, isCrime, learn } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
 import { selectTopic, foremostMatter } from './conversation';

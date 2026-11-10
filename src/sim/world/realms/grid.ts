@@ -2,7 +2,7 @@ import { VoxelGrid } from '../../physical/grid';
 import { B } from '../../physical/blocks';
 import { REALMS, REALM_CHUNK, REALM_SIZE, generateRealmChunk, realmAt, type RealmChunk, type RealmSpec } from './layout';
 import {FOCUSED_GENERATOR,focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
-import {FOCUSED_CATALOG,sceneGeometry,placementBounds} from '../assets/focusedRuntime';
+import { FOCUSED_CATALOG, sceneGeometry } from '../assets/focusedRuntime';
 import {StaticGeometry} from '../../physical/staticGeometry';
 import {focusedTerrain,terrainTriangles,terrainJoinTriangles,type FocusedTerrain} from '../assets/focusedTerrain';
 import type {Vec3} from '../../core/types';

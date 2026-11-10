@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {createCombatGym} from '../src/sim/world/combatGym';
-import {performHandInteraction,handInteractions} from '../src/sim/physical/hand';
+import { performHandInteraction } from '../src/sim/physical/hand';
 import {equippedItems,equipmentProjection,changeEquipment} from '../src/sim/physical/equipment';
 import {combatWeapon} from '../src/sim/physical/combat';
 import {BridgeSession} from '../src/bridge/session';

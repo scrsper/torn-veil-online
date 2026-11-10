@@ -1,7 +1,7 @@
 import { knowledgeItems } from './knowledgeView';
 import { knownPlaceForPerson } from '../world/locality';
 import { socialMotivation } from './socialEvidence';
-import type { Concern, EntityId, EventId, Goal, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
+import type { Concern, EntityId, EventId, Goal, GoalType, Item, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { concernsOf, concernGoalBoost, resolveConcern } from './concern';
 import { getRel, isClose, isFamily } from './relationships';

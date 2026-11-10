@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addPerson, createTestWorld, face, step, v, wall } from './helpers/world';
-import { learn, eventClaim, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
+import { addPerson, createTestWorld, step, v, wall } from './helpers/world';
+import { learn, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
 import { introduce, interpretSocial, knownName } from '../src/sim/mind/people';
 import { appearanceSignature, readRecognition, recognizeEncounter, visibleCues } from '../src/sim/mind/encounter';
 import { shareIdentityObservation } from '../src/sim/mind/encounter';

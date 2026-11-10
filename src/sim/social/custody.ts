@@ -1,5 +1,5 @@
 import { recordSurrenderExperience } from '../progression/experience';
-import type { Conflict, EntityId, Person, Tick } from '../core/types';
+import type { Conflict, EntityId, Person } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_DAY } from '../core/time';
 import { resolveConflict, activeThreatIds } from './conflict';

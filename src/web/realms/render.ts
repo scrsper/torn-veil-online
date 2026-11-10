@@ -4,7 +4,7 @@ import type { RenderContext } from '../render/engine';
 import type { Atmosphere } from '../world/atmosphere';
 import { MaterialLibrary, type MatName } from '../render/materials';
 import { MeshBatch } from '../world/meshBatch';
-import type { Building, RealmChunk, RealmId } from '../../sim/world/realms/layout';
+import type { RealmChunk, RealmId } from '../../sim/world/realms/layout';
 import {FocusedRenderer} from './focusedRenderer';
 import type {AssetScenePlan} from '../../sim/world/assets/focused';
 

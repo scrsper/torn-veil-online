@@ -1,9 +1,9 @@
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { AccountRegistry } from './accounts';
 import { loadConfig, loadRelease, type AlphaConfig, type AlphaEnv, type ReleaseIdentity } from './config';
 import { LiveServer } from './live';

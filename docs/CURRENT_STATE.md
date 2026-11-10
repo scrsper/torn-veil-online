@@ -1,5 +1,8 @@
 # Torn Veil current build - October 11, 2026
 
+> **Engine transition (2026-11-10).** Godot is replacing Babylon.js as the client. The Godot
+> project is not yet in this repository; this document describes the Babylon.js build.
+
 The current local repair is described in [the October 11 repair checkpoint](TORN_VEIL_REPAIR_OCT11.md). It adds one persistent launch/inspection home, shared city/Tower control, relaxed equipped travel and attainable source-backed Gold. Remote main remains the previously published baseline until separately authorized publication.
 
 The primary path is **Play Torn Veil.cmd**, also available as **Play Torn Veil Web.cmd** or `npm run play`. It opens the persistent connected realms and the canonical Tower. `npm run play:build` compiles `dist-web` and writes `current-build.json` with the exact clean Git commit. The launcher displays that commit and refuses a stale build or a host from another checkout. `/realms/health` reports the running source root and compiled build identity.

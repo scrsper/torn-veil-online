@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createTestWorld, addPerson, v, wall } from './helpers/world';
-import { submitCombatInput, requestCombatAction, stopCombatAction } from '../src/sim/physical/combatAction';
+import { submitCombatInput, stopCombatAction } from '../src/sim/physical/combatAction';
 import { INTERACTION_SPEC as S } from '../src/sim/physical/prediction';
 import { serialize, deserialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';

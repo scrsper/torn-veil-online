@@ -3,7 +3,7 @@ import { addPerson, createTestWorld, step, v } from './helpers/world';
 import { makePlace } from '../src/sim/world/factory';
 import { addPlaceStock, stockAt, takePlaceStock } from '../src/sim/world/stock';
 import { villageStock } from '../src/sim/world/metabolism';
-import { bake, mill } from '../src/sim/world/metabolism';
+import { mill } from '../src/sim/world/metabolism';
 import { generateProductionNeeds } from '../src/sim/world/production';
 import {
   maintainWorkStints, processFor, staffOf, tradePostAt, underServedPosts, unfitReason, workAuthorization,

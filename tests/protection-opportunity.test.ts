@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BridgeSession } from '../src/bridge/session';
-import type { Body, Creature, Person } from '../src/sim/core/types';
+import type { Body, Creature } from '../src/sim/core/types';
 import { knowsVeil } from '../src/sim/physical/veil';
 import { makeItem } from '../src/sim/world/factory';
 import { getRel } from '../src/sim/mind/relationships';
