@@ -42,7 +42,7 @@ const server = createServer((req, res) => {
   const url = new URL(req.url ?? '/', origin);
   if (url.pathname === '/motion/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'isolated-motion-review', root: resolve('.'), fixture: mode, memory: process.memoryUsage() })); return; }
   if (assetRoot && /^\/(models|textures|arena)\//.test(url.pathname) && !existsSync(resolve('web/public', '.' + url.pathname))) {
-    const path = resolve(assetRoot, '.' + decodeURIComponent(url.pathname));
+    let path: string; try { path = resolve(assetRoot, '.' + decodeURIComponent(url.pathname)); } catch { res.writeHead(400).end(); return; }
     if (path.startsWith(assetRoot + sep) && existsSync(path) && statSync(path).isFile()) {
       res.setHeader('content-type', ({ '.glb': 'model/gltf-binary', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' } as Record<string, string>)[extname(path)] ?? 'application/octet-stream'); createReadStream(path).pipe(res); return;
     }

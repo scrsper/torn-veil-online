@@ -50,11 +50,12 @@ const server = createServer(async (req, res) => {
       else { res.statusCode = 404; result = { error: 'Unknown endpoint' }; }
       res.end(JSON.stringify(result)); return;
     }
-    let path = resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+    let decoded: string; try { decoded = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname); } catch { res.statusCode = 400; res.end(); return; }
+    let path = resolve(root, '.' + decoded);
     // Isolated QA may read the existing licensed asset kit without copying or
     // replacing it. Only the same public subtrees as the realm/review hosts.
     if (assetRoot && /^\/(models|textures|arena)\//.test(url.pathname) && (process.env.TV_GYM_ASSETS || !existsSync(path))) {
-      const existing = resolve(assetRoot, '.' + decodeURIComponent(url.pathname));
+      const existing = resolve(assetRoot, '.' + decoded);
       if (existing.startsWith(assetRoot + sep) && existsSync(existing) && statSync(existing).isFile()) path = existing;
     }
     if ((!path.startsWith(root + sep) && !path.startsWith((assetRoot ?? root) + sep)) || !existsSync(path)) { res.statusCode = 404; res.end(); return; }

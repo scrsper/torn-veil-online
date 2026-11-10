@@ -109,8 +109,8 @@ const server = createServer(async (req, res) => {
   }
   // Optional read-only local assets. Only public model/texture subtrees, never an arbitrary path.
   if (assetRoot && /^\/(models|textures|arena)\//.test(url.pathname) && !existsSync(resolve('web/public', '.' + url.pathname))) {
-    const file = resolve(assetRoot, '.' + decodeURIComponent(url.pathname));
-    if (file.startsWith(assetRoot + '\\') && existsSync(file) && statSync(file).isFile()) {
+    let file: string; try { file = resolve(assetRoot, '.' + decodeURIComponent(url.pathname)); } catch { res.writeHead(400).end(); return; }
+    if (file.startsWith(assetRoot + sep) && existsSync(file) && statSync(file).isFile()) {
       const mime: Record<string, string> = { '.glb': 'model/gltf-binary', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
       res.setHeader('content-type', mime[extname(file)] ?? 'application/octet-stream'); createReadStream(file).pipe(res); return;
     }

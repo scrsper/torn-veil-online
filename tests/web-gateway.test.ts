@@ -79,6 +79,25 @@ describe.sequential('Web gateway and admission adapter', () => {
     expect((await fetch(`${gateway.url}/api/session`, { headers: { cookie: cookie.split(';')[0] } })).status).toBe(200);
   });
 
+  it('keeps a supported view on the launch redirect and drops anything else', async () => {
+    for (const [view, location] of [['orbit', '/?view=orbit'], ['isometric', '/?view=isometric'], ['third-person', '/?view=third-person'], ['debug', '/']]) {
+      const r = await fetch(`${gateway.issueLaunchUrl()}?view=${view}`, { redirect: 'manual' });
+      expect(r.status).toBe(302);
+      expect(r.headers.get('location')).toBe(location);
+    }
+  });
+
+  it('answers a malformed path with 400 and keeps serving', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'tvo-webgate-static-')); openRoots.push(dir);
+    writeFileSync(join(dir, 'index.html'), '<!doctype html><title>client</title>');
+    const served = new WebGateway({ port: 0, upstream: { host: '127.0.0.1', port }, credentials: { account: 'webby', token }, staticDir: dir, log: quiet });
+    await served.listen();
+    try {
+      expect((await fetch(`${served.url}/%E0%A4%A`)).status).toBe(400);
+      expect((await fetch(`${served.url}/`)).status).toBe(200);
+    } finally { await served.close(); }
+  });
+
   it('refuses a socket without a session, from a foreign origin, with no origin, or for another host', async () => {
     const { cookie } = await launch(gateway);
     const noSession = await browser(gateway, 'character=auto', { Origin: gateway.url });

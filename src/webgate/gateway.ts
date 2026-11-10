@@ -157,7 +157,7 @@ export class WebGateway {
       const id = token(32), ttl = this.options.sessionTtlMs ?? 12 * 3600_000;
       this.sessions.set(id, { id, createdAt: Date.now(), expiresAt: Date.now() + ttl, sockets: new Set(), launched: true });
       const view = url.searchParams.get('view');
-      const destination = view === 'isometric' || view === 'third-person' ? '/?view=' + view : '/';
+      const destination = view === 'isometric' || view === 'third-person' || view === 'orbit' ? '/?view=' + view : '/';
       res.writeHead(302, { location: destination, 'set-cookie': `${COOKIE}=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${Math.floor(ttl / 1000)}`, 'cache-control': 'no-store' });
       return void res.end();
     }
@@ -193,7 +193,8 @@ export class WebGateway {
       'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', 'x-frame-options': 'DENY', 'cross-origin-opener-policy': 'same-origin',
     };
     if (!root) { res.writeHead(404, headers); return void res.end('No client bundled'); }
-    let rel = decodeURIComponent(path);
+    let rel: string;
+    try { rel = decodeURIComponent(path); } catch { res.writeHead(400, headers); return void res.end('Bad request'); }
     if (rel.endsWith('/')) rel += 'index.html';
     const file = normalize(join(root, rel));
     if (file !== root && !file.startsWith(root + sep)) { res.writeHead(403, headers); return void res.end('Forbidden'); }
