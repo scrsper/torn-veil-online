@@ -1,7 +1,7 @@
 import {readFile,realpath,stat} from 'node:fs/promises';
 import {resolve,sep,extname} from 'node:path';
 import {spawn} from 'node:child_process';
-import type {IncomingMessage,ServerResponse} from 'node:http';
+import type { ServerResponse } from 'node:http';
 
 export class Tooling {
  readonly ontologyRoot=resolve(process.env.TORN_VEIL_ONTOLOGY_ROOT??'tools/ontology');

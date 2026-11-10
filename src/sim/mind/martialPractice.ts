@@ -12,7 +12,7 @@ import { instructionPairAvailable, TEACH_MIN_SKILL } from './apprenticeship';
 import { remember } from './memory';
 import { learn } from './knowledge';
 import { isExternallyControlled } from '../runtime/controllers';
-import { canExecuteTechnique, definitionClaim, demonstratedClaim, instructionClaim, knowsTechnique, learnTechnique, martialState, masteryOf, techniqueKnowledge } from './martialKnowledge';
+import { canExecuteTechnique, definitionClaim, demonstratedClaim, instructionClaim, learnTechnique, martialState, masteryOf, techniqueKnowledge } from './martialKnowledge';
 
 export const SOLO_MASTERY_CEILING = 0.3;
 export const SOLO_FAMILY_CEILING = 0.35;

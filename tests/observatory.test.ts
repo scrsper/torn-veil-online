@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { createScenario, SCENARIOS } from '../src/observatory/scenarios';
 import { inspectPerson, causalGraph, inspectEvent, settlementMetrics, worldOverview, resourceState } from '../src/observatory/readers';
 import { makeItem } from '../src/sim/world/factory';
-import { serialize } from '../src/sim/persist/save';
 import { canonicalDigest } from '../src/observatory/fingerprint';
 import { Observatory } from '../src/observatory/runtime';
 import { createObservatoryServer } from '../src/observatory/server';

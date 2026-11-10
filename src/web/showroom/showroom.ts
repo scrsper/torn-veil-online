@@ -1,4 +1,4 @@
-import { Color3, Color4, DirectionalLight, DynamicTexture, MeshBuilder, PBRMaterial, ParticleSystem, PointLight, Texture, Vector3, type Mesh } from '@babylonjs/core';
+import { Color3, Color4, DynamicTexture, MeshBuilder, PBRMaterial, ParticleSystem, PointLight, Vector3, type Mesh } from '@babylonjs/core';
 import type { App } from '../app';
 import type { ActorState } from '../actors/actorManager';
 import { CharacterVisual } from '../actors/characterFactory';

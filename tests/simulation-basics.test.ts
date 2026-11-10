@@ -9,7 +9,7 @@ import { adjustRel, getRel } from '../src/sim/mind/relationships';
 import { newWorld } from '../src/sim/persist/save';
 import { makeItem } from '../src/sim/world/factory';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
-import { addPerson, createTestWorld, step, v } from './helpers/world';
+import { addPerson, createTestWorld, v } from './helpers/world';
 
 describe('existing core simulation', () => {
   it('starts cognition, follows schedules, and physically moves villagers', () => {

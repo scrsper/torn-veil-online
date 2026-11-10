@@ -1,5 +1,10 @@
 # Running Torn Veil
 
+> **Historical (Unreal Living Alpha).** This describes the archived Unreal package and its
+> staging service. `Play Torn Veil.cmd` now opens the Babylon.js connected realms; see the
+> root [README](../README.md), [current state](CURRENT_STATE.md) and
+> [Unreal archive](UNREAL_ARCHIVE.md).
+
 ## Installed Windows game
 
 Double-click **Play Torn Veil** on the desktop, or **Play Torn Veil.cmd** in the

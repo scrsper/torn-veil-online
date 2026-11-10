@@ -19,7 +19,7 @@ import { travelPath } from '../../physical/travel';
 import { serialize, deserialize } from '../../persist/save';
 import { generateRealms } from './generate';
 import { RealmGrid } from './grid';
-import { REALMS, REALM_CHUNK, CENTER, portalPoint, realmAt, realmResidency, type Point, type RealmId } from './layout';
+import { REALMS, REALM_CHUNK, CENTER, portalPoint, realmAt, realmResidency, type RealmId } from './layout';
 import {FOCUSED_CATALOG} from '../assets/focusedRuntime';
 import {placedPoint} from '../assets/focused';
 import {FOCUSED_GENERATOR} from '../assets/focusedLayouts';

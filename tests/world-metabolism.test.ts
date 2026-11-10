@@ -5,7 +5,7 @@ import { createTestWorld, addPerson, step, v } from './helpers/world';
 import { makeItem, makePlace } from '../src/sim/world/factory';
 import {
   createFields, stepMetabolism, moistureGrowthFactor, plantPlot, harvestPlot, mill, bake,
-  transform, findAccessibleFood, eatFood, drinkAt, nearestWaterSource, metabolismSummary,
+  transform, findAccessibleFood, eatFood, drinkAt, metabolismSummary,
   stockTotal, villageStock, MATURE_HOURS, cropBlockFor,
 } from '../src/sim/world/metabolism';
 import type { Field, Person } from '../src/sim/core/types';

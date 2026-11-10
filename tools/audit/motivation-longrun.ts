@@ -10,6 +10,7 @@ import { generateVillage } from '../../src/sim/world/village';
 import { pursuitsOf } from '../../src/sim/mind/pursuit';
 import { obligationsOf } from '../../src/sim/social/obligation';
 import { hungerBand, thirstBand } from '../../src/sim/core/physiology';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 
 const seeds = (process.argv[2] ?? '1337,918271,42424242,12345,606060').split(',').map(Number);
 const days = Number(process.argv[3] ?? 10);
@@ -33,7 +34,7 @@ for (const seed of seeds) {
   const oldest = world.now - days * 24 * 3600;
   for (const p of world.persons()) {
     if (!p.alive) { deaths++; continue; }
-    if (p.controlled) continue;
+    if (isExternallyControlled(p)) continue;
     for (const pu of pursuitsOf(p)) {
       // The longest arc anyone actually saw through is the interesting number, so this counts
       // FINISHED purposes too. Measuring only the live ones reports whatever happens to be a few

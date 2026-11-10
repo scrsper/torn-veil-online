@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BridgeSession } from '../src/bridge/session';
-import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../src/sim/physical/melee';
+import { meleeStrike, MELEE_REACH } from '../src/sim/physical/melee';
 import { subdue } from '../src/sim/social/custody';
 import { beginConflict } from '../src/sim/social/conflict';
 import { createTestWorld, addPerson, v, step, wall } from './helpers/world';

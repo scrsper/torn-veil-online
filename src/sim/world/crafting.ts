@@ -1,4 +1,4 @@
-import type { Person, ItemType, Item, EventId } from '../core/types';
+import type { Person, ItemType, Item } from '../core/types';
 import type { World } from '../core/world';
 import { materialOf, materialIdOf, type MaterialId } from '../core/materials';
 import { affordancesOf } from '../core/affordance';

@@ -18,6 +18,7 @@ import { effectivePrice } from '../../src/sim/world/pricing';
 import { isFood } from '../../src/sim/world/factory';
 import { detectAnomalies } from '../../src/sim/telemetry/anomaly';
 import type { Person } from '../../src/sim/core/types';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 
 const ORDER = ['comfortable', 'noticeable', 'uncomfortable', 'urgent', 'critical'] as const;
 const atLeast = (b: string, min: string) => ORDER.indexOf(b as never) >= ORDER.indexOf(min as never);
@@ -56,7 +57,7 @@ interface Row {
 }
 
 function sample(world: World, day: number): Row {
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   const wealths = alive.map(p => p.wealth);
   const personWealth = wealths.reduce((a, b) => a + b, 0);
   let coinItems = 0;
@@ -128,7 +129,7 @@ function run(seed: number, days: number) {
     if (hour !== lastHour) {
       lastHour = hour;
       for (const p of world.persons()) {
-        if (!p.alive || p.controlled) continue;
+        if (!p.alive || isExternallyControlled(p)) continue;
         bump('h', p.id, atLeast(hungerBand(p), 'urgent'));
         bump('t', p.id, atLeast(thirstBand(p), 'urgent'));
         bump('s', p.id, atLeast(sleepBand(p), 'urgent'));
@@ -151,7 +152,7 @@ for (const seed of seeds) {
   const t0 = Date.now();
   const r = run(seed, days);
   const first = r.rows[0], last = r.rows[r.rows.length - 1];
-  const pop = r.world.persons().filter(p => p.alive && !p.controlled).length;
+  const pop = r.world.persons().filter(p => p.alive && !isExternallyControlled(p)).length;
   console.log(`\n############ seed ${seed} · ${days} world-days · ${((Date.now() - t0) / 1000).toFixed(0)}s wall · pop ${pop}`);
   console.log('CURRENCY / DISTRIBUTION');
   console.log('day | wealth  coins  total | sinkSup wages purch wholes reward | gini median pQ%  rich% | bread$ <bread noMeal');
@@ -191,7 +192,7 @@ for (const seed of seeds) {
   const overAll = [...r.max.h.values()];
   console.log(`  hunger streaks: max ${Math.max(...overAll)}h; people over 48h: ${overAll.filter(n => n > 48).length}/${pop}; over 168h (1 week): ${overAll.filter(n => n > 168).length}/${pop}`);
   const mealsPer = [...r.mealsByPerson.entries()].sort((a, b) => a[1] - b[1]);
-  const never = r.world.persons().filter(p => p.alive && !p.controlled && !r.mealsByPerson.has(p.id));
+  const never = r.world.persons().filter(p => p.alive && !isExternallyControlled(p) && !r.mealsByPerson.has(p.id));
   console.log(`  meals/person/day overall: ${(last.meals / (pop * days)).toFixed(2)} (physiological requirement >= ~2.1)`);
   console.log(`  people who NEVER ate in ${days} days: ${never.length ? never.map(p => `${p.name}(${p.occupation})`).join(', ') : 'none'}`);
   if (mealsPer.length) console.log(`  fewest meals: ` + mealsPer.slice(0, 5).map(([id, n]) => `${r.world.nameOf(id).split(' ')[0]}=${n}`).join(', ') + ` (note: event-log based, undercounts after compaction)`);

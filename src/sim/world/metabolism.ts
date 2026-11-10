@@ -7,7 +7,7 @@ import { localPlaces, near, placeForPerson } from './locality';
 import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId, PlaceType } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
-import { makeItem, RESOURCE_CATEGORY, isFood, isPerishable, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
+import { makeItem, RESOURCE_CATEGORY, isFood, isPerishable, SPOIL_RATE_PER_DAY } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 import { purchaseUnits, unitPriceFor, willingnessFor } from './commerce';

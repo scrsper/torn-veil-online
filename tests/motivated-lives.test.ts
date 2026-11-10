@@ -1,6 +1,6 @@
 import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
-import { addPerson, createTestWorld, face, step, v } from './helpers/world';
+import { addPerson, createTestWorld, step, v } from './helpers/world';
 import { getRel, setRelTags } from '../src/sim/mind/relationships';
 import { learn } from '../src/sim/mind/knowledge';
 import { formConcerns } from '../src/sim/mind/concern';

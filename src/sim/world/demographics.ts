@@ -1,5 +1,5 @@
 import { witnessParenthood } from '../mind/genealogy';
-import { peopleTogether, placeForPerson } from './locality';
+import { peopleTogether } from './locality';
 import type { EntityId, Household, Person } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_DAY } from '../core/time';

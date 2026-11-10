@@ -1,4 +1,4 @@
-import type { Occupation, ScheduleEntry, Person, EntityId } from '../core/types';
+import type { ScheduleEntry, Person, EntityId } from '../core/types';
 
 /** Schedules are default rhythms of life, not scripts. The decision system weighs them against everything else. */
 export function scheduleFor(p: Person, refs: { work: EntityId | null; home: EntityId | null; tavern: EntityId; square: EntityId; chapel: EntityId; stall?: EntionId | null; field?: EntityId | null; saw?: EntityId | null; shift?: string }): ScheduleEntry[] {

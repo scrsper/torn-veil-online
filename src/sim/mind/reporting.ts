@@ -1,4 +1,4 @@
-import type { EntityId, KnowledgeItem, Person, ReportProgress, ReportStatus, Tick } from '../core/types';
+import type { EntityId, KnowledgeItem, Person, ReportProgress, ReportStatus } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { situationForEvent, personalSituationView } from '../social/situation';

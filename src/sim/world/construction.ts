@@ -1,5 +1,5 @@
 import { localPlaces, near } from './locality';
-import type { ConstructionProject, ConstructionRequirement, ItemType, Person, Place, Vec3, EntityId } from '../core/types';
+import type { ConstructionProject, ConstructionRequirement, ItemType, Person, Place, EntityId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { stockAt, takePlaceStock } from './stock';

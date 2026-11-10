@@ -1,4 +1,4 @@
-import type { Conflict, ConflictCause, ConflictIntent, ConflictOutcome, EntityId, EventId, Person, Tick } from '../core/types';
+import type { Conflict, ConflictCause, ConflictIntent, ConflictOutcome, EntityId, EventId, Person } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_HOUR, SECONDS_PER_DAY } from '../core/time';
 

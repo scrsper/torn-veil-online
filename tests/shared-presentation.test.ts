@@ -7,9 +7,6 @@ import { RELAXED, MOVESETS } from '../src/web/arena/combat';
 import type { BodyState } from '../src/web/net/messages';
 import type { ActorState } from '../src/web/actors/actorManager';
 import type { Atmosphere } from '../src/web/world/atmosphere';
-import { RealmSession } from '../src/sim/world/realms/session';
-import { makeItem } from '../src/sim/world/factory';
-import { changeEquipment } from '../src/sim/physical/equipment';
 import { normalizeCharacterMetres } from '../src/web/actors/characterScale';
 
 describe('shared presentation replacement contract', () => {

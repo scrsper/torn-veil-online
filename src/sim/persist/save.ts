@@ -19,7 +19,7 @@ import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
 import { generateRealms } from '../world/realms/generate';
-import type { Person, Body, Item, Place, Container, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
+import type { Person, Body, Item, Container, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';

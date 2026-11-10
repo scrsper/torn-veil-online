@@ -1,5 +1,5 @@
 import type { BrowserSpec } from '../run';
-import { startGame, movePlayerTo, lookAt, interact, openDialogueWith, readDialogue, chooseDialogueOption, readCanonicalState } from '../helpers';
+import { startGame, movePlayerTo, lookAt, interact, openDialogueWith, readDialogue, chooseDialogueOption } from '../helpers';
 
 /**
  * v0.8 §1A/§1B/§10: authorized item recovery is not theft, and the promised reward is really

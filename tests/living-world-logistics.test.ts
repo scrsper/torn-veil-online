@@ -8,7 +8,7 @@ import {
   stockAt, stockTotal, addPlaceStock, takePlaceStock, worldStock,
 } from '../src/sim/world/stock';
 import {
-  createHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, maintainHauls, generateLogisticsNeeds,
+  createHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, maintainHauls,
 } from '../src/sim/logistics/haul';
 import { plantGrove, registerStoneNodes, extractFromNode, maintainResourceNodes, nearestAvailableNode } from '../src/sim/world/resources';
 import { createConstructionProject, contributeBuildLabor, stepConstruction, projectDeficits } from '../src/sim/world/construction';

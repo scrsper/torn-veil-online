@@ -1,5 +1,5 @@
 import '@babylonjs/loaders/glTF';
-import {Color3,Matrix,Mesh,MeshBuilder,PBRMaterial,Quaternion,SceneLoader,Texture,TransformNode,Vector3,VertexBuffer,type AssetContainer,type Scene} from '@babylonjs/core';
+import { Color3, Mesh, PBRMaterial, SceneLoader, Texture, TransformNode, Vector3, VertexBuffer, type AssetContainer, type Scene } from '@babylonjs/core';
 import {parseFocusedManifest,type FocusedManifest,type AssetPlacement} from '../../sim/world/assets/focused';
 import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';

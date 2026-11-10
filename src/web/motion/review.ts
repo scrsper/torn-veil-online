@@ -4,7 +4,7 @@ import { Atmosphere } from '../world/atmosphere';
 import { combatGymStage } from '../world/combatGymStage';
 import { SharedCharacters } from '../actors/sharedCast';
 import type { BodyVisual } from '../actors/actorManager';
-import type { BodyState, CombatActionState, InteractionCommand } from '../net/messages';
+import type { BodyState, InteractionCommand } from '../net/messages';
 import { contextFor } from '../actors/canonicalActionContext';
 
 /** Acceptance surface for the existing shared renderer and canonical bridge. No World,

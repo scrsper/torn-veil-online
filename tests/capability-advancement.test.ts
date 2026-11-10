@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { addPerson, createTestWorld, v } from './helpers/world';
 import { recordCapabilityPractice, capabilityExperience } from '../src/sim/core/capability';
 import { advanceToIron, assessAdvancement, advancementBlocked } from '../src/sim/core/advancement';
-import { attributeProfile } from '../src/sim/core/human';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { agencyWorkshop } from '../src/headless/agency/showcase';
 import { createComponent } from '../src/sim/kernel/mechanics';

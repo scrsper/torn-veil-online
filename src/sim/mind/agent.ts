@@ -38,7 +38,7 @@ import { observeProduction, productionWorkGoals, localProductionChoice } from '.
 import { applyInjury } from '../physical/injury';
 import { stepArcana } from '../physical/arcana/runtime';
 import { absorbImpact } from '../physical/protection';
-import { combatApproachReach, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
+import { combatApproachReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import { advanceCombat, captureCombatTransforms, combatBusy, requestCombatAction, requestDefense } from '../physical/combatAction';
 import { requestGuard } from '../physical/guard';
 import { observeCombatPreparation, offerCombatDefense } from './combatReaction';
@@ -48,7 +48,7 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, recordDowning, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, SEED_PER_PLOT } from '../world/metabolism';
+import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, plantPlot, harvestPlot, findAccessibleFood, eatFood, nearestWaterSource, drinkAt, restockTavern, gatherHerbs } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { attendingTo, isCommittable, DUTY_ACTIVITIES, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor, movementMultiplier } from '../core/attributes';
@@ -64,7 +64,7 @@ import { stepWildlifeInteraction } from '../ecology/interaction';
 import { observeTechnique } from './martialKnowledge';
 import { actOnMartial, martialActivityLevel, martialPartnerHold } from './martialPractice';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
-import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
+import { stepFire, fireIntensityAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, locationNotFound, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces, MAX_TESTIMONY_HOPS } from './knowledge';
@@ -72,7 +72,6 @@ import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
-import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 import { payRecoveryReward, recentlyFailedRequests } from '../core/requests';
@@ -89,7 +88,7 @@ import { drawInferences } from './inference';
 // (world/labor.ts), who is plausibly moved to take it up (mind/succession.ts), and the smallest
 // teaching path (mind/apprenticeship.ts). None of the three decides anything on its own: the
 // first is a read-only view, the second returns a number, the third writes a belief.
-import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, tradeProcesses, underServedPosts, workAuthorization, WORK_CAPACITY_FLOOR, type TradePost } from '../world/labor';
+import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, tradeProcesses, underServedPosts, workAuthorization, type TradePost } from '../world/labor';
 import { peopleAwareOfShortage, standInCandidacy } from './succession';
 import { livelihoodProspects } from './livelihood';
 import { maybeTeachAt } from './apprenticeship';

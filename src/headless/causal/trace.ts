@@ -6,7 +6,6 @@ import { runHeadless } from '../runner';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { activeConcerns, describeConcern } from '../../sim/mind/concern';
 import { causeBeliefs } from '../../sim/mind/inference';
-import { shortfallBeliefs } from '../../sim/world/shortfall';
 import { describeClaim } from '../../sim/mind/knowledge';
 import { explainConcern, explainGoal, explainRelationship, traceLines } from '../../sim/history/causality';
 

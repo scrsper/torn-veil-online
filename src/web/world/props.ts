@@ -1,5 +1,4 @@
 import { Mesh, Plane, Scene, TransformNode } from '@babylonjs/core';
-import { B } from '../../sim/physical/blocks';
 import type { MaterialLibrary } from '../render/materials';
 import { hash2 } from '../render/noise';
 import type { PlaceProjection, RegionProjection } from '../net/messages';

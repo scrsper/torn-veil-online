@@ -15,6 +15,7 @@ import { World } from '../../src/sim/core/world';
 import { Simulation } from '../../src/sim/mind/agent';
 import { generateVillage } from '../../src/sim/world/village';
 import { hungerBand, thirstBand, sleepBand } from '../../src/sim/core/physiology';
+import { isExternallyControlled } from '../../src/sim/runtime/controllers';
 
 const seeds = (process.argv[2] ?? '1337').split(',').map(Number);
 const days = Number(process.argv[3] ?? 10);
@@ -35,7 +36,7 @@ for (const seed of seeds) {
     if (world.now >= nextSample) {
       nextSample += sampleEvery;
       for (const p of world.persons()) {
-        if (!p.alive || p.controlled) continue;
+        if (!p.alive || isExternallyControlled(p)) continue;
         if (hungerBand(p) === 'critical') hungH += 0.5;
         if (thirstBand(p) === 'critical') thirstH += 0.5;
         if (sleepBand(p) === 'critical') sleepH += 0.5;

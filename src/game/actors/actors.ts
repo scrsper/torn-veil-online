@@ -1,4 +1,3 @@
-import { isExternallyControlled } from '../../sim/runtime/controllers';
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
 import type { Body, Person, Creature, Appearance, Item } from '../../sim/core/types';

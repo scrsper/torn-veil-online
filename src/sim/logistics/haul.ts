@@ -1,8 +1,8 @@
 import { near } from '../world/locality';
-import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
+import type { HaulTask, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
-import { addPlaceStock, takePlaceStock, retireStack, stockAt, stockItemsAt } from '../world/stock';
+import { addPlaceStock, retireStack, stockAt, stockItemsAt } from '../world/stock';
 import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest, payWage } from '../core/requests';

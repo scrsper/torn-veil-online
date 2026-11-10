@@ -8,7 +8,6 @@ import { genealogyKey, genealogicalBeliefs, inferGenealogy, inferSurnameKin, gen
 import { actOnRecord, teachNotation } from '../src/sim/mind/records';
 import { learn } from '../src/sim/mind/knowledge';
 import { makeItem } from '../src/sim/world/factory';
-import { Simulation } from '../src/sim/mind/agent';
 import { deserialize, serialize, newWorld } from '../src/sim/persist/save';
 import type { Person, Action } from '../src/sim/core/types';
 import type { World } from '../src/sim/core/world';
