@@ -1,5 +1,10 @@
 # Torn Veil Online
 
+> **Engine transition (2026-11-10).** Godot is replacing Babylon.js as the game client.
+> The Godot project currently lives only on the owner's machine and is not yet in this
+> repository, so everything below still describes the Babylon.js client, which remains
+> the only client in this tree until the Godot project is committed.
+
 Torn Veil is a persistent simulated world. **Babylon.js is the active game client.**
 `src/sim/` owns the world; `src/web/` displays it and requests canonical actions.
 The simulation is being retained. Unreal is archived; Three.js is historical.
