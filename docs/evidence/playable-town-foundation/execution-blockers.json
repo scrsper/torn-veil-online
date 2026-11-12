@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-10-22T03:33:01.895Z",
+  "status": "blocked-before-process-start",
+  "attempts": [
+    {
+      "tool": "exec_command",
+      "shell": "bash",
+      "operation": "pwd; later git status --short --branch",
+      "result": "CreateProcessAsUserW failed: 5 (Access is denied.)"
+    },
+    {
+      "tool": "node_repl child_process",
+      "operation": "supported local Bash process",
+      "result": "spawn EPERM"
+    },
+    {
+      "tool": "node_repl Vitest import",
+      "result": "Importing module node:process is not allowed / process is not defined"
+    },
+    {
+      "tool": "node_repl pure TypeScript evaluation",
+      "result": "Code generation from strings disallowed; no workaround attempted"
+    },
+    {
+      "tool": "node_repl compiler API",
+      "result": "Intermediate repeated programs exhausted 4GB tool heap; fresh final full-program check succeeded with zero diagnostics."
+    }
+  ],
+  "notRun": [
+    "npm ci",
+    "Vitest",
+    "Vite foundation build",
+    "Windows launcher",
+    "canonical realm host",
+    "Chrome/Edge acceptance",
+    "journal worker replay",
+    "same-save restart",
+    "git staging"
+  ],
+  "hostProcessesStarted": 0,
+  "userSavesChanged": false,
+  "otherWorktreesChanged": false,
+  "currentScreenshotsOrVideo": false
+}

@@ -1,0 +1,1600 @@
+{
+  "state": {
+    "focusedAssets": {
+      "version": 1,
+      "id": "veil:brass:focused-town:v1",
+      "seed": 918271,
+      "generatorVersion": "chrysanthus-focused-3",
+      "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+      "placements": [
+        {
+          "id": "veil:brass:focused-town:v1:street",
+          "assetId": "tv_36_10_city_street",
+          "position": [
+            11312.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:home-west",
+          "assetId": "tv_26_05_timber_house",
+          "position": [
+            11300.877649922211,
+            1,
+            3072.6448901457247
+          ],
+          "yaw": 1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:home-east",
+          "assetId": "tv_26_05_timber_house",
+          "position": [
+            11324.122350077789,
+            1,
+            3112.3551098542753
+          ],
+          "yaw": -1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tavern",
+          "assetId": "tv_31_01_tavern",
+          "position": [
+            11300.5,
+            1,
+            3112.5
+          ],
+          "yaw": 1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:store",
+          "assetId": "tv_32_01_general_store",
+          "position": [
+            11324.5,
+            1,
+            3072.5
+          ],
+          "yaw": -1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:24",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3116.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:28",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3120.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:32",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3124.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:36",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3128.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-16",
+          "assetId": "module:floor_paving",
+          "position": [
+            11296.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-20",
+          "assetId": "module:floor_paving",
+          "position": [
+            11292.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-24",
+          "assetId": "module:floor_paving",
+          "position": [
+            11288.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-28",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:4",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3096.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:8",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3100.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:12",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3104.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:veil-arch",
+          "assetId": "module:high_arch",
+          "position": [
+            11284.5,
+            1,
+            3102.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "position": [
+            11312.5,
+            1,
+            3156.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "position": [
+            11312.5,
+            1,
+            3212.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-turn",
+          "assetId": "tv_48_01_broadleaf_forest",
+          "position": [
+            11328.5,
+            1,
+            3264.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:ruins",
+          "assetId": "tv_03_01_ruined_cloister",
+          "position": [
+            11356.5,
+            1,
+            3156.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:entry",
+          "assetId": "module:high_arch",
+          "position": [
+            11298.5,
+            1,
+            3264.5
+          ],
+          "yaw": 1.5707963267948963,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:0:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:0:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:entry-crown",
+          "assetId": "module:wall",
+          "position": [
+            11298.5,
+            5.8,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:altar",
+          "assetId": "module:altar",
+          "position": [
+            11289.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        }
+      ],
+      "connections": [
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P13"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:home-west",
+            "connectorId": "frontdoor"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P04"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:home-east",
+            "connectorId": "frontdoor"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P03"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:tavern",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P14"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:store",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "connectorId": "P01"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "connectorId": "P01"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:forest-turn",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "connectorId": "P02"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:ruins",
+            "connectorId": "P00"
+          }
+        }
+      ],
+      "spawn": {
+        "x": 11312.5,
+        "y": 1.0625,
+        "z": 3113.7
+      },
+      "tower": {
+        "id": "veil:brass:chrysanthus",
+        "x": 11286.5,
+        "z": 3258.5,
+        "w": 12,
+        "d": 12,
+        "entry": {
+          "x": 11295.5,
+          "y": 1.0625,
+          "z": 3264.5
+        }
+      },
+      "bounds": {
+        "x0": 11282.4,
+        "z0": 3063.6488901457246,
+        "x1": 11374.835,
+        "z1": 3286.5
+      }
+    },
+    "realm": "brass",
+    "realmName": "Cinderveil",
+    "subtitle": "THE BRASS & THORN REALM",
+    "seed": 918271,
+    "time": 250.0000000000911,
+    "worldTime": 8666650.000013039,
+    "person": {
+      "id": "p_5",
+      "name": "Veil traveler",
+      "rank": "Normal",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1,
+          "grade": null
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3,
+          "grade": null
+        }
+      ]
+    },
+    "body": {
+      "id": "b_5",
+      "pos": {
+        "x": 11319.432037833092,
+        "y": 0.7883088203833846,
+        "z": 3165.005401739196
+      },
+      "yaw": -1.5176663043929768,
+      "hp": 80,
+      "maxHp": 80,
+      "traversal": null
+    },
+    "avatar": {
+      "bodyId": "b_5",
+      "entityId": "p_5",
+      "name": "Veil traveler",
+      "pos": {
+        "x": 11319.432037833092,
+        "y": 0.7883088203833846,
+        "z": 3165.005401739196
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5176663043929768,
+      "crouch": 0,
+      "pose": "stand",
+      "activity": "stand",
+      "speed": 0,
+      "attackSeq": 1,
+      "hitSeq": 0,
+      "lastAttackAt": 246.13333333342135,
+      "lastHitAt": -99,
+      "dead": false,
+      "incapacitated": false,
+      "appearance": {
+        "skin": 15254696,
+        "hair": 15132390,
+        "shirt": 5328728,
+        "pants": 3815742,
+        "height": 0.96,
+        "build": 0.87,
+        "hatStyle": "hood",
+        "hat": 3815742,
+        "description": {
+          "archetype": "shiro",
+          "culture": "ashford",
+          "presentation": "androgynous",
+          "skinTone": "fair",
+          "faceShape": "oval",
+          "hairStyle": "updo_ornamented",
+          "hairColor": "white",
+          "eyeColor": "grey",
+          "frame": "slight",
+          "stature": "below_average",
+          "garmentSilhouette": "work_kimono",
+          "garmentPalette": "temple_slate",
+          "accessories": [
+            "hood"
+          ],
+          "culturalTags": [
+            "ashford",
+            "snow_moon",
+            "winter_silk"
+          ],
+          "grooming": 0.775037606828846,
+          "wear": 0.4715562747791409,
+          "status": "modest",
+          "agePresentation": "young_adult",
+          "roleCues": [
+            "travel_pack"
+          ]
+        }
+      },
+      "presentationSex": "f",
+      "equipment": [],
+      "combatAction": {
+        "id": "action_1",
+        "commandId": "realm-500",
+        "actorBodyId": "b_5",
+        "kind": "attack",
+        "definition": "unarmed_low",
+        "techniqueId": "motor:crude-kick",
+        "techniqueName": "Crude kick",
+        "trajectory": "low",
+        "variant": "kick",
+        "moveId": "front_kick",
+        "repertoireRevision": 2,
+        "startedAt": 246.13333333342135,
+        "activeAt": 246.43333333342136,
+        "recoveryAt": 246.58333333342136,
+        "completeAt": 246.88333333342138,
+        "phase": "complete",
+        "outcome": "miss",
+        "facing": -1.5176663043929768,
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "distance": 0,
+        "reach": 0.9,
+        "radius": 0.12,
+        "duck": 0,
+        "contact": null,
+        "capability": {
+          "strength": 0.4762800873902629,
+          "dexterity": 0.47557900062099895,
+          "exertion": 0.9288402621707887
+        }
+      },
+      "guarding": false,
+      "speech": ""
+    },
+    "growth": {
+      "eligible": false,
+      "next": "Iron",
+      "reasons": [
+        "0/48 distinct opposed victories",
+        "0/1 forms applied against three distinct opponents each",
+        "0/1 different essences learned from real sources",
+        "1 spare essence sources must be consumed"
+      ],
+      "victories": 0,
+      "forms": 0,
+      "essences": 0,
+      "quality": 0,
+      "materials": 0,
+      "requirements": {
+        "victories": 48,
+        "forms": 1,
+        "essences": 1,
+        "materials": 1,
+        "quality": null,
+        "experience": null
+      },
+      "demonstrations": [],
+      "capacity": {
+        "amplitude": 1,
+        "aperture": 1,
+        "reserve": 100
+      },
+      "intrinsicCapacity": {
+        "amplitude": 1,
+        "aperture": 1,
+        "reserve": 100
+      },
+      "learned": [],
+      "sources": []
+    },
+    "development": {
+      "recognisedClass": null,
+      "skills": {
+        "unarmed": 0.00006161878771933352
+      },
+      "practice": {},
+      "experience": {
+        "stage": "Normal",
+        "leveled": true,
+        "label": "Normal 0",
+        "level": 1,
+        "sub": 0,
+        "peakText": "Peak Normal: only a breakthrough leads on.",
+        "xpIntoLevel": 0,
+        "xpForLevel": 100,
+        "rankXp": 0,
+        "peakXp": 2596,
+        "peak": false,
+        "lifetimeXp": 0,
+        "overflowXp": 0,
+        "defeats": 0,
+        "bandVictories": {
+          "Iron": 0,
+          "Bronze": 0,
+          "Silver": 0,
+          "Gold": 0,
+          "Diamond": 0
+        },
+        "achievements": [],
+        "vessel": null
+      },
+      "announcements": [],
+      "breakthrough": {
+        "eligible": false,
+        "next": "Iron",
+        "reasons": [
+          "a relevant capability needs 2 hours of meaningful practice and skilled proficiency",
+          "strength 8 must reach 11",
+          "dexterity 8 must reach 11",
+          "endurance 7 must reach 11"
+        ],
+        "underway": null
+      }
+    },
+    "interactions": [
+      {
+        "id": "equip:i_1",
+        "kind": "equip",
+        "label": "Equip Threshold atlas",
+        "slot": "equipment"
+      },
+      {
+        "id": "drop:i_1",
+        "kind": "drop",
+        "label": "Drop Threshold atlas",
+        "slot": "drop"
+      },
+      {
+        "id": "drop:i_2",
+        "kind": "drop",
+        "label": "Drop Travel provisions",
+        "slot": "drop"
+      },
+      {
+        "id": "consume:i_2",
+        "kind": "eat",
+        "label": "Eat Travel provisions",
+        "slot": "consume"
+      }
+    ],
+    "casts": [],
+    "expedition": null,
+    "canonicalTower": null,
+    "tower": false,
+    "pending": null,
+    "prompt": "WASD · Explore   Shift · Run   E · Interact",
+    "doors": [],
+    "residents": [
+      {
+        "id": "p_9",
+        "visual": {
+          "bodyId": "b_15",
+          "entityId": "p_9",
+          "name": "Pell Arden",
+          "pos": {
+            "x": 11317.6222841208,
+            "y": 1.0625,
+            "z": 3112.055277031244
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": 0.9795909427543066,
+          "crouch": 0,
+          "pose": "walk",
+          "activity": "walk",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 14726286,
+            "hair": 7028514,
+            "shirt": 6970691,
+            "pants": 5523256,
+            "height": 1.04,
+            "build": 1,
+            "hatStyle": "none",
+            "beard": 7028514,
+            "description": {
+              "archetype": "kaito",
+              "culture": "ashford",
+              "presentation": "masculine",
+              "skinTone": "warm",
+              "faceShape": "square",
+              "hairStyle": "warrior_bun",
+              "hairColor": "chestnut",
+              "eyeColor": "grey",
+              "frame": "average",
+              "stature": "above_average",
+              "garmentSilhouette": "work_kimono",
+              "garmentPalette": "earth_work",
+              "accessories": [
+                "arm_wrap",
+                "scabbard",
+                "beard"
+              ],
+              "culturalTags": [
+                "ashford",
+                "retainer",
+                "lamellar"
+              ],
+              "grooming": 0.5537017692811786,
+              "wear": 0.7268241162598134,
+              "status": "poor",
+              "agePresentation": "young_adult",
+              "roleCues": [
+                "axe"
+              ]
+            }
+          },
+          "presentationSex": "m",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": ""
+        },
+        "name": "Pell Arden",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11317.6222841208,
+          "y": 1.0625,
+          "z": 3112.055277031244
+        },
+        "yaw": 0.9795909427543066,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 14726286,
+          "hair": 7028514,
+          "shirt": 6970691,
+          "pants": 5523256,
+          "height": 1.04,
+          "build": 1,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "kaito",
+            "culture": "ashford",
+            "presentation": "masculine",
+            "skinTone": "warm",
+            "faceShape": "square",
+            "hairStyle": "warrior_bun",
+            "hairColor": "chestnut",
+            "eyeColor": "grey",
+            "frame": "average",
+            "stature": "above_average",
+            "garmentSilhouette": "work_kimono",
+            "garmentPalette": "earth_work",
+            "accessories": [
+              "arm_wrap",
+              "scabbard",
+              "beard"
+            ],
+            "culturalTags": [
+              "ashford",
+              "retainer",
+              "lamellar"
+            ],
+            "grooming": 0.5537017692811786,
+            "wear": 0.7268241162598134,
+            "status": "poor",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "axe"
+            ]
+          },
+          "beard": 7028514
+        }
+      }
+    ],
+    "objectives": [],
+    "objectiveReceipts": [],
+    "questJournal": [],
+    "combatEvents": [],
+    "wildlife": [
+      {
+        "bodyId": "b_6",
+        "entityId": "wild_1",
+        "species": "woodland_boar",
+        "name": "woodland boar",
+        "pos": {
+          "x": 11336.412641331608,
+          "y": 1.0225,
+          "z": 3185.1626413316076
+        },
+        "yaw": -2.3561944901989813,
+        "vel": {
+          "x": 0.9256027765150066,
+          "y": 0,
+          "z": 0.9256027765695762
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": true
+      },
+      {
+        "bodyId": "b_7",
+        "entityId": "wild_2",
+        "species": "woodland_boar",
+        "name": "woodland boar",
+        "pos": {
+          "x": 11322.5,
+          "y": 1.1301011999999966,
+          "z": 3210.5
+        },
+        "yaw": 0,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": true
+      },
+      {
+        "bodyId": "b_8",
+        "entityId": "wild_3",
+        "species": "roe_deer",
+        "name": "roe deer",
+        "pos": {
+          "x": 11286.894978488166,
+          "y": 1.21765,
+          "z": 3172.25
+        },
+        "yaw": 1.5707963267948966,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      },
+      {
+        "bodyId": "b_9",
+        "entityId": "wild_4",
+        "species": "roe_deer",
+        "name": "roe deer",
+        "pos": {
+          "x": 11286.896577030184,
+          "y": 1.21765,
+          "z": 3172.25
+        },
+        "yaw": 1.5707963267948966,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      },
+      {
+        "bodyId": "b_10",
+        "entityId": "wild_5",
+        "species": "field_hare",
+        "name": "field hare",
+        "pos": {
+          "x": 11331.978382535917,
+          "y": 0.6924006360819893,
+          "z": 3170.5216174640823
+        },
+        "yaw": -0.7853981634029336,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      }
+    ],
+    "observedWildlife": {
+      "version": 1,
+      "scope": "observed",
+      "complete": true,
+      "bodies": [
+        {
+          "bodyId": "b_6",
+          "creatureId": "wild_1",
+          "speciesId": "woodland_boar",
+          "regionId": null,
+          "bodyPlan": {
+            "id": "quadruped",
+            "shape": "quadruped",
+            "heightM": 1.1,
+            "radiusM": 0.38
+          },
+          "pos": {
+            "x": 11336.412641331608,
+            "y": 1.0225,
+            "z": 3185.1626413316076
+          },
+          "yaw": -2.3561944901989813,
+          "vel": {
+            "x": 0.9256027765150066,
+            "y": 0,
+            "z": 0.9256027765695762
+          },
+          "scale": 1,
+          "ageClass": "adult",
+          "condition": 1,
+          "alive": true,
+          "dead": false,
+          "present": true,
+          "activity": "flee",
+          "defense": null,
+          "defenseAtViewer": false
+        },
+        {
+          "bodyId": "b_10",
+          "creatureId": "wild_5",
+          "speciesId": "field_hare",
+          "regionId": null,
+          "bodyPlan": {
+            "id": "quadruped",
+            "shape": "quadruped",
+            "heightM": 0.55,
+            "radiusM": 0.18
+          },
+          "pos": {
+            "x": 11331.978382535917,
+            "y": 0.6924006360819893,
+            "z": 3170.5216174640823
+          },
+          "yaw": -0.7853981634029336,
+          "vel": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1,
+          "ageClass": "adult",
+          "condition": 1,
+          "alive": true,
+          "dead": false,
+          "present": true,
+          "activity": "idle",
+          "defense": null,
+          "defenseAtViewer": false
+        }
+      ]
+    },
+    "stats": {
+      "canonicalPeople": 10,
+      "cachedChunks": 82,
+      "persistedEdits": 0,
+      "doors": 0,
+      "eventCount": 318
+    }
+  },
+  "input": {
+    "keys": [],
+    "guarding": false
+  },
+  "receipts": [
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-493",
+      "sequence": 492,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.0166666667506,
+      "receivedAtMs": 339330.0657,
+      "serverTimeMs": 339330.2816,
+      "clientTimeMs": 245547.89999997616,
+      "tickStartedAtMs": 339330.2816,
+      "appliedAtMs": 339330.7659
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-494",
+      "sequence": 493,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.1166666667507,
+      "receivedAtMs": 339388.778,
+      "serverTimeMs": 339389.638,
+      "clientTimeMs": 245625.29999995232,
+      "tickStartedAtMs": 339389.638,
+      "appliedAtMs": 339389.8861
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-495",
+      "sequence": 494,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.1833333334174,
+      "receivedAtMs": 339455.2801,
+      "serverTimeMs": 339455.5583,
+      "clientTimeMs": 245716.19999998808,
+      "tickStartedAtMs": 339455.5583,
+      "appliedAtMs": 339455.9503
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-496",
+      "sequence": 495,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.2666666667508,
+      "receivedAtMs": 339534.087,
+      "serverTimeMs": 339534.2544,
+      "clientTimeMs": 245794.19999998808,
+      "tickStartedAtMs": 339534.2544,
+      "appliedAtMs": 339534.5395
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-497",
+      "sequence": 496,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.3666666667509,
+      "receivedAtMs": 339621.0435,
+      "serverTimeMs": 339633.1099,
+      "clientTimeMs": 245882.09999996424,
+      "tickStartedAtMs": 339633.1099,
+      "appliedAtMs": 339633.6859
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-498",
+      "sequence": 497,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.41666666675093,
+      "receivedAtMs": 339719.608,
+      "serverTimeMs": 339719.8025,
+      "clientTimeMs": 245954.79999995232,
+      "tickStartedAtMs": 339719.8025,
+      "appliedAtMs": 339720.1201
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-499",
+      "sequence": 498,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 241.50000000008433,
+      "receivedAtMs": 339768.0496,
+      "serverTimeMs": 339768.3109,
+      "clientTimeMs": 246028.89999997616,
+      "tickStartedAtMs": 339768.3109,
+      "appliedAtMs": 339768.7074
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-500",
+      "sequence": 499,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 246.13333333342135,
+      "receivedAtMs": 344400.8976,
+      "serverTimeMs": 344401.1758,
+      "clientTimeMs": 250661.5,
+      "tickStartedAtMs": 344401.1758,
+      "appliedAtMs": 344403.6879
+    }
+  ],
+  "camera": {
+    "mode": "third-person",
+    "yaw": 3.141592653589793,
+    "renderedYaw": 3.141592653589793,
+    "movementYaw": -3.141592653123346,
+    "pitch": 0.3839724354387525,
+    "preferred": 4,
+    "blocked": false,
+    "position": {
+      "x": 55.43203783309218,
+      "y": 3.4283352056893985,
+      "z": 89.29666632563247
+    },
+    "want": 4,
+    "dist": 0,
+    "limit": 4.16,
+    "pitchDeg": 22,
+    "fovDeg": 52,
+    "reason": "explore",
+    "framing": "orbit",
+    "rawDistance": 0,
+    "elevatedBy": 0,
+    "nearPlaneBlocked": false,
+    "actualFovDeg": 52.00000000000001
+  },
+  "controlledLook": {
+    "look": "wren",
+    "motion": {
+      "source": "quaternius-ual-standard",
+      "file": "motion/ual-standard.glb",
+      "sourceClip": "Idle_Loop",
+      "retargetLook": "wren",
+      "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+      "license": "CC0-1.0"
+    }
+  },
+  "focused": {
+    "instances": 56,
+    "pending": 0,
+    "error": "",
+    "forests": [
+      {
+        "id": "veil:brass:focused-town:v1:forest-cross",
+        "assetId": "tv_47_01_pine_forest",
+        "placementId": "veil:brass:focused-town:v1:forest-cross",
+        "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+        "floorId": "veil:brass:focused-town:v1:ground",
+        "forestPresentation": "layered-branches-v2",
+        "sourceTrees": 45,
+        "proxyCanopiesHidden": true,
+        "hiddenProxies": 90,
+        "foliage": [
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "near",
+            "cards": 2205,
+            "sourceTrees": 45
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "far",
+            "cards": 720,
+            "sourceTrees": 45
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "understory",
+            "cards": 410,
+            "sourceTrees": 45
+          }
+        ]
+      },
+      {
+        "id": "veil:brass:focused-town:v1:forest-branches",
+        "assetId": "tv_47_03_pine_forest",
+        "placementId": "veil:brass:focused-town:v1:forest-branches",
+        "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+        "floorId": "veil:brass:focused-town:v1:ground",
+        "forestPresentation": "layered-branches-v2",
+        "sourceTrees": 53,
+        "proxyCanopiesHidden": true,
+        "hiddenProxies": 106,
+        "foliage": [
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "near",
+            "cards": 2597,
+            "sourceTrees": 53
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "far",
+            "cards": 848,
+            "sourceTrees": 53
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "understory",
+            "cards": 498,
+            "sourceTrees": 53
+          }
+        ]
+      },
+      {
+        "id": "veil:brass:focused-town:v1:forest-turn",
+        "assetId": "tv_48_01_broadleaf_forest",
+        "placementId": "veil:brass:focused-town:v1:forest-turn",
+        "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+        "floorId": "veil:brass:focused-town:v1:ground",
+        "forestPresentation": "layered-branches-v2",
+        "sourceTrees": 46,
+        "proxyCanopiesHidden": true,
+        "hiddenProxies": 46,
+        "foliage": [
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "near",
+            "cards": 2254,
+            "sourceTrees": 46
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "far",
+            "cards": 736,
+            "sourceTrees": 46
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "understory",
+            "cards": 432,
+            "sourceTrees": 46
+          }
+        ]
+      }
+    ]
+  },
+  "wildlife": {
+    "pending": false,
+    "bodies": [
+      {
+        "bodyId": "b_6",
+        "species": "woodland_boar",
+        "fallback": false,
+        "defense": null,
+        "condition": 1,
+        "dead": false,
+        "position": {
+          "x": 72.34113886252007,
+          "y": 1.0225,
+          "z": 113.09113886251562
+        }
+      },
+      {
+        "bodyId": "b_10",
+        "species": "field_hare",
+        "fallback": false,
+        "defense": null,
+        "condition": 1,
+        "dead": false,
+        "position": {
+          "x": 67.97838253591726,
+          "y": 0.6924006360819893,
+          "z": 98.52161746408228
+        }
+      }
+    ]
+  }
+}

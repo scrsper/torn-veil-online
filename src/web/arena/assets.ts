@@ -46,6 +46,9 @@ export interface CharacterInstance {
   dispose(): void;
 }
 
+/** A posable rig the motion bake can target: game bone names onto its own nodes. */
+export interface BakeRig { holder: TransformNode; nodes: Map<string, TransformNode>; meshes: AbstractMesh[]; dispose(): void }
+
 export class ArenaAssets {
   private chars = new Map<CharacterKind, AssetContainer>();
   props!: AssetContainer;
@@ -104,8 +107,11 @@ export class ArenaAssets {
   /** Per creator look: loaded, or why not (explicit; never replaced by another look). */
   readonly creatorStatus = new Map<CreatorLook, { loaded: boolean; reason: string; ownBake?: boolean; maxRestDeltaRad?: number }>();
   /** Clip sets baked on a creator rig whose rest pose differs from the reference rig. */
-  private lookClips = new Map<LookId, Map<string, ClipTemplate>>();
-  private lookGrips = new Map<LookId, { r: Grip; l: Grip; shield: Grip | null }>();
+  private lookClips = new Map<string, Map<string, ClipTemplate>>();
+  private lookGrips = new Map<string, { r: Grip; l: Grip; shield: Grip | null }>();
+  /** Additional rigs (e.g. studio character bases) baked with the same motion sources by loadHumans. */
+  private extraRigs: { key: string; build: () => BakeRig }[] = [];
+  registerRig(key: string, build: () => BakeRig): void { this.extraRigs.push({ key, build }); }
   private async optionalMotion(file: string): Promise<AssetContainer | null> {
     const response = await fetch(this.base + file);
     if (!response.ok || response.headers.get('content-type')?.includes('text/html')) return null;
@@ -136,12 +142,15 @@ export class ArenaAssets {
     this.refPelvis = ref.nodes.get('pelvis')!.position.length();
     // Each distinct loaded rig owns its bake and grips. Equal names do not imply
     // equal rest orientations, limb directions or lengths (notably Wren vs Ranger).
-    type Target = { look: LookId | null; rig: ReturnType<ArenaAssets['person']>; clips: Map<string, ClipTemplate> };
+    type Target = { look: string | null; rig: BakeRig; clips: Map<string, ClipTemplate> };
     const targets: Target[] = [{ look: null, rig: ref, clips: this.clips }];
     for (const l of new Set(looks)) if (l !== 'ranger' && this.people.has(l)) {
       const rig = this.person(l), st = isCreatorLook(l) ? this.creatorStatus.get(l) : undefined;
       if (st) { st.maxRestDeltaRad = +restDelta(ref.nodes, rig.nodes).toFixed(4); st.ownBake = true; }
       const clips = new Map<string, ClipTemplate>(); targets.push({ look: l, rig, clips }); this.lookClips.set(l, clips);
+    }
+    for (const { key, build } of this.extraRigs) {
+      const clips = new Map<string, ClipTemplate>(); targets.push({ look: key, rig: build(), clips }); this.lookClips.set(key, clips);
     }
     const fallbacks = new Set(this.used ? [...this.used].map(kaykitFallback) : []);
     const src = this.character('skeleton_warrior');
@@ -360,6 +369,15 @@ export class ArenaAssets {
   human(look: LookId, _id: string): CharacterInstance {
     const p = this.person(look);
     p.holder.scaling.setAll(HUMAN_SCALE);
+    return this.rigged(look, p);
+  }
+  /** A registered rig's instance with its own baked clips and grips (see registerRig). */
+  riggedInstance(key: string, p: BakeRig): CharacterInstance {
+    if (!this.lookClips.has(key)) throw Error(`Rig ${key} has no baked motion`);
+    return this.rigged(key, p);
+  }
+  private rigged(look: string, p: BakeRig): CharacterInstance {
+    const tag = p.holder.name;
     const bindAnkleHeights = ['l', 'r'].map(side => {
       const foot = p.nodes.get(`foot_${side}`);
       foot?.computeWorldMatrix(true);
@@ -369,11 +387,11 @@ export class ArenaAssets {
     // that explicitly reuse reference templates.
     const own = this.lookClips.get(look), clips = own ?? this.clips;
     const ratio = own ? 1 : (p.nodes.get('pelvis')?.position.length() ?? this.refPelvis) / this.refPelvis;
-    const anims = instantiateClips(p.tag, this.fitted(look, ratio, clips, ''), p.nodes, this.scene);
-    for (const [k, g] of instantiateClips(p.tag + '.legs', this.fitted(look, ratio, this.legClips(clips), 'legs'), p.nodes, this.scene)) anims.set(`legs:${k}`, g);
+    const anims = instantiateClips(tag, this.fitted(look, ratio, clips, ''), p.nodes, this.scene);
+    for (const [k, g] of instantiateClips(tag + '.legs', this.fitted(look, ratio, this.legClips(clips), 'legs'), p.nodes, this.scene)) anims.set(`legs:${k}`, g);
     const grips = this.lookGrips.get(look) ?? { r: this.gripR, l: this.gripL, shield: this.gripShield };
     const slot = (hand: string, g: Grip) => {
-      const s = new TransformNode(`${p.tag}.slot.${hand}`, this.scene); s.parent = p.nodes.get(hand)!;
+      const s = new TransformNode(`${tag}.slot.${hand}`, this.scene); s.parent = p.nodes.get(hand)!;
       s.rotationQuaternion = g.rot.clone(); s.position.copyFrom(g.pos); s.scaling.setAll(1 / g.scale);
       return s;
     };

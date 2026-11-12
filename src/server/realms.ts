@@ -1,4 +1,8 @@
 import { RealmJournal } from './realmJournal';
+import { checkpointForShutdown } from './realmShutdown';
+import { foundationHome } from './foundationHome';
+import { verifyFoundationBuild } from '../../scripts/foundation/identity.mjs';
+import { validateFoundationSave } from '../../scripts/foundation/configuration.mjs';
 import type { RealmOperation } from './realmRuntime';
 import { TowerController } from './towerController';
 import { FixedScheduler } from '../bridge/scheduler';
@@ -26,9 +30,13 @@ const currentSave='.debug/realms/world-current.json';
 const savePath = resolve(process.env.TV_REALMS_SAVE ?? (existsSync(currentSave)||existsSync(currentSave+'.store')?currentSave:'.debug/realms/world.json'));
 const assetRoot = process.env.TV_REALMS_ASSETS ? resolve(process.env.TV_REALMS_ASSETS) : null;
 const staticRoot=process.env.TV_REALMS_STATIC?resolve(process.env.TV_REALMS_STATIC):null;
-const clientBuild=staticRoot?JSON.parse(readFileSync(resolve(staticRoot,'current-build.json'),'utf8')):null;
+const foundation = process.env.TV_FOUNDATION_MODE === '1';
+if (foundation && (!staticRoot || process.env.TV_REALMS_MANAGED !== '1')) throw Error('The foundation requires its verified bundle and owned managed launcher.');
+const clientBuild=foundation ? verifyFoundationBuild(resolve('.'), staticRoot!) : staticRoot?JSON.parse(readFileSync(resolve(staticRoot,'current-build.json'),'utf8')):null;
+const foundationContinuing = existsSync(savePath) || existsSync(savePath + '.store');
+if (foundation) validateFoundationSave(resolve('.'), savePath, clientBuild!, { create: true });
 const serverCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-if(clientBuild&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
+if(clientBuild&&!foundation&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
 const journal = new RealmJournal(savePath, Number(process.env.TV_REALMS_SEED ?? 918271));
 await journal.ready;
 if(process.env.TV_FOCUSED_WORLD==='1'&&!journal.runtime.session.world.realmSpec?.focusedKit){journal.apply({type:'adopt_focused'});await journal.flush();}
@@ -62,13 +70,18 @@ async function checkpoint() {
 }
 const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.config.ts'), server: { middlewareMode: true, hmr: false, ws: false } });
 const universeApi = new RealmUniverseApi({
-  session: () => session, token: () => owner ? ownerToken : '', ready: () => !updateError,
+  session: () => session, token: () => owner ? ownerToken : '', ready: () => !closing && !updateError,
   apply: op => apply(op), persist: () => persist(true),
 }, port);
 const atlasAssets = createAtlasAssetHandler();
 const server = createServer(async (req, res) => {
   if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) { res.writeHead(403).end(); return; }
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+  if (closing && req.method === 'POST') { res.writeHead(503).end('Host is checkpointing and closing.'); return; }
+  if (foundation && req.method === 'GET' && url.pathname === '/' && !url.search) {
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+    res.end(foundationHome(savePath, foundationContinuing)); return;
+  }
   if (await atlasAssets(req, res)) return;
   if (await universeApi.handle(req, res, url.pathname)) return;
   if (universeApi.busy && req.method === 'POST') {
@@ -87,7 +100,7 @@ const server = createServer(async (req, res) => {
       towerTiming:{runId:w.canonicalTower?.id,floor:w.canonicalTower?.floor,status:w.canonicalTower?.status,receipts:w.events.filter(e=>e.type==='tower_floor_cleared'&&e.actor===session.person.id).map(e=>({id:e.id,floor:e.data.floor,seconds:e.data.seconds,causes:e.causes})),measurement:'Canonical elapsed seconds at floor-clear receipts, including time away. Human climb duration and Gold frequency are unmeasured.'},events:w.events.slice(-80).reverse().map(e=>({...eventRow(e),causes:e.causes}))}));return;
   }
   if (url.pathname === '/realms/focused/terrain') {const terrain=session.grid.focusedTerrain;if(!terrain){res.writeHead(404).end();return;}res.setHeader('content-type','application/json');res.end(JSON.stringify(terrain));return;}
-  if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', root: resolve('.'), clientBuild, buildRoot:staticRoot, savePath, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }
+  if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', foundation, root: resolve('.'), clientBuild, buildRoot:staticRoot, savePath, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }
   if (url.pathname === '/realms/expedition') {
     const respond = (code: number, value: unknown) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(value)); };
     if (!owner || req.headers['x-realms-controller'] !== ownerToken || updateError) { respond(409, { error: 'This tab does not hold the world controller. Reload to reconnect.' }); return; }
@@ -96,7 +109,7 @@ const server = createServer(async (req, res) => {
     try {
       const parts: Buffer[] = []; let bytes = 0;
       for await (const part of req) { const b = Buffer.from(part); bytes += b.length; if (bytes > 600000) { respond(413, { error: 'Checkpoint exceeds supported size.' }); return; } parts.push(b); }
-      if (!owner || req.headers['x-realms-controller'] !== ownerToken) { respond(409, { error: 'Controller changed.' }); return; }
+      if (closing || updateError || !owner || req.headers['x-realms-controller'] !== ownerToken) { respond(409, { error: 'Controller changed.' }); return; }
       const command = JSON.parse(Buffer.concat(parts).toString('utf8'));
       const result = apply({ type: 'expedition', command });
       rebindTower(); await persist(true);
@@ -113,7 +126,7 @@ const server = createServer(async (req, res) => {
     try {
       const parts: Buffer[] = []; let bytes = 0;
       for await (const part of req) { const b = Buffer.from(part); bytes += b.length; if (bytes > 4096) { respond(413, { error: 'Tower command too large.' }); return; } parts.push(b); }
-      if (!owner || req.headers['x-realms-controller'] !== ownerToken) { respond(409, { error: 'Controller changed.' }); return; }
+      if (closing || updateError || !owner || req.headers['x-realms-controller'] !== ownerToken) { respond(409, { error: 'Controller changed.' }); return; }
       const result = apply({ type: 'tower', command: JSON.parse(Buffer.concat(parts).toString('utf8')) });
       rebindTower(); signature = ''; await persist(true);
       if (result.error) respond(saveError ? 503 : 409, { error: saveError ? 'Saving failed. World paused for durable recovery.' : result.error });
@@ -158,15 +171,15 @@ function pushJohnSmith() {
   johnSmithSent = message; johnSmithSentAt = now; owner.send(message);
 }
 ws.on('connection', (client, req) => {
-  if (updateError) { client.close(1011, 'World paused after an update error. Restart the host to restore its last good save.'); return; }
+  if (closing || updateError) { client.close(1011, 'World paused after an update error. Restart the host to restore its last good save.'); return; }
   if (owner) { client.close(4001, 'This world already has a controller. Close its tab first.'); return; }
   owner = client; ownerToken = randomUUID(); signature = ''; johnSmithRevision = -1; johnSmithSent = ''; towerView = req.url === '/realms/ascent/socket'; universeView = req.url === '/realms/universe/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
   rebindTower();
   towerReady='';towerSignature='';
-  client.send(JSON.stringify({ type: 'controller', token: ownerToken,
+  client.send(JSON.stringify({ type: 'controller', token: ownerToken, foundation,
     ...(universeView ? { inputTransport: 'sequenced-input-v1' } : {}) })); let budget = 0, budgetAt = Date.now();
   client.on('message', async data => {
-    if (updateError) return;
+    if (closing || updateError || owner !== client) return;
     if (Date.now() - budgetAt > 1000) { budget = 0; budgetAt = Date.now(); }
     if (++budget > 180) return;
     try {
@@ -179,6 +192,7 @@ ws.on('connection', (client, req) => {
         });
         return;
       }
+      if (m.type === 'foundation_quit' && foundation) { void close(); return; }
       if (universeApi.busy || session.world.universeExpedition?.active && m.type !== 'save') return;
       if(m.type==='tower_ready'){const geometry=towerController?.geometry();if(towerView&&geometry?.assetScene&&m.interiorId===geometry.id)towerReady=geometry.id;return;}
       if(towerView&&towerController?.geometry()?.assetScene&&towerReady!==towerController.geometry()!.id)return;
@@ -256,11 +270,35 @@ const timer = setInterval(() => {
 }, 4);
 server.listen(port, '127.0.0.1', () => console.log(`Torn Veil connected realms: http://127.0.0.1:${port}/?realms\nActive save: ${journal.store.dir}\nOriginal JSON import (retained): ${savePath}`));
 let closing = false;
-async function close() { if (closing) return; closing = true; clearInterval(timer);
-  if (!updateError) { apply({ type: 'disconnect' }); await persist(); }
+async function close() {
+  if (closing) return;
+  closing = true; ownerToken = ''; clearInterval(timer);
+  if (foundation && owner?.readyState === WebSocket.OPEN)
+    owner.send(JSON.stringify({ type: 'foundation_shutdown', status: 'saving' }));
+  const result = await checkpointForShutdown({
+    disconnect: () => { apply({ type: 'disconnect' }); },
+    flush: () => persist(true),
+    close: () => journal.close(),
+    abort: () => journal.abort(),
+  }, updateError);
+  if (!result.saved) { updateError = result.error; console.error('Final checkpoint failed:', result.error); }
+  if (foundation && owner?.readyState === WebSocket.OPEN) {
+    const client = owner;
+    await new Promise<void>(done => {
+      const timeout = setTimeout(done, 1500);
+      client.send(JSON.stringify({ type: 'foundation_shutdown', status: result.saved ? 'saved' : 'failed' }), () => { clearTimeout(timeout); done(); });
+    });
+  }
+  // A successful close is announced only after journal.close completed its checkpoint.
+  await Promise.all([...ws.clients].map(client => new Promise<void>(done => {
+    const timeout = setTimeout(done, 1500);
+    client.once('close', () => { clearTimeout(timeout); done(); });
+    client.close(result.saved ? 1000 : 1011, result.saved ? 'World saved; host stopped.' : 'Checkpoint failed; preserve journal for recovery.');
+  })));
+  // The checkpoint is already settled; an unresponsive browser cannot keep its writer alive.
   ws.close(); server.close(); await vite?.close();
-  try { if (updateError) await journal.abort(); else await journal.close(); } catch (e) { console.error(e); }
-  process.exit(updateError ? 1 : 0); }
+  process.exit(result.saved ? 0 : 1);
+}
 process.on('SIGINT', close); process.on('SIGTERM', close);
 // Managed Windows launchers need a portable graceful path; terminating a child
 // process directly does not guarantee that its journal checkpoint completes.

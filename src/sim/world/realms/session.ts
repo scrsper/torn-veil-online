@@ -1,6 +1,7 @@
 import { projectAppearanceDescription } from '../../core/appearance';
 import {humanoidVisualState,projectAppearance} from '../../../bridge/visualState';
 import {combatState} from '../../../bridge/combatState';
+import {wildlifeProjection} from '../../../bridge/wildlife';
 import {guardHeld} from '../../physical/guard';
 import {equipmentProjection} from '../../physical/equipment';
 import {arcaneProgress} from '../../physical/arcana/growth';
@@ -192,7 +193,7 @@ export class RealmSession {
   }
   private visual(body:Body) {
     const person=this.world.person(body.ownerId)!;
-    return {...humanoidVisualState(body,person.name,body.pose,projectAppearance(person)),presentationSex:person.gender,
+    return {...humanoidVisualState(body,person.name,body.pose,projectAppearance(person)),presentationSex:person.gender,presentationSpecies:person.species,
       equipment:equipmentProjection(this.world,body),combatAction:combatState(this.world,body),guarding:guardHeld(this.world,body),speech:person.speech?.text??''};
   }
   snapshot() {
@@ -216,7 +217,7 @@ export class RealmSession {
       doors: [...w.grid.doorStates].map(([index, open]) => ({ index, open })),
       residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, hostile: n.hostile || n.tags.includes('tower-warden'), observedThreat: (t => t && { level: t.level, grade: t.grade })(observedThreat(w, b)), pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
       objectives:this.objectives(),objectiveReceipts:questReceipts(w,this.person.id).slice(-12),questJournal:questJournal(w,this.person.id).slice(-40),
-      combatEvents:this.combatEvents(),wildlife:this.wildlife(),
+      combatEvents:this.combatEvents(),wildlife:this.wildlife(),observedWildlife:wildlifeProjection(w,this.body),
       stats: { canonicalPeople: w.persons().length, cachedChunks: this.grid.cachedChunks, persistedEdits: w.grid.diffs.size, doors: w.grid.doorStates.size, eventCount: w.events.length } };
   }
   /** Emergent objectives derived from the World plus John Smith's active system quests; recomputed
@@ -233,8 +234,12 @@ export class RealmSession {
       const e=w.events[i];if(e.tick<w.now-3)break;
       if(e.type!=='attack'&&e.type!=='attack_missed'&&e.type!=='kill')continue;
       if(e.pos&&w.distance2d(e.pos,p)>radius)continue;
+      const guardId=typeof e.data.combat?.guardEventId==='string'?e.data.combat.guardEventId:e.causes.find(id=>{const cause=w.event(id);return cause?.data.kind==='guard'&&cause.data.phase==='contact';});
+      const guard=guardId?w.event(guardId):undefined;
       out.push({id:e.id,type:e.type,tick:e.tick,actor:e.actor??null,target:e.target??null,attackerBodyId:e.data.attackerBodyId??null,targetBodyId:e.data.targetBodyId??null,
-        damage:Number(e.data.damage)||0,health:Number.isFinite(e.data.health)?e.data.health:null,weight:e.data.combat?.weight??null,guarded:!!e.data.combat?.guardEventId,pos:e.pos?{...e.pos}:null});
+        damage:Number(e.data.damage??e.data.impact)||0,health:Number.isFinite(e.data.health)?e.data.health:null,weight:e.data.combat?.weight??null,
+        guarded:guard?.data.outcome==='blocked'||guard?.data.outcome==='parried',guardEventId:guardId??null,guardOutcome:guard?.data.outcome??null,
+        incomingDamage:Number.isFinite(guard?.data.incomingImpact)?guard!.data.incomingImpact:null,pos:e.pos?{...e.pos}:null});
     }
     return out.reverse();
   }

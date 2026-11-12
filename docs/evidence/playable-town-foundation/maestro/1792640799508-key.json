@@ -1,0 +1,2105 @@
+{
+  "state": {
+    "focusedAssets": {
+      "version": 1,
+      "id": "veil:brass:focused-town:v1",
+      "seed": 918271,
+      "generatorVersion": "chrysanthus-focused-3",
+      "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+      "placements": [
+        {
+          "id": "veil:brass:focused-town:v1:street",
+          "assetId": "tv_36_10_city_street",
+          "position": [
+            11312.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:home-west",
+          "assetId": "tv_26_05_timber_house",
+          "position": [
+            11300.877649922211,
+            1,
+            3072.6448901457247
+          ],
+          "yaw": 1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:home-east",
+          "assetId": "tv_26_05_timber_house",
+          "position": [
+            11324.122350077789,
+            1,
+            3112.3551098542753
+          ],
+          "yaw": -1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tavern",
+          "assetId": "tv_31_01_tavern",
+          "position": [
+            11300.5,
+            1,
+            3112.5
+          ],
+          "yaw": 1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:store",
+          "assetId": "tv_32_01_general_store",
+          "position": [
+            11324.5,
+            1,
+            3072.5
+          ],
+          "yaw": -1.5707963267948966,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:24",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3116.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:28",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3120.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:32",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3124.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:wood:36",
+          "assetId": "module:floor_paving",
+          "position": [
+            11312.5,
+            1,
+            3128.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-16",
+          "assetId": "module:floor_paving",
+          "position": [
+            11296.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-20",
+          "assetId": "module:floor_paving",
+          "position": [
+            11292.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-24",
+          "assetId": "module:floor_paving",
+          "position": [
+            11288.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal:-28",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3092.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:4",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3096.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:8",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3100.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:path:portal-turn:12",
+          "assetId": "module:floor_paving",
+          "position": [
+            11284.5,
+            1,
+            3104.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:veil-arch",
+          "assetId": "module:high_arch",
+          "position": [
+            11284.5,
+            1,
+            3102.5
+          ],
+          "yaw": 0,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "position": [
+            11312.5,
+            1,
+            3156.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "position": [
+            11312.5,
+            1,
+            3212.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-turn",
+          "assetId": "tv_48_01_broadleaf_forest",
+          "position": [
+            11328.5,
+            1,
+            3264.5
+          ],
+          "yaw": 3.141592653589793,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:ruins",
+          "assetId": "tv_03_01_ruined_cloister",
+          "position": [
+            11356.5,
+            1,
+            3156.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:-4:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:0:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:-4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11296.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:0",
+          "assetId": "module:floor_stone",
+          "position": [
+            11292.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:floor:4:4",
+          "assetId": "module:floor_stone",
+          "position": [
+            11288.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:entry",
+          "assetId": "module:high_arch",
+          "position": [
+            11298.5,
+            1,
+            3264.5
+          ],
+          "yaw": 1.5707963267948963,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:0:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:0:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:0:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            1,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3260.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:south:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11298.5,
+            8.725,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:north:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11286.5,
+            8.725,
+            3268.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:-1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            1,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:0:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            1,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:-4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11296.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:0",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11292.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:-1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            8.725,
+            3258.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:side:1:1:4",
+          "assetId": "module:tower_shell_wall",
+          "position": [
+            11288.5,
+            8.725,
+            3270.5
+          ],
+          "yaw": -2.220446049250313e-16,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:entry-crown",
+          "assetId": "module:wall",
+          "position": [
+            11298.5,
+            5.8,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        },
+        {
+          "id": "veil:brass:focused-town:v1:tower:altar",
+          "assetId": "module:altar",
+          "position": [
+            11289.5,
+            1,
+            3264.5
+          ],
+          "yaw": -1.5707963267948968,
+          "floorId": "veil:brass:focused-town:v1:ground"
+        }
+      ],
+      "connections": [
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P13"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:home-west",
+            "connectorId": "frontdoor"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P04"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:home-east",
+            "connectorId": "frontdoor"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P03"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:tavern",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:street",
+            "connectorId": "P14"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:store",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "connectorId": "P01"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "connectorId": "P01"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:forest-turn",
+            "connectorId": "P00"
+          }
+        },
+        {
+          "from": {
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "connectorId": "P02"
+          },
+          "to": {
+            "placementId": "veil:brass:focused-town:v1:ruins",
+            "connectorId": "P00"
+          }
+        }
+      ],
+      "spawn": {
+        "x": 11312.5,
+        "y": 1.0625,
+        "z": 3113.7
+      },
+      "tower": {
+        "id": "veil:brass:chrysanthus",
+        "x": 11286.5,
+        "z": 3258.5,
+        "w": 12,
+        "d": 12,
+        "entry": {
+          "x": 11295.5,
+          "y": 1.0625,
+          "z": 3264.5
+        }
+      },
+      "bounds": {
+        "x0": 11282.4,
+        "z0": 3063.6488901457246,
+        "x1": 11374.835,
+        "z1": 3286.5
+      }
+    },
+    "realm": "brass",
+    "realmName": "Cinderveil",
+    "subtitle": "THE BRASS & THORN REALM",
+    "seed": 918271,
+    "time": 56.69999999999806,
+    "worldTime": 8666456.700002957,
+    "person": {
+      "id": "p_5",
+      "name": "Veil traveler",
+      "rank": "Normal",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Threshold atlas",
+          "quantity": 1,
+          "grade": null
+        },
+        {
+          "id": "i_2",
+          "name": "Travel provisions",
+          "quantity": 3,
+          "grade": null
+        }
+      ]
+    },
+    "body": {
+      "id": "b_5",
+      "pos": {
+        "x": 11312.5,
+        "y": 1.0625,
+        "z": 3115.3416970266553
+      },
+      "yaw": 3.141592653589793,
+      "hp": 80,
+      "maxHp": 80,
+      "traversal": null
+    },
+    "avatar": {
+      "bodyId": "b_5",
+      "entityId": "p_5",
+      "name": "Veil traveler",
+      "pos": {
+        "x": 11312.5,
+        "y": 1.0625,
+        "z": 3115.3416970266553
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": 3.141592653589793,
+      "crouch": 0,
+      "pose": "stand",
+      "activity": "stand",
+      "speed": 0,
+      "attackSeq": 0,
+      "hitSeq": 0,
+      "lastAttackAt": -99,
+      "lastHitAt": -99,
+      "dead": false,
+      "incapacitated": false,
+      "appearance": {
+        "skin": 15254696,
+        "hair": 15132390,
+        "shirt": 5328728,
+        "pants": 3815742,
+        "height": 0.96,
+        "build": 0.87,
+        "hatStyle": "hood",
+        "hat": 3815742,
+        "description": {
+          "archetype": "shiro",
+          "culture": "ashford",
+          "presentation": "androgynous",
+          "skinTone": "fair",
+          "faceShape": "oval",
+          "hairStyle": "updo_ornamented",
+          "hairColor": "white",
+          "eyeColor": "grey",
+          "frame": "slight",
+          "stature": "below_average",
+          "garmentSilhouette": "work_kimono",
+          "garmentPalette": "temple_slate",
+          "accessories": [
+            "hood"
+          ],
+          "culturalTags": [
+            "ashford",
+            "snow_moon",
+            "winter_silk"
+          ],
+          "grooming": 0.775037606828846,
+          "wear": 0.4715562747791409,
+          "status": "modest",
+          "agePresentation": "young_adult",
+          "roleCues": [
+            "travel_pack"
+          ]
+        }
+      },
+      "presentationSex": "f",
+      "equipment": [],
+      "combatAction": null,
+      "guarding": false,
+      "speech": ""
+    },
+    "growth": {
+      "eligible": false,
+      "next": "Iron",
+      "reasons": [
+        "0/48 distinct opposed victories",
+        "0/1 forms applied against three distinct opponents each",
+        "0/1 different essences learned from real sources",
+        "1 spare essence sources must be consumed"
+      ],
+      "victories": 0,
+      "forms": 0,
+      "essences": 0,
+      "quality": 0,
+      "materials": 0,
+      "requirements": {
+        "victories": 48,
+        "forms": 1,
+        "essences": 1,
+        "materials": 1,
+        "quality": null,
+        "experience": null
+      },
+      "demonstrations": [],
+      "capacity": {
+        "amplitude": 1,
+        "aperture": 1,
+        "reserve": 100
+      },
+      "intrinsicCapacity": {
+        "amplitude": 1,
+        "aperture": 1,
+        "reserve": 100
+      },
+      "learned": [],
+      "sources": []
+    },
+    "development": {
+      "recognisedClass": null,
+      "skills": {},
+      "practice": {},
+      "experience": {
+        "stage": "Normal",
+        "leveled": true,
+        "label": "Normal 0",
+        "level": 1,
+        "sub": 0,
+        "peakText": "Peak Normal: only a breakthrough leads on.",
+        "xpIntoLevel": 0,
+        "xpForLevel": 100,
+        "rankXp": 0,
+        "peakXp": 2596,
+        "peak": false,
+        "lifetimeXp": 0,
+        "overflowXp": 0,
+        "defeats": 0,
+        "bandVictories": {
+          "Iron": 0,
+          "Bronze": 0,
+          "Silver": 0,
+          "Gold": 0,
+          "Diamond": 0
+        },
+        "achievements": [],
+        "vessel": null
+      },
+      "announcements": [],
+      "breakthrough": {
+        "eligible": false,
+        "next": "Iron",
+        "reasons": [
+          "a relevant capability needs 2 hours of meaningful practice and skilled proficiency",
+          "strength 8 must reach 11",
+          "dexterity 8 must reach 11",
+          "endurance 7 must reach 11"
+        ],
+        "underway": null
+      }
+    },
+    "interactions": [
+      {
+        "id": "take:i_7",
+        "kind": "take",
+        "label": "Take Weathered trail knife",
+        "slot": "nearby",
+        "target": {
+          "id": "i_7",
+          "kind": "item",
+          "pos": {
+            "x": 11312.5,
+            "y": 1.0625,
+            "z": 3116.5
+          }
+        }
+      },
+      {
+        "id": "equip:i_1",
+        "kind": "equip",
+        "label": "Equip Threshold atlas",
+        "slot": "equipment"
+      },
+      {
+        "id": "drop:i_1",
+        "kind": "drop",
+        "label": "Drop Threshold atlas",
+        "slot": "drop"
+      },
+      {
+        "id": "drop:i_2",
+        "kind": "drop",
+        "label": "Drop Travel provisions",
+        "slot": "drop"
+      },
+      {
+        "id": "consume:i_2",
+        "kind": "eat",
+        "label": "Eat Travel provisions",
+        "slot": "consume"
+      }
+    ],
+    "casts": [],
+    "expedition": null,
+    "canonicalTower": null,
+    "tower": false,
+    "pending": null,
+    "prompt": "WASD · Explore   Shift · Run   E · Interact",
+    "doors": [],
+    "residents": [
+      {
+        "id": "p_3",
+        "visual": {
+          "bodyId": "b_3",
+          "entityId": "p_3",
+          "name": "Mara Wren",
+          "pos": {
+            "x": 11312.249999909192,
+            "y": 1.0625,
+            "z": 3093.5942518380843
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": -6.132895661291919e-7,
+          "crouch": 0,
+          "pose": "sit",
+          "activity": "sit",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 15254696,
+            "hair": 7028514,
+            "shirt": 6970432,
+            "pants": 5259827,
+            "height": 0.96,
+            "build": 0.93,
+            "hatStyle": "none",
+            "description": {
+              "archetype": "yuki",
+              "culture": "ashford",
+              "presentation": "feminine",
+              "skinTone": "fair",
+              "faceShape": "heart",
+              "hairStyle": "twin_braid",
+              "hairColor": "chestnut",
+              "eyeColor": "black",
+              "frame": "lean",
+              "stature": "below_average",
+              "garmentSilhouette": "apron_over_tunic",
+              "garmentPalette": "earth_work",
+              "accessories": [
+                "hair_ornament",
+                "ear_drops",
+                "gold_filigree"
+              ],
+              "culturalTags": [
+                "ashford",
+                "court_silk",
+                "blossom_motif"
+              ],
+              "grooming": 0.6301156662288122,
+              "wear": 0.4431217810884118,
+              "status": "modest",
+              "agePresentation": "young_adult",
+              "roleCues": [
+                "travel_pack"
+              ]
+            }
+          },
+          "presentationSex": "f",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": "introduction at Cinderveil — Threshold Square, I was there."
+        },
+        "name": "Mara Wren",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11312.249999909192,
+          "y": 1.0625,
+          "z": 3093.5942518380843
+        },
+        "yaw": -6.132895661291919e-7,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 15254696,
+          "hair": 7028514,
+          "shirt": 6970432,
+          "pants": 5259827,
+          "height": 0.96,
+          "build": 0.93,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "yuki",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "fair",
+            "faceShape": "heart",
+            "hairStyle": "twin_braid",
+            "hairColor": "chestnut",
+            "eyeColor": "black",
+            "frame": "lean",
+            "stature": "below_average",
+            "garmentSilhouette": "apron_over_tunic",
+            "garmentPalette": "earth_work",
+            "accessories": [
+              "hair_ornament",
+              "ear_drops",
+              "gold_filigree"
+            ],
+            "culturalTags": [
+              "ashford",
+              "court_silk",
+              "blossom_motif"
+            ],
+            "grooming": 0.6301156662288122,
+            "wear": 0.4431217810884118,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        }
+      },
+      {
+        "id": "p_4",
+        "visual": {
+          "bodyId": "b_4",
+          "entityId": "p_4",
+          "name": "Tomas Ash",
+          "pos": {
+            "x": 11312.980358692303,
+            "y": 1.0625,
+            "z": 3091.4384182120602
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": 2.667008975568329,
+          "crouch": 0,
+          "pose": "sit",
+          "activity": "sit",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 14726286,
+            "hair": 7028514,
+            "shirt": 3355189,
+            "pants": 4601904,
+            "height": 1,
+            "build": 1.06,
+            "hatStyle": "none",
+            "beard": 7028514,
+            "apron": 8469560,
+            "description": {
+              "archetype": "kaito",
+              "culture": "ashford",
+              "presentation": "masculine",
+              "skinTone": "warm",
+              "faceShape": "oval",
+              "hairStyle": "cropped",
+              "hairColor": "chestnut",
+              "eyeColor": "grey",
+              "frame": "sturdy",
+              "stature": "average",
+              "garmentSilhouette": "tunic_trousers",
+              "garmentPalette": "ronin_charcoal",
+              "accessories": [
+                "arm_wrap",
+                "waist_cord",
+                "beard"
+              ],
+              "culturalTags": [
+                "ashford",
+                "retainer",
+                "lamellar"
+              ],
+              "grooming": 0.8037422989495098,
+              "wear": 0.5595790569111705,
+              "status": "modest",
+              "agePresentation": "adult",
+              "roleCues": [
+                "apron",
+                "hammer"
+              ]
+            }
+          },
+          "presentationSex": "m",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": ""
+        },
+        "name": "Tomas Ash",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11312.980358692303,
+          "y": 1.0625,
+          "z": 3091.4384182120602
+        },
+        "yaw": 2.667008975568329,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 14726286,
+          "hair": 7028514,
+          "shirt": 3355189,
+          "pants": 4601904,
+          "height": 1,
+          "build": 1.06,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "kaito",
+            "culture": "ashford",
+            "presentation": "masculine",
+            "skinTone": "warm",
+            "faceShape": "oval",
+            "hairStyle": "cropped",
+            "hairColor": "chestnut",
+            "eyeColor": "grey",
+            "frame": "sturdy",
+            "stature": "average",
+            "garmentSilhouette": "tunic_trousers",
+            "garmentPalette": "ronin_charcoal",
+            "accessories": [
+              "arm_wrap",
+              "waist_cord",
+              "beard"
+            ],
+            "culturalTags": [
+              "ashford",
+              "retainer",
+              "lamellar"
+            ],
+            "grooming": 0.8037422989495098,
+            "wear": 0.5595790569111705,
+            "status": "modest",
+            "agePresentation": "adult",
+            "roleCues": [
+              "apron",
+              "hammer"
+            ]
+          },
+          "beard": 7028514,
+          "apron": 8469560
+        }
+      },
+      {
+        "id": "p_7",
+        "visual": {
+          "bodyId": "b_13",
+          "entityId": "p_7",
+          "name": "Hale Brennick",
+          "pos": {
+            "x": 11308.999253600874,
+            "y": 1.0625,
+            "z": 3075.942267844191
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": -3.1363792009442144,
+          "crouch": 0,
+          "pose": "walk",
+          "activity": "walk",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 14726286,
+            "hair": 7028514,
+            "shirt": 3026226,
+            "pants": 4338733,
+            "height": 1.04,
+            "build": 1,
+            "hatStyle": "helm",
+            "hat": 9079440,
+            "description": {
+              "archetype": "kaito",
+              "culture": "ashford",
+              "presentation": "masculine",
+              "skinTone": "warm",
+              "faceShape": "angular",
+              "hairStyle": "topknot",
+              "hairColor": "chestnut",
+              "eyeColor": "grey",
+              "frame": "average",
+              "stature": "above_average",
+              "garmentSilhouette": "work_kimono",
+              "garmentPalette": "ronin_charcoal",
+              "accessories": [
+                "scabbard"
+              ],
+              "culturalTags": [
+                "ashford",
+                "retainer",
+                "lamellar"
+              ],
+              "grooming": 0.6602039959281683,
+              "wear": 0.39913343153893943,
+              "status": "modest",
+              "agePresentation": "adult",
+              "roleCues": [
+                "helm",
+                "spear"
+              ]
+            }
+          },
+          "presentationSex": "m",
+          "equipment": [
+            {
+              "id": "i_4",
+              "type": "sword",
+              "slot": "right-hand"
+            }
+          ],
+          "combatAction": null,
+          "guarding": false,
+          "speech": ""
+        },
+        "name": "Hale Brennick",
+        "hostile": false,
+        "observedThreat": {
+          "level": 11,
+          "grade": "Iron-grade"
+        },
+        "pos": {
+          "x": 11308.999253600874,
+          "y": 1.0625,
+          "z": 3075.942267844191
+        },
+        "yaw": -3.1363792009442144,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 14726286,
+          "hair": 7028514,
+          "shirt": 3026226,
+          "pants": 4338733,
+          "height": 1.04,
+          "build": 1,
+          "hatStyle": "helm",
+          "description": {
+            "archetype": "kaito",
+            "culture": "ashford",
+            "presentation": "masculine",
+            "skinTone": "warm",
+            "faceShape": "angular",
+            "hairStyle": "topknot",
+            "hairColor": "chestnut",
+            "eyeColor": "grey",
+            "frame": "average",
+            "stature": "above_average",
+            "garmentSilhouette": "work_kimono",
+            "garmentPalette": "ronin_charcoal",
+            "accessories": [
+              "scabbard"
+            ],
+            "culturalTags": [
+              "ashford",
+              "retainer",
+              "lamellar"
+            ],
+            "grooming": 0.6602039959281683,
+            "wear": 0.39913343153893943,
+            "status": "modest",
+            "agePresentation": "adult",
+            "roleCues": [
+              "helm",
+              "spear"
+            ]
+          },
+          "hat": 9079440
+        }
+      },
+      {
+        "id": "p_8",
+        "visual": {
+          "bodyId": "b_14",
+          "entityId": "p_8",
+          "name": "Odile Marsh",
+          "pos": {
+            "x": 11311.710769986179,
+            "y": 1.0625,
+            "z": 3091.4999621120496
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": 1.5779235778606837,
+          "crouch": 0,
+          "pose": "sit",
+          "activity": "sit",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 16179922,
+            "hair": 13159636,
+            "shirt": 3949395,
+            "pants": 4473663,
+            "height": 1,
+            "build": 1.06,
+            "hatStyle": "none",
+            "apron": 7760206,
+            "description": {
+              "archetype": "shiro",
+              "culture": "ashford",
+              "presentation": "feminine",
+              "skinTone": "porcelain",
+              "faceShape": "heart",
+              "hairStyle": "braided",
+              "hairColor": "silver",
+              "eyeColor": "grey",
+              "frame": "sturdy",
+              "stature": "average",
+              "garmentSilhouette": "layered_kimono",
+              "garmentPalette": "indigo_work",
+              "accessories": [
+                "hair_ornament",
+                "waist_cord"
+              ],
+              "culturalTags": [
+                "ashford",
+                "snow_moon",
+                "winter_silk"
+              ],
+              "grooming": 0.7210583825712091,
+              "wear": 0.49827520307153467,
+              "status": "modest",
+              "agePresentation": "adult",
+              "roleCues": [
+                "apron",
+                "flour_dust"
+              ]
+            }
+          },
+          "presentationSex": "f",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": "Weathered trail knife is at Cinderveil — Threshold Square, I was there."
+        },
+        "name": "Odile Marsh",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11311.710769986179,
+          "y": 1.0625,
+          "z": 3091.4999621120496
+        },
+        "yaw": 1.5779235778606837,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 16179922,
+          "hair": 13159636,
+          "shirt": 3949395,
+          "pants": 4473663,
+          "height": 1,
+          "build": 1.06,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "shiro",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "porcelain",
+            "faceShape": "heart",
+            "hairStyle": "braided",
+            "hairColor": "silver",
+            "eyeColor": "grey",
+            "frame": "sturdy",
+            "stature": "average",
+            "garmentSilhouette": "layered_kimono",
+            "garmentPalette": "indigo_work",
+            "accessories": [
+              "hair_ornament",
+              "waist_cord"
+            ],
+            "culturalTags": [
+              "ashford",
+              "snow_moon",
+              "winter_silk"
+            ],
+            "grooming": 0.7210583825712091,
+            "wear": 0.49827520307153467,
+            "status": "modest",
+            "agePresentation": "adult",
+            "roleCues": [
+              "apron",
+              "flour_dust"
+            ]
+          },
+          "apron": 7760206
+        }
+      },
+      {
+        "id": "p_9",
+        "visual": {
+          "bodyId": "b_15",
+          "entityId": "p_9",
+          "name": "Pell Arden",
+          "pos": {
+            "x": 11317.6222841208,
+            "y": 1.0625,
+            "z": 3112.055277031244
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": 0.9795909427543066,
+          "crouch": 0,
+          "pose": "walk",
+          "activity": "walk",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 14726286,
+            "hair": 7028514,
+            "shirt": 6970691,
+            "pants": 5523256,
+            "height": 1.04,
+            "build": 1,
+            "hatStyle": "none",
+            "beard": 7028514,
+            "description": {
+              "archetype": "kaito",
+              "culture": "ashford",
+              "presentation": "masculine",
+              "skinTone": "warm",
+              "faceShape": "square",
+              "hairStyle": "warrior_bun",
+              "hairColor": "chestnut",
+              "eyeColor": "grey",
+              "frame": "average",
+              "stature": "above_average",
+              "garmentSilhouette": "work_kimono",
+              "garmentPalette": "earth_work",
+              "accessories": [
+                "arm_wrap",
+                "scabbard",
+                "beard"
+              ],
+              "culturalTags": [
+                "ashford",
+                "retainer",
+                "lamellar"
+              ],
+              "grooming": 0.5537017692811786,
+              "wear": 0.7268241162598134,
+              "status": "poor",
+              "agePresentation": "young_adult",
+              "roleCues": [
+                "axe"
+              ]
+            }
+          },
+          "presentationSex": "m",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": ""
+        },
+        "name": "Pell Arden",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11317.6222841208,
+          "y": 1.0625,
+          "z": 3112.055277031244
+        },
+        "yaw": 0.9795909427543066,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 14726286,
+          "hair": 7028514,
+          "shirt": 6970691,
+          "pants": 5523256,
+          "height": 1.04,
+          "build": 1,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "kaito",
+            "culture": "ashford",
+            "presentation": "masculine",
+            "skinTone": "warm",
+            "faceShape": "square",
+            "hairStyle": "warrior_bun",
+            "hairColor": "chestnut",
+            "eyeColor": "grey",
+            "frame": "average",
+            "stature": "above_average",
+            "garmentSilhouette": "work_kimono",
+            "garmentPalette": "earth_work",
+            "accessories": [
+              "arm_wrap",
+              "scabbard",
+              "beard"
+            ],
+            "culturalTags": [
+              "ashford",
+              "retainer",
+              "lamellar"
+            ],
+            "grooming": 0.5537017692811786,
+            "wear": 0.7268241162598134,
+            "status": "poor",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "axe"
+            ]
+          },
+          "beard": 7028514
+        }
+      },
+      {
+        "id": "p_10",
+        "visual": {
+          "bodyId": "b_16",
+          "entityId": "p_10",
+          "name": "Wenna Arden",
+          "pos": {
+            "x": 11312.616394432076,
+            "y": 1.0625,
+            "z": 3092.7022340410062
+          },
+          "velocity": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "yaw": 0.4522205104450232,
+          "crouch": 0,
+          "pose": "sit",
+          "activity": "sit",
+          "speed": 0,
+          "attackSeq": 0,
+          "hitSeq": 0,
+          "lastAttackAt": -99,
+          "lastHitAt": -99,
+          "dead": false,
+          "incapacitated": false,
+          "appearance": {
+            "skin": 14726286,
+            "hair": 7028514,
+            "shirt": 6970689,
+            "pants": 5391413,
+            "height": 0.96,
+            "build": 0.87,
+            "hatStyle": "hood",
+            "hat": 5391413,
+            "description": {
+              "archetype": "yuki",
+              "culture": "ashford",
+              "presentation": "feminine",
+              "skinTone": "warm",
+              "faceShape": "heart",
+              "hairStyle": "updo_ornamented",
+              "hairColor": "chestnut",
+              "eyeColor": "black",
+              "frame": "slight",
+              "stature": "below_average",
+              "garmentSilhouette": "apron_over_tunic",
+              "garmentPalette": "earth_work",
+              "accessories": [
+                "hair_ornament",
+                "tassel"
+              ],
+              "culturalTags": [
+                "ashford",
+                "court_silk",
+                "blossom_motif"
+              ],
+              "grooming": 0.7507050979882478,
+              "wear": 0.5780769807100296,
+              "status": "poor",
+              "agePresentation": "young_adult",
+              "roleCues": [
+                "hood",
+                "satchel"
+              ]
+            }
+          },
+          "presentationSex": "f",
+          "equipment": [],
+          "combatAction": null,
+          "guarding": false,
+          "speech": "introduction at Cinderveil — Threshold Square, I watched it happen."
+        },
+        "name": "Wenna Arden",
+        "hostile": false,
+        "observedThreat": {
+          "level": 1,
+          "grade": "Normal-grade"
+        },
+        "pos": {
+          "x": 11312.616394432076,
+          "y": 1.0625,
+          "z": 3092.7022340410062
+        },
+        "yaw": 0.4522205104450232,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "appearance": {
+          "skin": 14726286,
+          "hair": 7028514,
+          "shirt": 6970689,
+          "pants": 5391413,
+          "height": 0.96,
+          "build": 0.87,
+          "hatStyle": "hood",
+          "description": {
+            "archetype": "yuki",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "warm",
+            "faceShape": "heart",
+            "hairStyle": "updo_ornamented",
+            "hairColor": "chestnut",
+            "eyeColor": "black",
+            "frame": "slight",
+            "stature": "below_average",
+            "garmentSilhouette": "apron_over_tunic",
+            "garmentPalette": "earth_work",
+            "accessories": [
+              "hair_ornament",
+              "tassel"
+            ],
+            "culturalTags": [
+              "ashford",
+              "court_silk",
+              "blossom_motif"
+            ],
+            "grooming": 0.7507050979882478,
+            "wear": 0.5780769807100296,
+            "status": "poor",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "hood",
+              "satchel"
+            ]
+          },
+          "hat": 5391413
+        }
+      }
+    ],
+    "objectives": [],
+    "objectiveReceipts": [],
+    "questJournal": [],
+    "combatEvents": [],
+    "wildlife": [
+      {
+        "bodyId": "b_6",
+        "entityId": "wild_1",
+        "species": "woodland_boar",
+        "name": "woodland boar",
+        "pos": {
+          "x": 11321.5,
+          "y": 0.7159463000000025,
+          "z": 3166.5
+        },
+        "yaw": 0,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": true
+      },
+      {
+        "bodyId": "b_8",
+        "entityId": "wild_3",
+        "species": "roe_deer",
+        "name": "roe deer",
+        "pos": {
+          "x": 11302.5,
+          "y": 1.2815026000000005,
+          "z": 3160.5
+        },
+        "yaw": 0,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      },
+      {
+        "bodyId": "b_9",
+        "entityId": "wild_4",
+        "species": "roe_deer",
+        "name": "roe deer",
+        "pos": {
+          "x": 11300.5,
+          "y": 1.2941763999999985,
+          "z": 3164.5
+        },
+        "yaw": 0,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      },
+      {
+        "bodyId": "b_10",
+        "entityId": "wild_5",
+        "species": "field_hare",
+        "name": "field hare",
+        "pos": {
+          "x": 11324.5,
+          "y": 0.6741799000000016,
+          "z": 3166.5
+        },
+        "yaw": 0,
+        "vel": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "health": 100,
+        "maxHealth": 100,
+        "dead": false,
+        "defense": null,
+        "hostile": false
+      }
+    ],
+    "observedWildlife": {
+      "version": 1,
+      "scope": "observed",
+      "complete": true,
+      "bodies": []
+    },
+    "stats": {
+      "canonicalPeople": 10,
+      "cachedChunks": 82,
+      "persistedEdits": 0,
+      "doors": 0,
+      "eventCount": 226
+    }
+  },
+  "input": {
+    "keys": [],
+    "guarding": false
+  },
+  "receipts": [
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-74",
+      "sequence": 73,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 52.41666666666497,
+      "receivedAtMs": 150720.4327,
+      "serverTimeMs": 150721.0651,
+      "clientTimeMs": 56964.09999996424,
+      "tickStartedAtMs": 150721.0651,
+      "appliedAtMs": 150722.3778
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-75",
+      "sequence": 74,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 52.41666666666497,
+      "receivedAtMs": 150720.456,
+      "serverTimeMs": 150721.0651,
+      "clientTimeMs": 56964.19999998808,
+      "tickStartedAtMs": 150721.0651,
+      "appliedAtMs": 150722.3835
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-76",
+      "sequence": 75,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "rejected",
+      "result": "no_action",
+      "tick": 52.41666666666497,
+      "receivedAtMs": 150720.9045,
+      "serverTimeMs": 150721.0651,
+      "clientTimeMs": 56964.19999998808,
+      "tickStartedAtMs": 150721.0651,
+      "appliedAtMs": 150722.439
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-73",
+      "sequence": 72,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 52.43333333333164,
+      "receivedAtMs": 150720.3921,
+      "serverTimeMs": 150723.5133,
+      "clientTimeMs": 56964.09999996424,
+      "tickStartedAtMs": 150721.0651,
+      "appliedAtMs": 150724.1233
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-77",
+      "sequence": 76,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 52.46666666666497,
+      "receivedAtMs": 150732.517,
+      "serverTimeMs": 150732.7093,
+      "clientTimeMs": 56993.5,
+      "tickStartedAtMs": 150732.7093,
+      "appliedAtMs": 150733.4929
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-78",
+      "sequence": 77,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 54.76666666666484,
+      "receivedAtMs": 153029.4396,
+      "serverTimeMs": 153029.8074,
+      "clientTimeMs": 59290.39999997616,
+      "tickStartedAtMs": 153029.8074,
+      "appliedAtMs": 153030.8309
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-79",
+      "sequence": 78,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 54.76666666666484,
+      "receivedAtMs": 153029.6693,
+      "serverTimeMs": 153029.8074,
+      "clientTimeMs": 59290.39999997616,
+      "tickStartedAtMs": 153029.8074,
+      "appliedAtMs": 153030.8393
+    },
+    {
+      "version": 1,
+      "type": "command_receipt",
+      "commandId": "realm-80",
+      "sequence": 79,
+      "epoch": "8b5b1067-821e-4f51-b40b-20897d621f01",
+      "status": "applied",
+      "result": "accepted",
+      "tick": 54.76666666666484,
+      "receivedAtMs": 153029.7457,
+      "serverTimeMs": 153029.8074,
+      "clientTimeMs": 59290.39999997616,
+      "tickStartedAtMs": 153029.8074,
+      "appliedAtMs": 153030.8469
+    }
+  ],
+  "camera": {
+    "mode": "third-person",
+    "yaw": 3.141592653589793,
+    "renderedYaw": 3.141592653589793,
+    "movementYaw": 3.141592653589793,
+    "pitch": 0.3839724354387525,
+    "preferred": 4,
+    "blocked": false,
+    "position": {
+      "x": 48.5,
+      "y": 3.7025263736636482,
+      "z": 39.63296160838816
+    },
+    "want": 4,
+    "dist": 0,
+    "limit": 4.2,
+    "pitchDeg": 22,
+    "fovDeg": 52,
+    "reason": "explore",
+    "framing": "orbit",
+    "rawDistance": 0,
+    "elevatedBy": 0,
+    "nearPlaneBlocked": false,
+    "actualFovDeg": 52.00000000000001
+  },
+  "controlledLook": {
+    "look": "wren",
+    "motion": {
+      "source": "quaternius-ual-standard",
+      "file": "motion/ual-standard.glb",
+      "sourceClip": "Idle_Loop",
+      "retargetLook": "wren",
+      "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+      "license": "CC0-1.0"
+    }
+  },
+  "focused": {
+    "instances": 55,
+    "pending": 0,
+    "error": "",
+    "forests": [
+      {
+        "id": "veil:brass:focused-town:v1:forest-cross",
+        "assetId": "tv_47_01_pine_forest",
+        "placementId": "veil:brass:focused-town:v1:forest-cross",
+        "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+        "floorId": "veil:brass:focused-town:v1:ground",
+        "forestPresentation": "layered-branches-v2",
+        "sourceTrees": 45,
+        "proxyCanopiesHidden": true,
+        "hiddenProxies": 90,
+        "foliage": [
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "near",
+            "cards": 2205,
+            "sourceTrees": 45
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "far",
+            "cards": 720,
+            "sourceTrees": 45
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "understory",
+            "cards": 410,
+            "sourceTrees": 45
+          }
+        ]
+      },
+      {
+        "id": "veil:brass:focused-town:v1:forest-branches",
+        "assetId": "tv_47_03_pine_forest",
+        "placementId": "veil:brass:focused-town:v1:forest-branches",
+        "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+        "floorId": "veil:brass:focused-town:v1:ground",
+        "forestPresentation": "layered-branches-v2",
+        "sourceTrees": 53,
+        "proxyCanopiesHidden": true,
+        "hiddenProxies": 106,
+        "foliage": [
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "near",
+            "cards": 2597,
+            "sourceTrees": 53
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "far",
+            "cards": 848,
+            "sourceTrees": 53
+          },
+          {
+            "focusedSoftFoliage": true,
+            "foliageLod": "understory",
+            "cards": 498,
+            "sourceTrees": 53
+          }
+        ]
+      }
+    ]
+  },
+  "wildlife": {
+    "pending": false,
+    "bodies": []
+  }
+}

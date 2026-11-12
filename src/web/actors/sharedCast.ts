@@ -19,6 +19,8 @@ import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds
 import type { ClipTemplate } from '../arena/retarget';
 import {characterScaleObservation,normalizeCharacterMetres} from './characterScale';
 import {FlightPose} from './flightPose';
+import {appearanceBodyPreset,chooseCharacterPresentation,resolveCharacterBase} from './characterBaseSelection';
+import {StudioCharacterBases,studioRigKey} from './studioBases';
 export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
@@ -42,28 +44,48 @@ export function spineTiltDegrees(frame:TransformNode,hip:readonly number[],chest
 const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);n^=n>>>16;n=Math.imul(n,0x85ebca6b);n^=n>>>13;return(n^(n>>>16))>>>0;};
 /** Stable presentation choice, never a replacement for person/body identity. */
 export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentationSex'>):LookId {
- const d=body.appearance?.description;
- const female=body.presentationSex==='f'||(!body.presentationSex&&d?.presentation==='feminine');
+ const female=appearanceBodyPreset(body)==='female';
  const list:LookId[]=female?['wren','raider_f']:['ranger','brann','soldier','archer','mystic'];
  return list[hash(body.bodyId)%list.length];
 }
 /** Deliberate existing, credited hero kits. Creator prototypes are audition candidates,
  * not an unverified automatic replacement; canonical identity/sex stays unchanged. */
-export function sharedHeroLook(body: Pick<BodyState, 'presentationSex' | 'appearance'>): LookId {
- return body.presentationSex === 'f' || body.appearance?.description?.presentation === 'feminine' ? 'wren' : 'ranger';
+export function sharedHeroLook(body: Pick<BodyState, 'presentationSex' | 'presentationSpecies' | 'appearance'>): LookId {
+ if(body.presentationSpecies==='human'||body.presentationSpecies==='elf')return appearanceBodyPreset(body)==='female' ? 'wren' : 'ranger';
+ // Preserve the existing fallback choice outside the requested species scope.
+ return body.presentationSex==='f'||body.appearance?.description?.presentation==='feminine' ? 'wren' : 'ranger';
 }
 export class SharedCharacters {
  readonly assets:ArenaAssets;
+ readonly studio:StudioCharacterBases;
  ready=false;
- constructor(scene:Scene){this.assets=new ArenaAssets(scene,{detailedHumans:true});this.assets.used=SHARED_MOTION_NAMES;}
- async load(progress:(text:string)=>void,looks:readonly LookId[]=SHARED_HUMAN_LOOKS){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans([...new Set<LookId>(['ranger',...looks])],progress);this.ready=true;}
+ constructor(scene:Scene){this.assets=new ArenaAssets(scene,{detailedHumans:true});this.assets.used=SHARED_MOTION_NAMES;this.studio=new StudioCharacterBases(scene);}
+ async load(progress:(text:string)=>void,looks:readonly LookId[]=SHARED_HUMAN_LOOKS){
+  await this.assets.load(['skeleton_warrior'],progress);
+  // Optional pinned private bases; their rigs get the same CC0/credited motion bake as the fallback looks.
+  await this.studio.load(progress);
+  for(const sex of this.studio.status.available)this.assets.registerRig(studioRigKey(sex),()=>this.studio.rig(sex,`studio-bake-${sex}`));
+  await this.assets.loadHumans([...new Set<LookId>(['ranger',...looks])],progress);this.ready=true;
+ }
  create(body:BodyState,atmosphere:CharacterLighting,environment?:SharedCharacterEnvironment,role:'resident'|'player'='resident'):BodyVisual|null {
   if(!this.ready||body.appearance?.description?.agePresentation==='child')return null;
-  const look=role==='player'?sharedHeroLook(body):sharedLook(body),instance=this.assets.human(look,body.bodyId);
+  const selection=resolveCharacterBase(body),choice=chooseCharacterPresentation(selection,this.studio.status.available,this.studio.status.reason);
+  let instance:CharacterInstance,look:LookId|null=null,clips:Map<string,ClipTemplate>;
+  if(choice.studio){
+   const key=studioRigKey(choice.studio),rig=this.studio.rig(choice.studio);
+   instance=this.assets.riggedInstance(key,rig);clips=this.assets.clipsFor(key);
+   instance.root.metadata={...instance.root.metadata,sharedLook:key,assetPath:`private-character-bases/${choice.studio}`};
+  }else{
+   look=role==='player'?sharedHeroLook(body):sharedLook(body);instance=this.assets.human(look,body.bodyId);clips=this.assets.clipsFor(look);
+   instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look)};
+  }
+  Object.assign(instance.root.metadata,{bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION});
+  instance.root.metadata.characterBase={selection,studioAvailable:[...this.studio.status.available],studioStatus:this.studio.status.reason,
+   loadedStudioBase:choice.studio?{sex:choice.studio,parts:instance.root.metadata.studioRig?.composition??null,missingBones:instance.root.metadata.studioRig?.missingBones??null,
+    provenance:this.studio.status.provenance?.attestation??null,elfArtwork:false}:null,fallbackReason:choice.fallbackReason};
   // Canonical world metres, rather than the arena's enlarged layout scale.
-  instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
   instance.root.metadata.metricImport=normalizeCharacterMetres(instance.root,instance.meshes,body.appearance?.height??1);
-  return new SharedVisual(instance,body,atmosphere,this.assets.clipsFor(look),environment);
+  return new SharedVisual(instance,body,atmosphere,clips,environment);
  }
 }
 export class SharedVisual implements BodyVisual {
@@ -113,13 +135,15 @@ export class SharedVisual implements BodyVisual {
     this.environment?.onFootfall?.(foot?.getAbsolutePosition()??this.root.getAbsolutePosition(),this.speed);
    }
   });
-  for (const mesh of instance.meshes) { mesh.receiveShadows = true; atmosphere.addCaster(mesh); }
+  for (const mesh of instance.meshes) { mesh.receiveShadows = true; if(!mesh.metadata?.studioNoShadow)atmosphere.addCaster(mesh); }
  }
  private clip(name: string) { return this.animator.has(name) ? name : kaykitFallback(name); }
  measureScale(){return {...characterScaleObservation(this.root,this.instance.meshes),importScale:this.instance.root.scaling.asArray(),importPosition:this.instance.root.position.asArray(),metricImport:this.root.metadata.metricImport};}
  private pace(name: string, fallback: number) { return (this.clips.get(name)?.stance ?? 0) * this.instance.root.scaling.x || fallback; }
  update(dt: number, s: ActorState) {
   const b = s.body; if (!b) return;
+  // The model chosen at spawn stays; diagnostics report the current projected selection.
+  const base=this.root.metadata.characterBase;if(base){base.selection=resolveCharacterBase(b);if(!base.loadedStudioBase)base.fallbackReason=chooseCharacterPresentation(base.selection,base.studioAvailable,base.studioStatus).fallbackReason;}
   this.flight.restore();this.radialPlant?.restore();this.gaze.restore();this.lookAt=s.lookAt?.clone()??null;
   this.rawDt=dt;this.dt = Math.max(0,Math.min(.1,dt)); this.clock += dt; this.yaw = s.yaw; this.equipment.update(b.equipment ?? []);
   const forwardMotion = s.speed > .001 ? (-Math.sin(s.yaw) * s.velocity.x - Math.cos(s.yaw) * s.velocity.z) / s.speed : 1;
@@ -187,7 +211,7 @@ export class SharedVisual implements BodyVisual {
  }
  dispose() {
   this.root.getScene().onAfterAnimationsObservable.remove(this.afterAnimation); this.equipment.dispose(); this.animator.stopAll();
-  for (const mesh of this.instance.meshes) this.atmosphere.removeCaster(mesh);
+  for (const mesh of this.instance.meshes) if(!mesh.metadata?.studioNoShadow)this.atmosphere.removeCaster(mesh);
   this.instance.dispose(); this.root.dispose();
  }
 }

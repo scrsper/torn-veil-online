@@ -1,0 +1,32 @@
+{"sources":46,"triangles":998530,"bytes":53979786,"sha256":"c3ad74f50784f8709a648dec03fd256c7aeb873c101ca1d02feebfab4271252f"}
+X [ERROR] Cannot read directory "../../..": Access is denied.
+
+X [ERROR] Could not resolve "C:\\Users\\green\\Documents\\Projects\\torn-veil-foundation\\scripts\\foundation\\vite.config.mjs"
+
+failed to load config from C:\Users\green\Documents\Projects\torn-veil-foundation\scripts\foundation\vite.config.mjs
+error during build:
+Error: Build failed with 2 errors:
+error: Cannot read directory "../../..": Access is denied.
+error: Could not resolve "C:\\Users\\green\\Documents\\Projects\\torn-veil-foundation\\scripts\\foundation\\vite.config.mjs"
+    at failureErrorWithLog (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:945:25
+    at runOnEndCallbacks (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:1315:45)
+    at buildResponseToResult (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:943:7)
+    at C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:970:16
+    at responseCallbacks.<computed> (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\green\Documents\Projects\torn-veil-foundation\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+file:///C:/Users/green/Documents/Projects/torn-veil-foundation/scripts/foundation/build.mjs:21
+    if (result.status !== 0) throw Error('Foundation build step failed (' + (result.status ?? result.signal) + '): ' + args.join(' '));
+                                   ^
+
+Error: Foundation build step failed (1): node_modules/vite/bin/vite.js build --config scripts/foundation/vite.config.mjs
+    at run (file:///C:/Users/green/Documents/Projects/torn-veil-foundation/scripts/foundation/build.mjs:21:36)
+    at file:///C:/Users/green/Documents/Projects/torn-veil-foundation/scripts/foundation/build.mjs:43:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

@@ -1,0 +1,6 @@
+{
+  "checkedAt": "2026-10-22T03:31:09.627Z",
+  "method": "TypeScript 5.6.3 compiler API: readConfigFile, parseJsonConfigFileContent, createProgram and getPreEmitDiagnostics over full repository tsconfig; no subprocess and no Vitest execution",
+  "fileCount": 936,
+  "diagnostics": []
+}

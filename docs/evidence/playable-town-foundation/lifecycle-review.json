@@ -1,0 +1,29 @@
+{
+  "reviewedAt": "2026-10-22T03:31:27.245Z",
+  "scope": [
+    "src/server/realms.ts",
+    "src/server/realmShutdown.ts",
+    "src/web/realms/foundationControls.ts",
+    "scripts/foundation/configuration.mjs",
+    "scripts/foundation/identity.mjs",
+    "scripts/foundation/play.mjs"
+  ],
+  "findings": [
+    {
+      "issue": "Asynchronous HTTP request could retain authorization during final checkpoint",
+      "status": "fixed and reread",
+      "evidence": "close invalidates ownerToken before awaits; universe ready includes !closing; ascent/expedition recheck closing/error/owner after body read"
+    },
+    {
+      "issue": "Saved receipt callback could delay host shutdown indefinitely",
+      "status": "fixed and reread",
+      "evidence": "Bounded 1500ms notice flush before bounded WebSocket close"
+    },
+    {
+      "issue": "Failed UI message asserted host already stopped before close",
+      "status": "fixed and reread"
+    }
+  ],
+  "remaining": "Actual Vitest, journal-worker, browser, same-save restart and launch execution are unrun in this session because process execution is restricted. No remaining material lifecycle source finding identified.",
+  "sourceChangesByReviewer": "None during lifecycle review; prior input/client changes separately recorded"
+}

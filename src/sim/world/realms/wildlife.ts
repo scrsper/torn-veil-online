@@ -10,7 +10,8 @@ import { placedPoint } from '../assets/focused';
 /**
  * One explicit founder endowment for the focused town and the forest between it and the Tower:
  * defensive boars, roe deer and a hare, an armed outlaw camped at the ruined cloister, and four
- * townsfolk (a watch, a baker, a woodcutter and an herbalist) beside the original residents. It is the
+ * townsfolk (a watch, a baker, a woodcutter and an herbalist) beside the original residents, plus
+ * one finite loose trail knife on the supported forest approach. It is the
  * same kind of seeded generation `initializeWildlife` performs for village worlds, journaled
  * as its own host operation. Afterwards the ordinary ecology and cognition own everything:
  * animals forage, defend and can starve; the outlaw robs or flees by the bandit rules.
@@ -78,8 +79,25 @@ export function seedForestLife(w: World): { animals: number; outlaw: string | nu
     outlaw = p.id;
   }
   const residents = seedTownFounders(w);
+  seedLooseTrailKnife(w);
   w.nav.rebuildAll();
   return { animals, outlaw, residents };
+}
+
+/** A world initial condition, not a player grant or reward. Existing ecology skips this
+ * founder pass, so pickup, loss and depletion never cause replenishment on Continue. */
+function seedLooseTrailKnife(w: World): void {
+  const town = (w.grid as RealmGrid).focusedTown;
+  const paving = town?.placements.find(p => p.id.endsWith(':path:wood:24'));
+  if (!paving) return;
+  const [x, , z] = paving.position, geometry = w.grid.movementGeometryAt(x, z);
+  const y = geometry?.supportAt(x, z, paving.position[1] + .0625);
+  if (y === undefined || y === null || !geometry!.fits(x, y, z, .3, 1.75)) return;
+  const knife = makeItem(w, 'dagger', 'Weathered trail knife', {
+    pos: { x, y, z }, condition: .65, tags: ['focused-town-loose-tool'],
+    description: 'A worn knife left beside the town forest road.',
+  });
+  knife.provenance.push({ tick: w.now, from: null, to: null, how: 'focused town loose-tool initial condition' });
 }
 
 function seedTownFounders(w: World): number {

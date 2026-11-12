@@ -1,0 +1,45 @@
+{
+  "pinSha256": "26d068fc4478e4d9d54dd4005b50f3b8215ef8b9c05005f057ba41d3408a57e1",
+  "sourceFileCount": 47,
+  "runtimeFileCount": 50,
+  "derivations": [
+    {
+      "path": "derived/hair/Veil_Female_Hair_001.glb",
+      "bytes": 6880860,
+      "sha256": "9915c4280f62eb1e3abffe38a0253ed3fc0b0d0cca44041ce784733c71752a9c",
+      "transform": "embed-external-images-v1",
+      "source": {
+        "path": "hair/Veil_Female_Hair_001.glb",
+        "bytes": 3414456,
+        "sha256": "7ce97c54dc1781e1fa8d5e79a38f71295cbf9c7c4a56897d06eb5e8221847be3"
+      },
+      "embedded": [
+        {
+          "uri": "../textures/HairPreview_5861b9f16735.png",
+          "path": "textures/HairPreview_5861b9f16735.png",
+          "bytes": 3466250,
+          "sha256": "4533fc2a0fc6f9955718b983d7c7ea375a09c29e7274a6aab0af422bfd48fb2a"
+        }
+      ]
+    },
+    {
+      "path": "derived/hair/Veil_Male_Hair_001.glb",
+      "bytes": 6877460,
+      "sha256": "21a9d952ccb97bfa6fed9d6b58ef7934e4773d38274c4f868234b8bb1d6f0228",
+      "transform": "embed-external-images-v1",
+      "source": {
+        "path": "hair/Veil_Male_Hair_001.glb",
+        "bytes": 3411232,
+        "sha256": "521f6a6f16e1782be3db8549c07145a9d492f369bb7baad9f5d425b49b584f1f"
+      },
+      "embedded": [
+        {
+          "uri": "../textures/HairPreview_5861b9f16735.png",
+          "path": "textures/HairPreview_5861b9f16735.png",
+          "bytes": 3466250,
+          "sha256": "4533fc2a0fc6f9955718b983d7c7ea375a09c29e7274a6aab0af422bfd48fb2a"
+        }
+      ]
+    }
+  ]
+}

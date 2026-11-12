@@ -1,0 +1,518 @@
+{
+  "inspectedAt": "2026-10-22T13:22:10.793Z",
+  "sourceRepository": "scrsper/veil-media-studio",
+  "sourceCommit": "d05e112e5a6d646301cb6472ee5caefef95cf8a0",
+  "sourceRoot": "C:/Users/green/Documents/Codex/2026-10-22/task/source-current/public/assets",
+  "purpose": "Read-only contract evidence; NOT a staging or redistribution manifest",
+  "provenance": "Jacob attested on 2026-10-22: Original work from another computer I work on. User-attested original work; authorship and licence history not independently audited. Authorized for private local foundation integration only. This supersedes the prior inferred lineage blocker for this supplied source; the general Aion exclusion is unchanged.",
+  "binariesCopied": 0,
+  "assetsLoadedInGame": 0,
+  "files": [
+    {
+      "path": "Veil_Female_OriginalSkin.glb",
+      "bytes": 3087620,
+      "sha256": "5c8eca6dca04cc33b3a50ac5cd5391f0f84e735b82aee12150247768c82befe4",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 3,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-L-Toe0",
+        "Bip001-R-Toe0"
+      ],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Female_BaseBody_D.png",
+        "textures/Veil_Female_BaseBody_ARSC.png",
+        "textures/Veil_Female_BaseBody_N.png",
+        "textures/Veil_Female_BaseBody_ARSC.png",
+        "textures/Veil_Female_Underwear_01_Body_DO.png",
+        "textures/Veil_Female_Underwear_01_Body_ARM.png",
+        "textures/Veil_Female_Underwear_01_Body_N.png",
+        "textures/Veil_Female_Underwear_01_Body_ARM.png",
+        "textures/reference-skin-white.png"
+      ],
+      "runtimeCandidate": false,
+      "copied": false
+    },
+    {
+      "path": "Veil_Female_BaseBody.glb",
+      "bytes": 836260,
+      "sha256": "1798d91a59c7157041d37650bd46c9cf2f4bfa799adfb0dd3405eeb4f6accb0f",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 2,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Female_BaseBody_D.png",
+        "textures/Veil_Female_BaseBody_N.png",
+        "textures/Veil_Female_BaseBody_ARSC.png",
+        "textures/Veil_Female_0103_T01_Body_D.png",
+        "textures/Veil_Female_0103_T01_Body_N.png",
+        "textures/Veil_Female_0103_T01_Body_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Female_BasePants.glb",
+      "bytes": 453148,
+      "sha256": "aed763da7567fed4f8ebef578f7319e79f731f2f40002e1dfa0320a5420eeec1",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 2,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-L-Toe0",
+        "Bip001-R-Toe0"
+      ],
+      "morphNames": [
+        "Flatshoes"
+      ],
+      "external": [
+        "textures/Veil_Female_BaseBody_D.png",
+        "textures/Veil_Female_BaseBody_N.png",
+        "textures/Veil_Female_BaseBody_ARSC.png",
+        "textures/Veil_Female_0103_T01_Pants_D.png",
+        "textures/Veil_Female_0103_T01_Pants_N.png",
+        "textures/Veil_Female_0103_T01_Pants_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Female_BaseBoots.glb",
+      "bytes": 200304,
+      "sha256": "ba0800acd1230405d3eb9f010399635292b68dc75a93309397e090a339517a8b",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 1,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-L-Toe0",
+        "Bip001-R-Toe0"
+      ],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Female_BaseBody_Boots_D.png",
+        "textures/Veil_Female_BaseBody_Boots_N.png",
+        "textures/Veil_Female_BaseBody_Boots_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Female_Head_001.glb",
+      "bytes": 5076840,
+      "sha256": "45238ec46145ae80ed1c90fa482c601f3b80ac1c21294f15f9940d157a17a1c1",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 5,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [
+        "EarShapeChange",
+        "Mph_Anger",
+        "Mph_Happiness",
+        "Mph_Sadness",
+        "Mph_Smile",
+        "Mph_IdleSmile",
+        "DoubleEyelid_Down",
+        "DoubleEyelid_Up",
+        "DoubleEyelid_In",
+        "DoubleEyelid_Out",
+        "Mph_Chin_Fat",
+        "Eye_AO_UpLong",
+        "Eye_AO_DownShort",
+        "Eye_AO_DownLong"
+      ],
+      "external": [
+        "textures/Eye_AO_M_02.png",
+        "textures/Iris_02_M.png",
+        "textures/Veil_Female_Head_D.png",
+        "textures/Veil_Female_Head_ARSC.png",
+        "textures/Veil_Female_Head_001_N.png",
+        "textures/Veil_Female_Head_ARSC.png",
+        "textures/Head_Dye_00.png",
+        "textures/Eye_AO_M_07.png",
+        "textures/Iris_02_M.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "hair/Veil_Female_Hair_001.glb",
+      "bytes": 3414456,
+      "sha256": "7ce97c54dc1781e1fa8d5e79a38f71295cbf9c7c4a56897d06eb5e8221847be3",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 1,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [],
+      "external": [
+        "textures/HairPreview_5861b9f16735.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Male_OriginalSkin.glb",
+      "bytes": 1826560,
+      "sha256": "8d93b3d0c4c2c33d8b8b6c3d778596b4aea64cbeabd6a4d11a8e50f0339bd960",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 3,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-R-Toe0",
+        "Bip001-L-Toe0"
+      ],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Male_BaseBody_D.png",
+        "textures/Veil_Male_BaseBody_ARSC.png",
+        "textures/Veil_Male_BaseBody_N.png",
+        "textures/Veil_Male_BaseBody_ARSC.png",
+        "textures/reference-skin-white.png"
+      ],
+      "runtimeCandidate": false,
+      "copied": false
+    },
+    {
+      "path": "Veil_Male_BaseBody.glb",
+      "bytes": 638020,
+      "sha256": "ab81e27ea85047748db85f3e5532a40450a17e03582117ba0a6fc8493aa7f894",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 2,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Male_BaseBody_D.png",
+        "textures/Veil_Male_BaseBody_N.png",
+        "textures/Veil_Male_BaseBody_ARSC.png",
+        "textures/Veil_Male_0103_T01_Body_D.png",
+        "textures/Veil_Male_0103_T01_Body_N.png",
+        "textures/Veil_Male_0103_T01_Body_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Male_BasePants.glb",
+      "bytes": 319136,
+      "sha256": "393c71ba39364cdcab44e0f825b34597f05a4f6e5ace33bb589f06bd09c5b64e",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 2,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-L-Toe0",
+        "Bip001-R-Toe0"
+      ],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Male_BaseBody_D.png",
+        "textures/Veil_Male_BaseBody_N.png",
+        "textures/Veil_Male_BaseBody_ARSC.png",
+        "textures/Veil_Male_0103_T01_Pants_D.png",
+        "textures/Veil_Male_0103_T01_Pants_N.png",
+        "textures/Veil_Male_0103_T01_Pants_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Male_BaseBoots.glb",
+      "bytes": 201728,
+      "sha256": "1afdd957dd2fb58be852e6a58ca382ba9d644fa065bda362c8339b95a8df185e",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 1,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [
+        "Bip001-L-Toe0",
+        "Bip001-R-Toe0"
+      ],
+      "morphNames": [],
+      "external": [
+        "textures/Veil_Male_BaseBody_Boots_D.png",
+        "textures/Veil_Male_BaseBody_Boots_N.png",
+        "textures/Veil_Male_BaseBody_Boots_ARM.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "Veil_Male_Head_001.glb",
+      "bytes": 4559744,
+      "sha256": "32ef2d16f47aecbeacc091f2a8e0e0676d5d42d2ea38295535460561662f3a63",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 5,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [
+        "Eye_AO_UpLong",
+        "Eye_AO_DownShort",
+        "Eye_AO_DownLong",
+        "EarShapeChange",
+        "Mph_Anger",
+        "Mph_Happiness",
+        "Mph_Sadness",
+        "Mph_Smile",
+        "DoubleEyelid_Down",
+        "DoubleEyelid_Up",
+        "DoubleEyelid_In",
+        "DoubleEyelid_Out",
+        "Mph_Chin_Fat"
+      ],
+      "external": [
+        "textures/Eye_AO_M_07.png",
+        "textures/Veil_Male_Head_D.png",
+        "textures/Veil_Male_Head_ARSC.png",
+        "textures/Veil_Male_Head_001_N.png",
+        "textures/Veil_Male_Head_ARSC.png",
+        "textures/Head_Dye_00.png",
+        "textures/Eye_AO_M_07.png",
+        "textures/Iris_02_M.png",
+        "textures/Iris_02_M.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    },
+    {
+      "path": "hair/Veil_Male_Hair_001.glb",
+      "bytes": 3411232,
+      "sha256": "521f6a6f16e1782be3db8549c07145a9d492f369bb7baad9f5d425b49b584f1f",
+      "animations": 0,
+      "skins": 1,
+      "primitives": 1,
+      "allPrimitivesHaveEightInfluences": true,
+      "toeNodes": [],
+      "morphNames": [],
+      "external": [
+        "textures/HairPreview_5861b9f16735.png"
+      ],
+      "runtimeCandidate": true,
+      "copied": false
+    }
+  ],
+  "directClothedDependencies": [
+    {
+      "path": "textures/Eye_AO_M_02.png",
+      "bytes": 86971,
+      "sha256": "5d53afeaea9867e37346feff3290a8f52221c2bde6eb6d9522f948c44fb7c665"
+    },
+    {
+      "path": "textures/Eye_AO_M_07.png",
+      "bytes": 88233,
+      "sha256": "f275849eb3473a627024bb2348987135a2f6d7f7c6d448dda66497a3fdb8fbc6"
+    },
+    {
+      "path": "textures/HairPreview_5861b9f16735.png",
+      "bytes": 3466250,
+      "sha256": "4533fc2a0fc6f9955718b983d7c7ea375a09c29e7274a6aab0af422bfd48fb2a"
+    },
+    {
+      "path": "textures/Head_Dye_00.png",
+      "bytes": 285290,
+      "sha256": "423de8c420cc2c429b6d4669c5a54be453ca4efe0eb61d3118c2059eb4fb8ca9"
+    },
+    {
+      "path": "textures/Iris_02_M.png",
+      "bytes": 114347,
+      "sha256": "896f44a0c977b39081d54acafd472aff47563cec1ad3b6a1228ed60f14de8b69"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Body_ARM.png",
+      "bytes": 824999,
+      "sha256": "0e178aed7ec4640f1f632e1e431268fbf1d8d24a8328a1caeb9d60ef7ef313a7"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Body_D.png",
+      "bytes": 3062446,
+      "sha256": "1ea034021f792cbe983d308a15fdcc3b0b2682dcc6dff68ebd8ca14a3d0ea324"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Body_N.png",
+      "bytes": 7399561,
+      "sha256": "f050305a553b524a4677854514db25c3bb319d1f48039ab0151ff4be2b6f31de"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Pants_ARM.png",
+      "bytes": 304632,
+      "sha256": "42f1a5c15732c60e663d18f7582d114bac32b295ffc2524373852bfb47817939"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Pants_D.png",
+      "bytes": 260875,
+      "sha256": "6291fb61274a4f34dfeb08a32184fe57b870fef1a491c9ad54669a8b90d5cfb1"
+    },
+    {
+      "path": "textures/Veil_Female_0103_T01_Pants_N.png",
+      "bytes": 614562,
+      "sha256": "b53727a2221192a2876c812412dd4d3ecb91794339c819aea959721500173ead"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_ARSC.png",
+      "bytes": 4752732,
+      "sha256": "4c08d20fb54ecd85e8544ed2573c4ed88749c657a5fa65cf89c86c811cd76384"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_Boots_ARM.png",
+      "bytes": 138343,
+      "sha256": "ffc6f4b031ebe62c9b996c85aa785fcb1266efb4e090b29a5d0433afebebe8d1"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_Boots_D.png",
+      "bytes": 182918,
+      "sha256": "bc9d16ef45a7a35894172926835d08f0ba4b4a8a959fda99446ecac81c07ea3f"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_Boots_N.png",
+      "bytes": 382648,
+      "sha256": "dd7a0eb4e8e73acbd29bd9af5e0db5eb8ba50860430202161aae6a369e763c5d"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_D.png",
+      "bytes": 2644405,
+      "sha256": "18bfb60938cde1badcc77b2f9eb2929181f64df17774ac584046a486190a418a"
+    },
+    {
+      "path": "textures/Veil_Female_BaseBody_N.png",
+      "bytes": 5991792,
+      "sha256": "f2a90380e4c5ac9a50a0ac079408abfe4e579d0f4f39cedd0cd051abd9d2b631"
+    },
+    {
+      "path": "textures/Veil_Female_Head_001_N.png",
+      "bytes": 6936428,
+      "sha256": "30dc4ac12ee57165ca5e672bda66adfd8a2e4c62c7ae9c51485805f48b731b32"
+    },
+    {
+      "path": "textures/Veil_Female_Head_ARSC.png",
+      "bytes": 4479756,
+      "sha256": "39cb42f0c68c489c8d06cd1d3dd377b666838b2ce438e6ed968331c73176b8cf"
+    },
+    {
+      "path": "textures/Veil_Female_Head_D.png",
+      "bytes": 4393586,
+      "sha256": "386c40130dd27ca5263b4d2f7b7a6b789d71101981bf9014009cb454de5a8bd0"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Body_ARM.png",
+      "bytes": 1293796,
+      "sha256": "993fa48686112c251d1f3a4ae584fa168558e21e2cdd1e69a3030f519c51513c"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Body_D.png",
+      "bytes": 972046,
+      "sha256": "12e62b3344b42d7f07e01e4830dea31832311055460883a1239c2a80b978c94d"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Body_N.png",
+      "bytes": 2824593,
+      "sha256": "bae906dd47790c2b41364c674d2ad61e401ef6f4dbfd744b89857a2d989de839"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Pants_ARM.png",
+      "bytes": 769403,
+      "sha256": "8528630357ccab7923c4d9c2d9ac0902070ea9a1aea8c811c36bf1cbf4cbe9f7"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Pants_D.png",
+      "bytes": 253974,
+      "sha256": "2486e7130e87064f27b484dcf9b6773d167002641d450b715545159375775b51"
+    },
+    {
+      "path": "textures/Veil_Male_0103_T01_Pants_N.png",
+      "bytes": 1439503,
+      "sha256": "dd7d2e6fed4ae970677c7a0f851cb917769b71dea325001c37efeaf07b4f8c4a"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_ARSC.png",
+      "bytes": 5088181,
+      "sha256": "5be43f2d6e535637cf33247878aae342ea936600aae5d6abf8add205e8390414"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_Boots_ARM.png",
+      "bytes": 721283,
+      "sha256": "3de81201dd8509b4fa1044f157ef58c436e00f46ae5bf0cbc85ca06020f8f3ee"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_Boots_D.png",
+      "bytes": 711669,
+      "sha256": "4886047df2c7a4d57f507de726969c0ed761c52df4e1668124d47bb88e57b676"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_Boots_N.png",
+      "bytes": 1682631,
+      "sha256": "ee0e4804f0051b56135a2bcc3edeb72348035d934fe591a0717ade20e8bb1967"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_D.png",
+      "bytes": 2841336,
+      "sha256": "2c93c6c93441e035eceaf20d8ed3483671e3efc13c1ab0c8b4d4ffc2c491b054"
+    },
+    {
+      "path": "textures/Veil_Male_BaseBody_N.png",
+      "bytes": 6055270,
+      "sha256": "6279755276c42709b9b9590a75ddaf5dc7feff78e51b8db461916dfe35382ae2"
+    },
+    {
+      "path": "textures/Veil_Male_Head_001_N.png",
+      "bytes": 7395168,
+      "sha256": "007d888f0886c7147a384b5432c2e2ffcc659dfa5410f7cf32db003bfa6a6b9a"
+    },
+    {
+      "path": "textures/Veil_Male_Head_ARSC.png",
+      "bytes": 5020181,
+      "sha256": "360548583c90c2e40665b06092c81d15ca220a944c1d84ffb4b0666940eadd08"
+    },
+    {
+      "path": "textures/Veil_Male_Head_D.png",
+      "bytes": 4787197,
+      "sha256": "ca8f337f2c4736f4f12e76b1cf2c3b83f28240b5d913ba13fc57b589f5167d11"
+    }
+  ],
+  "shaderTextures": [
+    {
+      "path": "textures/T_Hair_03_DIRO.png",
+      "bytes": 4249970,
+      "sha256": "a915d85d93b95fcd041be2673f9330e3f2358fc4ad2e762ff119457863a7c973"
+    },
+    {
+      "path": "textures/T_Hair_01_DOI_Cap01.png",
+      "bytes": 1173584,
+      "sha256": "a4a6caa7ee36a40617895fe0c7df5f707df8f7826ccf881f33173e22d9511dc8"
+    },
+    {
+      "path": "cosmetics/Cstm_Iris_M_01.png",
+      "bytes": 131206,
+      "sha256": "18deea236a460600acb4f25bceba6e52aadf4a0eee98e7e17f3d6c6ae7b5b46a"
+    },
+    {
+      "path": "cosmetics/Cstm_Pupil_01.png",
+      "bytes": 5765,
+      "sha256": "5b5212bbfee271a161ca57b9a501f36fc435c3adbb211f76ffd061aa4c0a14d2"
+    }
+  ],
+  "actualRigTestInputs": [
+    {
+      "path": "web/public/arena/motion/ual-standard.glb",
+      "exists": true
+    },
+    {
+      "path": "web/public/arena/people/hero.glb",
+      "exists": true
+    },
+    {
+      "path": "web/public/arena/people/wren.glb",
+      "exists": true
+    }
+  ]
+}

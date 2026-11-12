@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "legacy campaign env ignored",
+      "passed": true
+    },
+    {
+      "name": "acceptance run isolation",
+      "passed": true
+    },
+    {
+      "name": "missing Continue rejected",
+      "passed": true
+    },
+    {
+      "name": "outside acceptance refused",
+      "passed": true
+    },
+    {
+      "name": "malformed port refused",
+      "passed": true
+    },
+    {
+      "name": "same source identity accepted",
+      "passed": true
+    },
+    {
+      "name": "changed source refused",
+      "passed": true
+    },
+    {
+      "name": "junction escape refused",
+      "passed": true
+    }
+  ],
+  "limitation": "Pure module checks only. Full Vitest, runtime fingerprint, launcher, build, and browser not executed here; node_repl has no process binding and subprocess launch was previously denied."
+}

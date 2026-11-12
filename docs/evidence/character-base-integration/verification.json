@@ -1,0 +1,42 @@
+{
+  "executor": "Codex",
+  "dateCT": "2026-10-22 08:27",
+  "branch": "maestro/playable-town-foundation-oct21",
+  "sourceCommit": "d05e112e5a6d646301cb6472ee5caefef95cf8a0",
+  "scope": "Selection/projection/diagnostics only; no studio mesh integration",
+  "runtime": "Node v24.19.0; npx not on PATH",
+  "testFirst": {
+    "missingModuleRun": "Failed suite: characterBaseSelection did not exist",
+    "behavioralRun": { "passed": 3, "failed": 2, "failures": ["Male human with feminine appearance selected Wren for player", "Actual species omitted from realm visual projection"] }
+  },
+  "scopedTests": {
+    "command": "node node_modules/vitest/vitest.mjs run tests/character-base-selection.test.ts tests/shared-cast.test.ts tests/authored-travel.test.ts tests/realm-held-input.test.ts tests/foundation-launch.test.ts tests/foundation-shutdown.test.ts tests/web-boundary.test.ts tests/retarget-ownership.test.ts tests/retarget-posture.test.ts tests/retarget-sample.test.ts tests/shared-human-motion.test.ts tests/radial-footplant-import.test.ts",
+    "exitCode": 0, "filesPassed": 12, "testsPassed": 51, "skipped": 0,
+    "actualRigScope": "Existing credited UAL/hero/Wren; not source studio rigs"
+  },
+  "finalAffectedRerun": { "report": "selection-tests.json", "passed": 10, "skipped": 0, "overlapsScopedTests": true },
+  "typecheck": { "command": "node node_modules/typescript/bin/tsc --noEmit", "exitCode": 0, "alsoCompletedDuringFinalBuild": true },
+  "build": {
+    "command": "node scripts/foundation/build.mjs", "exitCode": 1,
+    "completed": ["Focused geometry cook", "Existing CC0 motion staging", "TypeScript check"],
+    "error": "Vite/esbuild: Cannot read directory ../../..: Access is denied; could not resolve scripts/foundation/vite.config.mjs",
+    "lockReleased": true,
+    "oldManifestRetained": "a489a9827a0e131810ca23a6b4aed7ef64e9f43c6648297a8b14bebb41e09ec7"
+  },
+  "git": {
+    "action": "Scoped git add of own resolver, test, sharedCast, messages and evidence",
+    "exitCode": 1,
+    "error": "Unable to create C:/Users/green/Documents/projects/torn-veil-online/.git/worktrees/torn-veil-foundation/index.lock: Permission denied",
+    "indexEmptyAfterAttempt": true, "commitCreated": false
+  },
+  "binaryAssetsCopied": 0,
+  "privateStageCreated": false,
+  "publicAllowlistChanged": false,
+  "newQAHostOrSave": false,
+  "headedBrowserExercised": false,
+  "newScreenshots": 0,
+  "studioRigTestExecuted": false,
+  "oldAcceptanceSavesModified": false,
+  "vaultWritten": false,
+  "remaining": ["Resolve explicit Aion exclusion against disputed source lineage", "Implement private loader/material/retarget and instance ownership", "Private-only build boundary", "Successful final foundation bundle", "Headed game movement/combat/instances and same-save reload", "Selective local commit"]
+}

@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "foundation:build": "node scripts/foundation/build.mjs",
+    "foundation:play": "node scripts/foundation/play.mjs",
     "universe:play": "node scripts/world/play-universe.mjs",
     "universe:campaign": "node scripts/world/play-campaign.mjs",
     "universe:host": "tsx src/server/universe.ts",

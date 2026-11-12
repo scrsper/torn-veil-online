@@ -1,0 +1,120 @@
+{
+  "scope": "Files changed or extended by this session; not a Git staging receipt. heldInput.ts and its test existed before this session and were preserved/extended.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 2894,
+      "sha256": "990c8be44be2830fbb8f356a93a934ea1d9610f6327f4125d648d8a140350301"
+    },
+    {
+      "path": "package.json",
+      "bytes": 5227,
+      "sha256": "242b65fd5c39f866215a26164c79ed0740461fc1acf0255b3ac36300a4a7c257"
+    },
+    {
+      "path": "Play Torn Veil Foundation.cmd",
+      "bytes": 81,
+      "sha256": "c005e565bd8760732e2d481bd76b448f5c6850f808f0bf6be48fee5fb8af19e5"
+    },
+    {
+      "path": "scripts/foundation/build.mjs",
+      "bytes": 3448,
+      "sha256": "f69749ca381ebe3e4d339b4ff308f154ae548241aa1b0d8a72ce840a8cf1f0ec"
+    },
+    {
+      "path": "scripts/foundation/configuration.mjs",
+      "bytes": 5237,
+      "sha256": "ca4f972c5cd428673e5ca007b0e8659c8fd727534bd2fa747912045a755fed1c"
+    },
+    {
+      "path": "scripts/foundation/configuration.d.mts",
+      "bytes": 778,
+      "sha256": "5aaede4c8e2dc4c788d88c1c88dc1b3980563a2290577dcd3618da688f3428a1"
+    },
+    {
+      "path": "scripts/foundation/identity.mjs",
+      "bytes": 4656,
+      "sha256": "b2c49a98b972146bddc6d4ad897e28d3b75a7b44b3702626e0fcccc48ba3f752"
+    },
+    {
+      "path": "scripts/foundation/identity.d.mts",
+      "bytes": 1103,
+      "sha256": "cfcd404db5dcac772a4a44bb9d06b2debdb84fd4e2aeb0ca8b6acc9b5c19df26"
+    },
+    {
+      "path": "scripts/foundation/play.mjs",
+      "bytes": 4920,
+      "sha256": "9eb0531ec0f592e4b5d07cab65850c2ba331f8642d8a73310351ddc85f3afa28"
+    },
+    {
+      "path": "scripts/foundation/vite.config.mjs",
+      "bytes": 436,
+      "sha256": "ced65e2e64f4048a3f60277ad7a1c7b50f2fe014b5c20078382abb5078bda067"
+    },
+    {
+      "path": "src/server/realms.ts",
+      "bytes": 25471,
+      "sha256": "afcb28bf187df3fc68c36d90046ffbb45098644b68484864e0a6c52ade684204"
+    },
+    {
+      "path": "src/server/realmShutdown.ts",
+      "bytes": 662,
+      "sha256": "3664a8ccc0e583e320fbe5627121e165c4976711e5f56df2933efe48e548c4e7"
+    },
+    {
+      "path": "src/server/foundationHome.ts",
+      "bytes": 2270,
+      "sha256": "9272344e3ce06a6896b709454dc35c576a3e43167fdbb5e80f5bcba74b17d9e8"
+    },
+    {
+      "path": "src/sim/world/realms/session.ts",
+      "bytes": 22520,
+      "sha256": "33ef290db3b9cace7d7106983f30e95d296c514dd43a9be9f77dc5c4cb882b55"
+    },
+    {
+      "path": "src/sim/world/realms/wildlife.ts",
+      "bytes": 8471,
+      "sha256": "73eeddefb0643532c6d24ea129252d797fe62d89457f4d3bdc349540bb301f4f"
+    },
+    {
+      "path": "src/web/realms/client.ts",
+      "bytes": 32829,
+      "sha256": "705128242d0bd55b7b07d8e8e6e3e1c010a35223703087752e4cfca7207ac1cd"
+    },
+    {
+      "path": "src/web/realms/heldInput.ts",
+      "bytes": 4084,
+      "sha256": "1f76c2fcab5627a8a740d0f78358ae2735397690d3f57f14d9a733679710e254"
+    },
+    {
+      "path": "src/web/realms/foundationControls.ts",
+      "bytes": 3592,
+      "sha256": "ad3eba310321f3f92003a2122f4eae185f378f8e7b9cbd84ecf0355374686f45"
+    },
+    {
+      "path": "src/web/realms/wildlifeView.ts",
+      "bytes": 3822,
+      "sha256": "dc7d15ba85cae629172696e7398e0eaf2bc4e22ad517ddd8d14827582a0f680d"
+    },
+    {
+      "path": "tests/realm-held-input.test.ts",
+      "bytes": 7919,
+      "sha256": "ae2758f6e0b7f97f90b07874eff00372bc930547df7014c5ee9a67f338c37744"
+    },
+    {
+      "path": "tests/foundation-encounter.test.ts",
+      "bytes": 8381,
+      "sha256": "6eff0e34394f4983884dafe36ee370d1c00f4fb13d4a9b60cdd905cebdc0482b"
+    },
+    {
+      "path": "tests/foundation-launch.test.ts",
+      "bytes": 7235,
+      "sha256": "4981ff84b9e67ab80d136921c6a5fa3ec06415353f7bfcf7cc83d7b883db7434"
+    },
+    {
+      "path": "tests/foundation-shutdown.test.ts",
+      "bytes": 1781,
+      "sha256": "09eaec44189d45f719b10738ee9cfe5bb5938ce5f005cf02cdc890568af41884"
+    }
+  ]
+}

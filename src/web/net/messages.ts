@@ -112,6 +112,8 @@ export interface BodyState {
     conversation: { stand: Vec3; yaw: number } | null; separation: { x: number; z: number };
   } | null;
   presentationSex?: 'm'|'f';
+  /** Actual canonical Person.species, when supplied by this host. Never inferred from art. */
+  presentationSpecies?: string;
   equipment?: {id:string;catalogId?:string;type:string;slot:import('../../sim/physical/equipment').EquipmentSlot}[];
   inventory?: { id: string; name: string; type: string; quantity: number }[];
   health?: number; maxHealth?: number; needs?: Record<string, number>; wealth?: number;

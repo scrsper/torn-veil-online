@@ -23,6 +23,9 @@ import {contactGrounding} from './contactGrounding';
 import {InteriorCameraFraming,interiorDetailFov,cameraBoxBlocked} from './interiorCamera';
 import {boxObstruction} from './cameraSolids';
 import {JohnSmithInterface} from './johnSmith';
+import { RealmHeldInput } from './heldInput';
+import { FoundationControls } from './foundationControls';
+import { RealmWildlifeView } from './wildlifeView';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -45,6 +48,7 @@ export async function startRealms(): Promise<void> {
   // restrained apparent sun/moon size behind the layered building silhouettes.
   for (const name of ['sun-disc', 'moon-disc']) ctx.scene.getMeshByName(name)?.scaling.setAll(.16);
   const renderer = new RealmRenderer(ctx, atmosphere), factory = new CharacterFactory();
+  const wildlife = new RealmWildlifeView(ctx, atmosphere);
   const legacyObstruction=marchObstruction((x,y,z)=>renderer.cameraBlocked(x,y,z));
   const obstruction:typeof legacyObstruction=(from,dir,max,single)=>renderer.focused.obstruction(from,dir,max)??legacyObstruction(from,dir,max,single);
   const people=new SharedCharacters(ctx.scene);
@@ -68,16 +72,23 @@ export async function startRealms(): Promise<void> {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   await people.load(text=>{document.getElementById('rv-loading')!.textContent=text;});
   const el = (id: string) => document.getElementById(id)!;
-  const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
+  const frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
   let state: RealmSnapshot | null = null, avatar: BodyVisual | null = null, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
   const announced = new Set<string>(); let announcedReady = false;
-  let controllerToken = '', transitioning = false, binding: any = null, sequence = 0, mouseGuard = false, targetId = '', guideStarted = false;
+  let controllerToken = '', transitioning = false, binding: any = null, sequence = 0, targetId = '', guideStarted = false;
+  const visibleTargets = (snapshot: RealmSnapshot) => [
+    ...snapshot.residents.filter(r=>!r.visual.dead&&!r.visual.incapacitated).map(r=>({bodyId:r.visual.bodyId,name:r.name,pos:r.pos})),
+    ...snapshot.observedWildlife.bodies.filter(b=>b.present&&!b.dead).map(b=>({bodyId:b.bodyId,name:b.speciesId.replaceAll('_',' '),pos:b.pos})),
+  ];
   const receipts: any[] = [];
   const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/socket`);
   const send = (value: object) => { if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value)); };
   const command = (value: InteractionCommand) => { if(binding)send({version:2,type:'command',...binding,sequence:sequence++,commandId:`realm-${sequence}`,clientTimeMs:performance.now(),command:value}); };
-  const release = () => { keys.clear(); mouseGuard=false; command({type:'move',x:0,z:0,sprint:false}); command({type:'guard',held:false}); command({type:'crouch',held:false}); };
+  const heldInput = new RealmHeldInput(command), keys = heldInput.keys;
+  const release = () => heldInput.release();
+  heldInput.bindReleaseEvents(window, document);
   const toast = (text: string) => { el('rv-toast').textContent = text; clearTimeout(timer); timer = window.setTimeout(() => { el('rv-toast').textContent = ''; }, 4500); };
+  const foundationUI = new FoundationControls(ui, release, send);
   // John Smith's interface. Requests go to the host; coffer items move by the ordinary container command.
   // Mounted on #ui itself: the shell's button styles are for its own controls.
   const john = new JohnSmithInterface(ui, {
@@ -93,13 +104,14 @@ export async function startRealms(): Promise<void> {
     pose: () => state ? { ...state.body.pos, yaw: movementYaw } : null,
   }, { side: 'left', top: 128 });
   socket.addEventListener('open', () => { connected = true; });
-  socket.addEventListener('close', e => { connected = false; el('rv-loading').hidden = false; el('rv-loading').textContent = e.reason || 'Connection closed. Reload to return to your saved journey.'; });
+  socket.addEventListener('close', e => { connected = false; release(); if (foundationUI.closed(e)) return; el('rv-loading').hidden = false; el('rv-loading').textContent = e.reason || 'Connection closed. Reload to return to your saved journey.'; });
   socket.addEventListener('message', e => {
     const m = JSON.parse(e.data);
     quests.ingestMessage(m); if (m.type === 'state' && m.state?.questJournal) sliceHud.dispatch({type:'ledger',entries:hudJournal(quests.journal())});
-    if (m.type === 'controller') controllerToken = m.token;
+    if (m.type === 'controller') { controllerToken = m.token; if (m.foundation) foundationUI.enable(); }
+    if (m.type === 'foundation_shutdown') foundationUI.update(m);
     if (m.type === 'universe_active') { void openUniverse(); return; }
-    if (m.type === 'binding') { binding=m.interaction; sequence=0; keys.clear(); }
+    if (m.type === 'binding') { binding=m.interaction; sequence=0; release(); }
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired','committed'].includes(m.result))toast(String(m.result).replaceAll('_',' ')); }
     if (m.type === 'regions') renderer.reconcile(m.wanted, m.chunks);
     if (m.type === 'notice') toast(m.message);
@@ -147,7 +159,7 @@ export async function startRealms(): Promise<void> {
     if(s.growth.eligible)actionButton(`Integrate sources — ${s.growth.next}`,{type:'integrate_arcana'});
     if(rankUp.eligible&&rankUp.next&&rankUp.underway===null)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
-    for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
+    for(const action of s.interactions)actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }
     if(params.get('destination')==='tower'&&!guideStarted) { welcome.close();guideStarted=true;send({type:'navigate',target:'tower'}); }
     renderer.setDoors(s.doors);
@@ -166,12 +178,12 @@ export async function startRealms(): Promise<void> {
     } catch (e) { toast(String(e)); return false; } finally { transitioning = false; }
   };
   const openExpedition = async () => {
-    transitioning = true; keys.clear();
+    transitioning = true; release();
     await new Promise<void>(resolve => { socket.addEventListener('close', () => resolve(), { once: true }); socket.close(); if (socket.readyState === WebSocket.CLOSED) resolve(); });
     location.assign('/?arena=1&tower=1&world=1&quality=balanced');
   };
   const openAscent = async () => {
-    if (transitioning) return; transitioning = true; keys.clear();
+    if (transitioning) return; transitioning = true; release();
     await new Promise<void>(resolve => { socket.addEventListener('close', () => resolve(), { once: true }); socket.close(); if (socket.readyState === WebSocket.CLOSED) resolve(); });
     location.assign('/?ascent');
   };
@@ -186,7 +198,7 @@ export async function startRealms(): Promise<void> {
   };
   el('rv-universe').onclick = () => void openUniverse();
   el('rv-canonical').onclick = async () => {
-    if (!state || transitioning) return; transitioning = true; keys.clear();
+    if (!state || transitioning) return; transitioning = true; release();
     try {
       const response = await fetch('/realms/ascent', { method: 'POST', headers: { 'content-type': 'application/json', 'x-realms-controller': controllerToken },
         body: JSON.stringify({ id: crypto.randomUUID(), type: 'enter', revision: state.canonicalTower?.revision ?? 0, runId: state.canonicalTower?.runId }) });
@@ -204,35 +216,31 @@ export async function startRealms(): Promise<void> {
   el('rv-tower').onclick = () => {send({ type: 'navigate', target: 'tower' });closeTravel();};
   (el('rv-camera') as HTMLSelectElement).value='elevated';
   el('rv-camera').onchange=()=>{const value=(el('rv-camera') as HTMLSelectElement).value as keyof typeof PRIMARY_CAMERA_PROFILES,profile=PRIMARY_CAMERA_PROFILES[value]??PRIMARY_CAMERA_PROFILES.elevated;view.camera.preferred=profile.distance;view.camera.pitch=profile.pitch*Math.PI/180;view.persist();closeTravel();};
-  el('rv-cross').onclick = () => { send({ type: 'confirm', id: state?.pending?.id }); keys.clear(); };
+  el('rv-cross').onclick = () => { release(); send({ type: 'confirm', id: state?.pending?.id }); };
   el('rv-cancel').onclick = () => send({ type: 'cancel' });
   el('rv-prompt').onclick = () => send({ type: 'interact' });
   window.addEventListener('keydown', e => {
     if (['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Tab'].includes(e.code)) e.preventDefault();
     if (e.code === 'KeyO' || john.open) return;
     if (welcomeKey(welcome, e.code)) return;
-    if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});release();return; }
+    if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});return; }
     if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
     if (sliceHud.journalOpen) return;
     if (!e.repeat && e.code === 'KeyE' && !journal) send({ type: 'interact' });
     if (!e.repeat && e.code === 'KeyI') toggleJournal();
     if(!e.repeat&&!journal&&!transitioning){
-      if(e.code==='Tab'&&state){const ids=state.residents.filter(r=>!r.visual.dead&&!r.visual.incapacitated).map(r=>r.visual.bodyId);targetId=ids[(ids.indexOf(targetId)+1)%ids.length]??'';toast(state.residents.find(r=>r.visual.bodyId===targetId)?.name??'No visible target');}
+      if(e.code==='Tab'&&state){const targets=visibleTargets(state),ids=targets.map(r=>r.bodyId);targetId=ids[(ids.indexOf(targetId)+1)%ids.length]??'';toast(targets.find(r=>r.bodyId===targetId)?.name??'No visible target');}
       if(['KeyK','KeyL'].includes(e.code))command({type:'attack',targetBodyId:targetId||undefined,weight:e.code==='KeyK'?'heavy':'light',trajectory:e.code==='KeyL'?'low':'high'});
       if(e.code==='Space')command({type:'defend',kind:keys.has('KeyA')||keys.has('KeyD')?'sidestep':'backstep',direction:cameraRelativeMove(Number(keys.has('KeyD'))-Number(keys.has('KeyA')),-1,movementYaw)});
       if(e.code==='KeyC')command({type:'crouch',held:true});
-      if(/^Digit[1-6]$/.test(e.code)&&state){const ability=state.growth.learned[Number(e.code.slice(-1))-1],target=state.residents.find(r=>r.visual.bodyId===targetId);if(ability)command({type:'cast',abilityId:ability.id,target:target?{...target.pos,y:target.pos.y+1}:undefined});}
+      if(/^Digit[1-6]$/.test(e.code)&&state){const ability=state.growth.learned[Number(e.code.slice(-1))-1],target=visibleTargets(state).find(r=>r.bodyId===targetId);if(ability)command({type:'cast',abilityId:ability.id,target:target?{...target.pos,y:target.pos.y+1}:undefined});}
     }
-    if (e.code === 'Escape') { release(); send({ type: 'cancel' });command({type:'cancel'}); if (journal) toggleJournal(); }
-    keys.add(e.code);
+    if (e.code === 'Escape') { if (!e.repeat) { send({ type: 'cancel' });command({type:'cancel'}); } if (journal) { journal=false; el('rv-sheet').hidden=true; params.delete('character'); } return; }
+    if (!journal && !transitioning && !state?.pending) heldInput.keyDown(e.code, e.repeat);
   });
-  window.addEventListener('keyup', e => { keys.delete(e.code); if(e.code==='KeyG')command({type:'guard',held:mouseGuard});if(e.code==='KeyC')command({type:'crouch',held:false});if (e.code.startsWith('Arrow')) view.persist(); });
-  window.addEventListener('blur', release);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
-  window.addEventListener('pointercancel', release);
+  window.addEventListener('keyup', e => { if (e.code.startsWith('Arrow')) view.persist(); });
   canvas.addEventListener('contextmenu', e => e.preventDefault());
-  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning||welcome.open||sliceHud.journalOpen||john.open)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){mouseGuard=true;command({type:'guard',held:true});e.preventDefault();}});
-  window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;command({type:'guard',held:keys.has('KeyG')});}});
+  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning||welcome.open||sliceHud.journalOpen||john.open)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){heldInput.pointerGuardDown();e.preventDefault();}});
   attachOrbit(canvas, view.camera, view.persist);
   ui.querySelector<HTMLElement>('.rv-reticle')!.hidden = true;
   let inputAccumulator = 0, hudAccumulator = 0, inputWasActive = false;
@@ -247,6 +255,7 @@ export async function startRealms(): Promise<void> {
     const s = state;
     if (s) {
       inputAccumulator += dt; hudAccumulator += dt;
+      wildlife.update(dt, s.observedWildlife, renderer.origin, Math.min(.075, Math.max(0, (now-lastStateAt)/1000)));
       const forward = (keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0), right = (keys.has('KeyD') ? 1 : 0) - (keys.has('KeyA') ? 1 : 0);
       if (keys.has('ArrowLeft')) view.camera.addLook(-dt * 1.3, 0); if (keys.has('ArrowRight')) view.camera.addLook(dt * 1.3, 0);
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
@@ -254,11 +263,11 @@ export async function startRealms(): Promise<void> {
         inputAccumulator = 0;
         const still = journal || welcome.open || sliceHud.journalOpen || john.open || !!s.pending;
         const move = walkingMove(cameraRelativeMove(still ? 0 : right, still ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
-        const target=s.residents.find(r=>r.visual.bodyId===targetId),face=!still&&(keys.has('KeyQ')||keys.has('KeyG')||mouseGuard);
+        const target=visibleTargets(s).find(r=>r.bodyId===targetId),face=!still&&(keys.has('KeyQ')||keys.has('KeyG')||heldInput.mouseGuard);
         const active=!!(move.x||move.z||face||!still&&keys.has('KeyC'));
         if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: !still&&(keys.has('ShiftLeft') || keys.has('ShiftRight')),crouch:!still&&keys.has('KeyC') });
         inputWasActive=active;
-        if(!still&&(keys.has('KeyG')||mouseGuard))command({type:'guard',held:true});
+        heldInput.sampleGuard(!still);
       }
       if (!avatar) {
         avatar = people.create(s.avatar, atmosphere, undefined, 'player') ?? (factory.ready ? factory.create(ctx.scene, atmosphere, s.body.id, realize(s.person.id, s.avatar.appearance?.description, undefined)) : null);
@@ -320,8 +329,8 @@ export async function startRealms(): Promise<void> {
   });
   // Observations only: the harness drives ordinary keys/buttons, never mutates the world.
   Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !!avatar && !renderer.pending&&!renderer.focused.error; },
-    inspect: () => ({ receipts:[...receipts],binding,targetId, frames: [...frames], streamingFrames: [...streamingFrames], uploads: [...renderer.uploads], serverSamples: [...serverSamples], journeys: [...journeys], loaded: renderer.loaded.size, pending: renderer.pending,
-      focused:{instances:renderer.focused.count,pending:renderer.focused.pending,error:renderer.focused.error,forests:renderer.focused.forestDetails},meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
+    inspect: () => ({ receipts:[...receipts],binding,targetId,input:{keys:[...keys],guarding:heldInput.guarding}, frames: [...frames], streamingFrames: [...streamingFrames], uploads: [...renderer.uploads], serverSamples: [...serverSamples], journeys: [...journeys], loaded: renderer.loaded.size, pending: renderer.pending,
+      wildlife:wildlife.inspect(),focused:{instances:renderer.focused.count,pending:renderer.focused.pending,error:renderer.focused.error,forests:renderer.focused.forestDetails},meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
       towerDoors: [...renderer.loaded.values()].flatMap(c=>c.doors.filter(d=>d.mesh.name.includes(':tower:')).map(d=>({name:d.mesh.name,enabled:d.mesh.isEnabled(),panels:d.mesh.getChildMeshes().map(m=>m.isEnabled())}))),
       residentLooks:[...residents.values()].map(v=>v.root.metadata), renderer: ctx.kind, staleMs: performance.now() - lastStateAt,
       characterScale: (avatar as BodyVisual & {measureScale?:()=>unknown}|null)?.measureScale?.(),
