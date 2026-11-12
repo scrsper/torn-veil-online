@@ -60,3 +60,5 @@ web/public/arena/creator/
 web/public/focused/collision.json
 web/public/world-assets/
 dist-town
+# Town character models staged by npm run town:characters (hash-checked copies; sources stay where they are).
+web/public/town-characters/

@@ -1,0 +1,21 @@
+{
+ "version": 1,
+ "default": null,
+ "characters": [
+  {
+   "id": "fixture-kaykit-skeleton-warrior",
+   "kind": "test-fixture",
+   "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+   "source": { "repo": "scrsper/torn-veil-online", "commit": null, "path": "web/public/arena/skeleton_warrior.glb" },
+   "file": "fixture-kaykit-skeleton-warrior.glb",
+   "sha256": "f574147b84e1f8ab77f4bb1763e504280d970771db670f7cbae029eef820dbf1",
+   "bytes": 2769472,
+   "license": "CC0-1.0",
+   "attribution": { "text": "KayKit Character Pack: Skeletons 1.0 by Kay Lousberg (www.kaylousberg.com), CC0 1.0; clip-pruned by scripts/web/arena/build-arena.mjs" },
+   "redistribution": "permitted",
+   "fit": { "height": 1.8, "yaw": 0 },
+   "clips": { "idle": "Idle", "walk": "Walking_A", "run": "Running_A" },
+   "unsupported": ["no studio materials, springs, expressions or creator presets: rig/animation adapter regression only"]
+  }
+ ]
+}

@@ -1,0 +1,640 @@
+{
+ "when": "2026-10-22T03:14:19.470Z",
+ "browser": "chrome 155.0.8059.85",
+ "origin": "127.0.0.1 (ephemeral port)",
+ "passed": 34,
+ "failed": 4,
+ "results": [
+  {
+   "scenario": "fixture",
+   "url": "/?character=fixture-kaykit-skeleton-warrior",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 6.898
+     }
+    },
+    {
+     "name": "fixture model loaded (labelled test fixture)",
+     "pass": true,
+     "detail": {
+      "state": "model",
+      "id": "fixture-kaykit-skeleton-warrior",
+      "kind": "test-fixture",
+      "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+      "sha256": "f574147b84e1f8ab77f4bb1763e504280d970771db670f7cbae029eef820dbf1",
+      "clips": [
+       "Idle",
+       "Walking_A",
+       "Running_A"
+      ],
+      "missingClips": [],
+      "unsupported": [
+       "no studio materials, springs, expressions or creator presets: rig/animation adapter regression only"
+      ],
+      "scale": 0.6948566567378692,
+      "weights": {
+       "idle": 1,
+       "walk": 0,
+       "run": 0
+      }
+     }
+    },
+    {
+     "name": "model visible, capsule hidden",
+     "pass": true,
+     "detail": {
+      "capsule": false,
+      "modelMeshes": 11
+     }
+    },
+    {
+     "name": "idle/walk/run clips bound",
+     "pass": true,
+     "detail": {
+      "clips": [
+       "Idle",
+       "Walking_A",
+       "Running_A"
+      ],
+      "missing": []
+     }
+    },
+    {
+     "name": "library GLBs all loaded",
+     "pass": true,
+     "detail": {
+      "tv_08_01_village_lane": "glb",
+      "tv_37_01_market_square": "glb",
+      "tv_42_01_courtyard_passage": "glb",
+      "tvn_biome_021": "glb",
+      "tv_41_01_gate_segment": "glb",
+      "tvn_flora_005": "glb",
+      "tv_04_01_gatehouse": "glb",
+      "tv_31_06_tavern": "glb",
+      "tvn_flora_001": "glb",
+      "tv_10_01_watchpost": "glb",
+      "tv_44_01_dungeon_junction": "glb"
+     }
+    },
+    {
+     "name": "standing plays idle",
+     "pass": true,
+     "detail": {
+      "idle": 1,
+      "walk": 0,
+      "run": 0
+     }
+    },
+    {
+     "name": "keyboard walk moves and blends to walk",
+     "pass": true,
+     "detail": {
+      "speed": 3.2,
+      "weights": {
+       "idle": 0.0000023833643767781796,
+       "walk": 0.9999976166356233,
+       "run": 0
+      }
+     }
+    },
+    {
+     "name": "shift runs and blends to run",
+     "pass": true,
+     "detail": {
+      "speed": 6.4,
+      "weights": {
+       "idle": 8.333608082249482e-15,
+       "walk": 2.772896546574173e-7,
+       "run": 0.999999722710337
+      }
+     }
+    },
+    {
+     "name": "keyboard leg displacement",
+     "pass": true,
+     "detail": {
+      "from": {
+       "x": 0,
+       "z": -77,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "to": {
+       "x": 0,
+       "z": -62.49277777777804,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "metres": 14.507222222221962
+     }
+    },
+    {
+     "name": "stops and returns to idle",
+     "pass": true,
+     "detail": {
+      "speed": 0
+     }
+    },
+    {
+     "name": "drag orbits the camera",
+     "pass": true,
+     "detail": {
+      "before": {
+       "yaw": 0,
+       "pitch": 0.05,
+       "zoom": 3.2,
+       "boom": 3.2
+      },
+      "after": {
+       "yaw": -1.2000000000000002,
+       "pitch": 0.24999999999999994,
+       "zoom": 3.2,
+       "boom": 3.2
+      }
+     }
+    },
+    {
+     "name": "camera boom shortened by collision at full zoom",
+     "pass": false,
+     "detail": {
+      "yaw": -2.999999999999999,
+      "pitch": 0.24999999999999994,
+      "zoom": 16,
+      "boom": 15.996637721495063
+     }
+    },
+    {
+     "name": "re-centre hook keeps position",
+     "pass": true,
+     "detail": {
+      "x": 0,
+      "z": -62.49277777777804,
+      "y": 0,
+      "yaw": 0,
+      "speed": 0,
+      "target": null
+     }
+    },
+    {
+     "name": "click-to-move route street → plaza → north gate",
+     "pass": false,
+     "detail": {
+      "clicks": 6,
+      "reached": [
+       {
+        "waypoint": "main street past the lane block",
+        "target": {
+         "x": 0,
+         "z": -46,
+         "name": "main street past the lane block"
+        },
+        "at": {
+         "x": 1.1,
+         "z": -57.27
+        },
+        "ok": false,
+        "tries": 6
+       }
+      ],
+      "detours": [
+       {
+        "from": {
+         "x": 0,
+         "z": -57.62
+        },
+        "aim": {
+         "x": 3.499999996113139,
+         "z": -46.000164948578174
+        },
+        "side": 1
+       },
+       {
+        "from": {
+         "x": 1.23,
+         "z": -57.27
+        },
+        "aim": {
+         "x": 3.4793579020035614,
+         "z": -45.620436316587885
+        },
+        "side": 1
+       },
+       {
+        "from": {
+         "x": 1.23,
+         "z": -57.27
+        },
+        "aim": {
+         "x": -3.4793333491131047,
+         "z": -46.37978868565215
+        },
+        "side": -1
+       }
+      ],
+      "blocked": {
+       "at": {
+        "x": 1.1017315372215106,
+        "z": -57.26673213810785,
+        "y": 0,
+        "yaw": -0.38654547855762567,
+        "speed": 0,
+        "target": null
+       },
+       "waypoint": {
+        "x": 0,
+        "z": -46,
+        "name": "main street past the lane block"
+       },
+       "reason": "no progress"
+      }
+     }
+    },
+    {
+     "name": "reached north gate",
+     "pass": false,
+     "detail": {
+      "x": 1.1017315372215106,
+      "z": -57.26673213810785,
+      "y": 0,
+      "yaw": -0.38654547855762567,
+      "speed": 0,
+      "target": null
+     }
+    },
+    {
+     "name": "no page errors",
+     "pass": false,
+     "detail": [
+      "error: Failed to load resource: the server responded with a status of 404 (Not Found) @ /favicon.ico"
+     ]
+    }
+   ],
+   "console": [
+    "error: Failed to load resource: the server responded with a status of 404 (Not Found) @ /favicon.ico",
+    "info: [town] character model fixture-kaykit-skeleton-warrior test-fixture scale 0.695 all clips @ /assets/index-DFl0gFO6.js"
+   ],
+   "failedRequests": [],
+   "shots": [
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\01-fixture-spawn-player-height.png",
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\02-fixture-walking-keyboard.png",
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\03-fixture-camera-collision.png",
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\05-fixture-north-gate-player-height.png"
+   ],
+   "character": {
+    "state": "model",
+    "id": "fixture-kaykit-skeleton-warrior",
+    "kind": "test-fixture",
+    "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+    "sha256": "f574147b84e1f8ab77f4bb1763e504280d970771db670f7cbae029eef820dbf1",
+    "clips": [
+     "Idle",
+     "Walking_A",
+     "Running_A"
+    ],
+    "missingClips": [],
+    "unsupported": [
+     "no studio materials, springs, expressions or creator presets: rig/animation adapter regression only"
+    ],
+    "scale": 0.6948566567378692,
+    "weights": {
+     "idle": 0.9999999997889416,
+     "walk": 2.1105845335019516e-10,
+     "run": 2.737898219509053e-25
+    }
+   }
+  },
+  {
+   "scenario": "none",
+   "url": "/?character=none",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 5.191
+     }
+    },
+    {
+     "name": "none: capsule shown with reason",
+     "pass": true,
+     "detail": {
+      "state": "capsule",
+      "reason": "capsule requested (?character=none)",
+      "weights": null
+     }
+    },
+    {
+     "name": "none: capsule visible, no model meshes",
+     "pass": true,
+     "detail": {
+      "capsule": true,
+      "modelMeshes": 0
+     }
+    },
+    {
+     "name": "none: keyboard movement works",
+     "pass": true,
+     "detail": {
+      "from": {
+       "x": 0,
+       "z": -77,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "to": {
+       "x": 0,
+       "z": -70.75555555555619,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "metres": 6.244444444443815
+     }
+    },
+    {
+     "name": "none: no page errors",
+     "pass": true,
+     "detail": []
+    }
+   ],
+   "console": [],
+   "failedRequests": [],
+   "shots": [
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\06-none-capsule.png"
+   ],
+   "character": {
+    "state": "capsule",
+    "reason": "capsule requested (?character=none)",
+    "weights": null
+   }
+  },
+  {
+   "scenario": "default",
+   "url": "/",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 5.664
+     }
+    },
+    {
+     "name": "default: capsule shown with reason",
+     "pass": true,
+     "detail": {
+      "state": "capsule",
+      "reason": "no default character",
+      "weights": null
+     }
+    },
+    {
+     "name": "default: capsule visible, no model meshes",
+     "pass": true,
+     "detail": {
+      "capsule": true,
+      "modelMeshes": 0
+     }
+    },
+    {
+     "name": "default: keyboard movement works",
+     "pass": true,
+     "detail": {
+      "from": {
+       "x": 0,
+       "z": -77,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "to": {
+       "x": 0,
+       "z": -70.75555555555619,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "metres": 6.244444444443815
+     }
+    },
+    {
+     "name": "default: no page errors",
+     "pass": true,
+     "detail": []
+    }
+   ],
+   "console": [],
+   "failedRequests": [],
+   "shots": [],
+   "character": {
+    "state": "capsule",
+    "reason": "no default character",
+    "weights": null
+   }
+  },
+  {
+   "scenario": "unknown",
+   "url": "/?character=studio-missing",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 5.547
+     }
+    },
+    {
+     "name": "unknown: capsule shown with reason",
+     "pass": true,
+     "detail": {
+      "state": "fallback",
+      "reason": "character \"studio-missing\" is not staged",
+      "weights": null
+     }
+    },
+    {
+     "name": "unknown: capsule visible, no model meshes",
+     "pass": true,
+     "detail": {
+      "capsule": true,
+      "modelMeshes": 0
+     }
+    },
+    {
+     "name": "unknown: keyboard movement works",
+     "pass": true,
+     "detail": {
+      "from": {
+       "x": 0,
+       "z": -77,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "to": {
+       "x": 0,
+       "z": -70.75555555555619,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "metres": 6.244444444443815
+     }
+    },
+    {
+     "name": "unknown: no page errors",
+     "pass": true,
+     "detail": []
+    }
+   ],
+   "console": [
+    "warning: [town] character fallback to capsule: character \"studio-missing\" is not staged @ /assets/index-DFl0gFO6.js"
+   ],
+   "failedRequests": [],
+   "shots": [],
+   "character": {
+    "state": "fallback",
+    "reason": "character \"studio-missing\" is not staged",
+    "weights": null
+   }
+  },
+  {
+   "scenario": "tampered",
+   "url": "/?character=fixture-kaykit-skeleton-warrior&characterBase=/town-characters-tampered/",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 5.56
+     }
+    },
+    {
+     "name": "tampered: capsule shown with reason",
+     "pass": true,
+     "detail": {
+      "state": "fallback",
+      "reason": "fixture-kaykit-skeleton-warrior: hash f574147b84e1… ≠ pinned 0574147b84e1…",
+      "id": "fixture-kaykit-skeleton-warrior",
+      "kind": "test-fixture",
+      "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+      "weights": null
+     }
+    },
+    {
+     "name": "tampered: capsule visible, no model meshes",
+     "pass": true,
+     "detail": {
+      "capsule": true,
+      "modelMeshes": 0
+     }
+    },
+    {
+     "name": "tampered: keyboard movement works",
+     "pass": true,
+     "detail": {
+      "from": {
+       "x": 0,
+       "z": -77,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "to": {
+       "x": 0,
+       "z": -70.70222222222286,
+       "y": 0,
+       "yaw": 0,
+       "speed": 0,
+       "target": null
+      },
+      "metres": 6.297777777777142
+     }
+    },
+    {
+     "name": "tampered: no page errors",
+     "pass": true,
+     "detail": []
+    }
+   ],
+   "console": [
+    "warning: [town] character fallback to capsule: fixture-kaykit-skeleton-warrior: hash f574147b84e1… ≠ pinned 0574147b84e1… @ /assets/index-DFl0gFO6.js"
+   ],
+   "failedRequests": [],
+   "shots": [
+    "C:\\Users\\green\\Documents\\projects\\torn-veil-town-playtest\\docs\\evidence\\town-character\\06-tampered-capsule.png"
+   ],
+   "character": {
+    "state": "fallback",
+    "reason": "fixture-kaykit-skeleton-warrior: hash f574147b84e1… ≠ pinned 0574147b84e1…",
+    "id": "fixture-kaykit-skeleton-warrior",
+    "kind": "test-fixture",
+    "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+    "weights": null
+   }
+  },
+  {
+   "scenario": "fixture-movement-parity",
+   "url": "/?character=fixture-kaykit-skeleton-warrior",
+   "checks": [
+    {
+     "name": "town ready",
+     "pass": true,
+     "detail": {
+      "seconds": 5.725
+     }
+    },
+    {
+     "name": "model does not change movement (2 s walk vs capsule)",
+     "pass": true,
+     "detail": {
+      "model": 6.244444444443815,
+      "capsule": 6.244444444443815
+     }
+    }
+   ],
+   "console": [
+    "info: [town] character model fixture-kaykit-skeleton-warrior test-fixture scale 0.695 all clips @ /assets/index-DFl0gFO6.js"
+   ],
+   "failedRequests": [],
+   "shots": [],
+   "character": {
+    "state": "model",
+    "id": "fixture-kaykit-skeleton-warrior",
+    "kind": "test-fixture",
+    "label": "KayKit Skeleton Warrior (CC0 test fixture, not a studio character)",
+    "sha256": "f574147b84e1f8ab77f4bb1763e504280d970771db670f7cbae029eef820dbf1",
+    "clips": [
+     "Idle",
+     "Walking_A",
+     "Running_A"
+    ],
+    "missingClips": [],
+    "unsupported": [
+     "no studio materials, springs, expressions or creator presets: rig/animation adapter regression only"
+    ],
+    "scale": 0.6948566567378692,
+    "weights": {
+     "idle": 1,
+     "walk": 0,
+     "run": 0
+    }
+   }
+  }
+ ]
+}

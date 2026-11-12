@@ -12,11 +12,13 @@ import { Kit } from './kit';
 import { buildProps, setGround } from './props';
 import { Atmosphere, type TimeOfDay } from './atmosphere';
 import { makeFigure, makeMarker, type Figure } from './actors';
+import { characterBase, loadTownCharacter, type TownCharacter } from './characterModel';
 import { buildPagoda } from '../planet/pagoda';
 import { mountHud } from './hud';
 
 /** The starting town: a self-contained page (town.html). Seeded plan → meshes; a fixed-step
- * walker and townsfolk sim; a third-person camera. URL: ?lite, ?time=golden|dusk|day, ?seed=. */
+ * walker and townsfolk sim; a third-person camera. URL: ?lite, ?time=golden|dusk|day, ?seed=,
+ * ?character=<staged id>|none (cosmetic player model, see characterModel.ts), ?characterBase=/dir/. */
 const STEP = 1 / 60;
 /** Library ground slabs replaced by the town's own ground (they read as hard-edged squares). */
 const HIDE_GROUND = new Set(['tv_04_01_gatehouse', 'tv_08_01_village_lane', 'tv_10_01_watchpost', 'tv_44_01_dungeon_junction', 'tv_37_01_market_square']);
@@ -74,6 +76,9 @@ export async function startTown() {
   let player: PlayerState = createPlayer(layout.spawn.x, layout.spawn.z, layout.spawn.yaw, world), prev = player;
   const hero = makeFigure(scene, 'player', '#2f4f6f', { hat: 'hood', height: 1.8 });
   for (const m of hero.root.getChildMeshes()) atmo.shadows.addShadowCaster(m, false);
+  // Optional staged character model: dresses the hero only; position, yaw and collision stay with the sim.
+  let heroModel: TownCharacter = { status: { state: 'capsule' }, update() {} };
+  const characterReady = loadTownCharacter(scene, hero, { request: params.get('character'), base: characterBase(params.get('characterBase')), shadows: atmo.shadows }).then(c => { heroModel = c; });
   const folk = new TownFolk(layout.npcs, { blocked: (x, z, r) => world.blocked(x, z, r), move: (x, z, dx, dz, r) => world.move(x, z, dx, dz, r) }, seed);
   const hats = ['brim', null, 'cap', null, 'brim'] as const;
   const figures: Figure[] = layout.npcs.map((n, i) => makeFigure(scene, n.id, '#' + n.colour.toString(16).padStart(6, '0'), { hat: n.role === 'guard' ? 'cap' : hats[i % hats.length], height: 1.62 + ((i * 37) % 10) / 50, skin: ['#c99a78', '#a8785a', '#e0b896', '#8a5a3c'][i % 4] }));
@@ -151,6 +156,7 @@ export async function startTown() {
     const a = acc / STEP, px = prev.x + (player.x - prev.x) * a, pz = prev.z + (player.z - prev.z) * a, py = prev.y + (player.y - prev.y) * a;
     hero.root.position.set(px, py, pz); hero.root.rotation.y = prev.yaw + angleDelta(prev.yaw, player.yaw) * a;
     const bob = Math.min(1, player.speed / 3) * Math.abs(Math.sin(clock * 9)) * .05; hero.body.position.y = hero.body.metadata.y + bob; hero.head.position.y = hero.head.metadata.y + bob;
+    heroModel.update(player.speed, dt);
     if (!player.target) marker.setEnabled(false);
     else { markerAge += dt; const s = 1 + .15 * Math.sin(markerAge * 6); marker.scaling.set(s, 1, s); }
     // Townsfolk, interpolated between ticks; a step bob while walking.
@@ -179,9 +185,9 @@ export async function startTown() {
   for (const m of scene.materials) if (m instanceof PBRMaterial || m instanceof StandardMaterial) m.maxSimultaneousLights = 6;
 
   engine.runRenderLoop(() => scene.render());
-  await Promise.all([libraryReady, natural]);
+  await Promise.all([libraryReady, natural, characterReady]);
   for (const m of scene.materials) if (m instanceof PBRMaterial || m instanceof StandardMaterial) m.maxSimultaneousLights = 6;
-  await scene.whenReadyAsync(); ready = true; status.ready(lib.status);
+  await scene.whenReadyAsync(); ready = true; status.ready(lib.status, heroModel.status);
   // Hooks for headless captures and diagnostics (presentation only).
   (window as unknown as { __town: unknown }).__town = {
     get ready() { return ready; }, layout, status: lib.status,
@@ -189,6 +195,14 @@ export async function startTown() {
     /** Capture-only free camera (null restores the follow camera). */
     freeCam(p: number[] | null, t?: number[]) { freeCam = p && t ? [new Vector3(p[0], p[1], p[2]), new Vector3(t[0], t[1], t[2])] : null; },
     player: () => ({ ...player }), fps: () => engine.getFps(),
+    character: () => ({ ...heroModel.status, weights: heroModel.weights?.() ?? null }),
+    orbit: () => ({ ...orbit, boom }),
+    hero: () => ({ capsule: hero.body.isEnabled(), modelMeshes: hero.root.getChildMeshes().filter(m => m.name.startsWith('char:') && m.isEnabled()).length }),
+    /** Client-pixel position of a ground point, for driving real clicks in smoke tests. */
+    project(x: number, z: number) {
+      const r = canvas.getBoundingClientRect(), p = Vector3.Project(new Vector3(x, world.groundAt(x, z), z), Matrix.Identity(), scene.getTransformMatrix(), cam.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight()));
+      return { x: r.left + p.x * r.width / engine.getRenderWidth(), y: r.top + p.y * r.height / engine.getRenderHeight(), z: p.z };
+    },
   };
 }
 const nodePath = (m: AbstractMesh) => { let s = '', n: { name: string; parent: unknown } | null = m; while (n) { s += n.name + '/'; n = n.parent as typeof n; } return s; };
